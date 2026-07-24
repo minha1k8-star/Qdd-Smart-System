@@ -1,0 +1,10 @@
+GHI CHÚ KỸ THUẬT v1.3.1
+
+Đã chuyển 13 hằng số M_... lên đầu module, trước Auto_Open.
+Sub/End Sub: 42/42
+Function/End Function: 74/74
+Khai báo cấp module sau thủ tục: 0
+Tên thủ tục trùng: 0
+Application.Run thực thi: 0
+Option Explicit: 1
+Attribute VB_Name: 1

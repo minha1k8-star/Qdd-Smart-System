@@ -1,0 +1,6 @@
+# Dữ liệu vận hành thực tế - chỉ lưu cục bộ, không đưa lên GitHub public
+test-data/*
+!test-data/README.md
+
+# macOS
+.DS_Store
