@@ -21,7 +21,9 @@ Toàn bộ thao tác nằm gọn trong 1 sidebar, có lịch chọn ngày và up
 
 ### 1. Lưu CSV công tơ
 
-Chọn ngày, chọn tổ máy, chọn loại dữ liệu (Qdc/Qmp), chọn file CSV từ máy, bấm **Lưu CSV**. Xong ngay trong 1 bước — trình duyệt tự đọc file, gửi thẳng lên hệ thống, **tự tra đúng mã công tơ theo cấu hình trong `CAI_DAT`** (không cần bạn nhớ mã công tơ là số mấy).
+Chọn tổ máy, chọn loại dữ liệu (Qdc/Qmp), chọn file CSV từ máy — **hệ thống tự đọc ngày ghi trong file** (cột A) và điền sẵn vào ô Ngày, bạn chỉ cần kiểm tra lại/sửa nếu cần rồi bấm **Lưu CSV**. Tự tra đúng mã công tơ theo cấu hình trong `CAI_DAT` (không cần nhớ mã công tơ là số mấy).
+
+> **Khác với VBA cũ**: bản VBA v1.3.1 chủ động **không đọc** ngày trong CSV (chỉ để tham khảo), vì Excel từng đọc sai định dạng ngày tuỳ theo Regional Settings của từng máy (Mac/Windows) — xem [docs/14_Knowledge_Transfer.md](../../docs/14_Knowledge_Transfer.md). Google Apps Script không có giới hạn đó (không phụ thuộc cài đặt vùng của máy người dùng khi đọc chuỗi text), nên bản này đọc và dùng ngày trong file làm gợi ý tự động, có kiểm tra lại bằng mắt trước khi lưu.
 
 ### 2. Tính 1 ngày
 
