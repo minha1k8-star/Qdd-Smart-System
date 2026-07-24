@@ -3,14 +3,42 @@
  * nằm ở Library (QDDCoreLibrary) - các hàm ở đây chỉ chuyển đổi định dạng.
  */
 
-function getConfig_() {
+/** Đọc giá trị cột B của CAI_DAT theo NHÃN ở cột A (không theo số dòng cố định). */
+function getConfigValue_(label) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CAI_DAT);
-  var values = sh.getRange('B2:B4').getValues();
+  var lastRow = sh.getLastRow();
+  if (lastRow === 0) return null;
+  var rows = sh.getRange(1, 1, lastRow, 2).getValues();
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][0]).trim() === label) return rows[i][1];
+  }
+  return null;
+}
+
+function getConfig_() {
+  var L = CAI_DAT_LABELS;
   return {
-    rampRate: Number(values[0][0]),
-    qddVCoef: Number(values[1][0]),
-    tolerance: Number(values[2][0]),
+    rampRate: Number(getConfigValue_(L.RAMP_RATE)),
+    qddVCoef: Number(getConfigValue_(L.QDD_V_COEF)),
+    tolerance: Number(getConfigValue_(L.TOLERANCE)),
   };
+}
+
+/**
+ * Tra mã công tơ thật (vd "6001") theo (tổ máy, loại dữ liệu) từ CAI_DAT.
+ * Mã công tơ KHÁC NHAU giữa các tổ máy và giữa các nhà máy - không có giá
+ * trị mặc định cố định ngoài Sheet mẫu ban đầu (6001/6303 cho S1).
+ * @param {string} unit "S1"|"S2"
+ * @param {string} role "Qdc"|"Qmp"
+ * @returns {string|null}
+ */
+function resolveMeterCode_(unit, role) {
+  var L = CAI_DAT_LABELS;
+  var key = 'METER_' + role.toUpperCase() + '_' + unit.toUpperCase(); // vd METER_QDC_S1
+  var label = L[key];
+  if (!label) return null;
+  var value = getConfigValue_(label);
+  return value ? String(value).trim() : null;
 }
 
 /** @returns {import('../QDD-Core-Library/CommandFilter').RawCommand[]} */
@@ -46,11 +74,17 @@ function appendCommand(command) {
 }
 
 /**
+ * Đọc 48 giá trị KwhGiao theo (ngày, tổ máy, loại dữ liệu) - mã công tơ
+ * thật được TRA TỪ CAI_DAT (khác nhau giữa các tổ máy/nhà máy, không cố
+ * định "6001"/"6303").
  * @param {Date} date
- * @param {string} meterCode  "6001" | "6303"
- * @returns {number[]|null}  48 giá trị, hoặc null nếu chưa có dữ liệu ngày đó
+ * @param {string} unit  "S1"|"S2"
+ * @param {string} role  "Qdc"|"Qmp"
+ * @returns {number[]|null}  48 giá trị, hoặc null nếu chưa có dữ liệu/chưa cấu hình mã công tơ
  */
-function readCsv48_(date, meterCode) {
+function readCsv48_(date, unit, role) {
+  var meterCode = resolveMeterCode_(unit, role);
+  if (!meterCode) return null;
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CSV_DATA);
   var lastRow = sh.getLastRow();
   if (lastRow < 2) return null;
@@ -61,7 +95,7 @@ function readCsv48_(date, meterCode) {
     var rowDateStr = rowDate instanceof Date
       ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), 'yyyy-MM-dd')
       : String(rowDate);
-    if (rowDateStr === dateStr && String(rows[i][1]) === String(meterCode)) {
+    if (rowDateStr === dateStr && String(rows[i][1]) === meterCode) {
       return rows[i].slice(2, 50);
     }
   }

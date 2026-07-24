@@ -20,12 +20,15 @@
 <div id="status"></div>
 
 <h3>1. Lưu CSV công tơ</h3>
-<div class="hint">Chọn đúng ngày của file CSV, chọn công tơ (6001 = Qdc, 6303 = Qmp), rồi chọn file từ máy. Cần lưu đủ CẢ HAI công tơ cho 1 ngày thì mới tính được ngày đó.</div>
+<div class="hint">Chọn đúng ngày, tổ máy và loại dữ liệu (Qdc/Qmp) của file CSV đang có, rồi chọn file từ máy - hệ thống tự tra đúng mã công tơ theo cấu hình ở sheet CAI_DAT (mỗi tổ máy/nhà máy có mã công tơ khác nhau, không cố định 6001/6303). Cần lưu đủ CẢ Qdc và Qmp cho 1 (ngày, tổ máy) thì mới tính được ngày đó.</div>
 <label>Ngày <input type="date" id="csvDate"></label>
-<label>Công tơ
-  <select id="csvMeter">
-    <option value="6001">6001 (Qdc)</option>
-    <option value="6303">6303 (Qmp)</option>
+<label>Tổ máy
+  <select id="csvUnit"><option value="S1">S1</option><option value="S2">S2</option></select>
+</label>
+<label>Loại dữ liệu
+  <select id="csvRole">
+    <option value="Qdc">Qdc (công suất giao - công tơ 1)</option>
+    <option value="Qmp">Qmp (công suất mua - công tơ 2)</option>
   </select>
 </label>
 <label>File CSV <input type="file" id="csvFile" accept=".csv"></label>
@@ -83,7 +86,8 @@
 
   function submitCsv() {
     var date = document.getElementById('csvDate').value;
-    var meter = document.getElementById('csvMeter').value;
+    var unit = document.getElementById('csvUnit').value;
+    var role = document.getElementById('csvRole').value;
     var fileInput = document.getElementById('csvFile');
     if (!date) { setStatus('err', 'Chọn ngày trước.'); return; }
     if (!fileInput.files.length) { setStatus('err', 'Chọn file CSV trước.'); return; }
@@ -94,7 +98,7 @@
       google.script.run
         .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
         .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
-        .sidebar_saveCsv(date, meter, e.target.result);
+        .sidebar_saveCsv(date, unit, role, e.target.result);
     };
     reader.onerror = function () { restore(); setStatus('err', '✗ Không đọc được file.'); };
     reader.readAsText(fileInput.files[0]);

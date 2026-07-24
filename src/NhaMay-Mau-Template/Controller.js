@@ -4,9 +4,15 @@
  * lỗi (withFailureHandler bên client bắt lại).
  */
 
-function sidebar_saveCsv(dateStr, meterCode, csvText) {
+function sidebar_saveCsv(dateStr, unit, role, csvText) {
   var date = parseIsoDate_(dateStr);
   if (!date) throw new Error('Ngày không hợp lệ.');
+
+  var meterCode = resolveMeterCode_(unit, role);
+  if (!meterCode) {
+    throw new Error('Chưa cấu hình mã công tơ ' + role + ' cho tổ ' + unit +
+      ' trong sheet CAI_DAT (dòng "Mã công tơ ' + role + ' - ' + unit + '"). Điền mã công tơ thật rồi thử lại.');
+  }
 
   var kwhGiao = QDDCoreLibrary.extractKwhGiaoFromCsv(csvText);
 
@@ -25,7 +31,7 @@ function sidebar_saveCsv(dateStr, meterCode, csvText) {
     }
   }
   dataSh.appendRow([date, meterCode].concat(kwhGiao));
-  return 'Đã lưu CSV công tơ ' + meterCode + ' cho ngày ' +
+  return 'Đã lưu CSV ' + role + ' (công tơ ' + meterCode + ', tổ ' + unit + ') cho ngày ' +
     Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd/MM/yyyy') + '.';
 }
 

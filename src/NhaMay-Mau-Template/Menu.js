@@ -35,10 +35,10 @@ function computeOneDay_(date, unit) {
   if (p0Info === null) {
     return { error: 'Chưa có P0 (không có trong P0_NGAY, và ngày trước đó chưa được tính). Cần điền tay P0_NGAY cho ngày đầu tiên.' };
   }
-  var qdc48 = readCsv48_(date, '6001');
-  var qmp48 = readCsv48_(date, '6303');
+  var qdc48 = readCsv48_(date, unit, 'Qdc');
+  var qmp48 = readCsv48_(date, unit, 'Qmp');
   if (!qdc48 || !qmp48) {
-    return { error: 'Thiếu dữ liệu CSV (6001 hoặc 6303) cho ngày này trong CSV_DATA.' };
+    return { error: 'Thiếu dữ liệu CSV Qdc/Qmp cho (ngày, tổ máy) này - kiểm tra đã lưu CSV chưa, và đã điền đúng mã công tơ trong CAI_DAT chưa.' };
   }
   try {
     var periods = QDDCoreLibrary.calculateDay({

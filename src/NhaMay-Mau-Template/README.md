@@ -9,8 +9,10 @@ Google Sheets đầu tiên gắn `QDD-Core-Library`, dùng làm **bản mẫu đ
 ## Bắt đầu dùng
 
 1. Mở Sheet ở link trên. Nếu chưa thấy menu **"QDD Smart System"** trên thanh menu, tải lại trang (F5).
-2. **QDD Smart System → Thiết lập sheet** — tạo đủ các sheet cần thiết (chỉ cần chạy 1 lần).
-3. Điền `CAI_DAT` đúng thông số thật của nhà máy (tốc độ ramp, hệ số Qdd_V, dung sai) — mặc định đang để theo Duyên Hải 1.
+2. **QDD Smart System → Thiết lập sheet** — tạo đủ các sheet cần thiết (chạy được nhiều lần, tự bù các dòng cấu hình còn thiếu nếu chạy lại sau khi nâng cấp).
+3. Điền `CAI_DAT` đúng thông số thật của nhà máy:
+   - Tốc độ ramp, hệ số Qdd_V, dung sai.
+   - **Mã công tơ Qdc/Qmp cho từng tổ máy** (4 dòng riêng: Qdc-S1, Qmp-S1, Qdc-S2, Qmp-S2). ⚠️ **Mã công tơ khác nhau giữa S1 và S2, và khác nhau giữa các nhà máy** — "6001"/"6303" chỉ là ví dụ mặc định cho Duyên Hải 1 tổ S1, phải tự điền đúng mã thật khi copy Sheet cho nhà máy/tổ máy khác.
 4. **QDD Smart System → Bảng điều khiển** — mở sidebar bên phải, dùng cho mọi thao tác còn lại (không cần dùng menu nữa).
 
 ## Bảng điều khiển (sidebar)
@@ -19,7 +21,7 @@ Toàn bộ thao tác nằm gọn trong 1 sidebar, có lịch chọn ngày và up
 
 ### 1. Lưu CSV công tơ
 
-Chọn ngày, chọn công tơ (6001 = Qdc, 6303 = Qmp), chọn file CSV từ máy, bấm **Lưu CSV**. Xong ngay trong 1 bước — trình duyệt tự đọc file, gửi thẳng lên hệ thống.
+Chọn ngày, chọn tổ máy, chọn loại dữ liệu (Qdc/Qmp), chọn file CSV từ máy, bấm **Lưu CSV**. Xong ngay trong 1 bước — trình duyệt tự đọc file, gửi thẳng lên hệ thống, **tự tra đúng mã công tơ theo cấu hình trong `CAI_DAT`** (không cần bạn nhớ mã công tơ là số mấy).
 
 ### 2. Tính 1 ngày
 
