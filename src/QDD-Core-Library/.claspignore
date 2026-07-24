@@ -1,0 +1,6 @@
+**/**
+!*.js
+!appsscript.json
+tests/**
+node_modules/**
+.git/**
