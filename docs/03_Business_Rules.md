@@ -35,6 +35,8 @@ Danh sách lệnh gốc (`LENH_GOC`) có nhiều loại lệnh (`Y`), công su�
 
 Lệnh nào không thoả điều kiện `P=1` (hợp lệ) bị loại khỏi `LENH_DIEU_DO` — không tham gia tính toán.
 
+> **Khoảng trống đã phát hiện qua dữ liệu thực tế (07/2026)**: điều kiện `E>0`/`P>0` khiến một lệnh **dừng máy hợp lệ với công suất mục tiêu = 0** (rất tự nhiên với lệnh "Ngừng tổ máy") bị loại hoàn toàn khỏi tính toán, làm công suất bị giữ sai ở mức trước đó thay vì về 0. Xem chi tiết và đề xuất xử lý ở [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md) và test case [UAT-32](09_Test_Cases.md).
+
 ### R04 — Vì sao không dùng thời điểm hoàn thành
 
 Ramp phải bắt đầu tại **thời điểm bắt đầu thực hiện (BĐTH, cột G)**, không phải thời điểm hoàn thành (cột H). Đây từng là nguồn gốc lỗi lệch số liệu lớn trong kiểm thử (xem [14_Knowledge_Transfer.md](14_Knowledge_Transfer.md)) khi nhầm lẫn hai cột này.

@@ -33,6 +33,7 @@ Nguồn gốc: sheet `KIEM_THU_UAT` trong workbook chính thức (`legacy/CongCu
 | UAT-29 | Kiểm tra module tháng | Có lịch sử tháng | Bấm nút 13 | Báo module tháng ĐẠT | Chưa chạy |
 | UAT-30 | Xuất báo cáo tháng trên Windows | Có snapshot ngày | Bấm nút 12 | Không còn lỗi "Cannot run the macro" | Chưa chạy |
 | UAT-31 | Xuất báo cáo tháng trên Mac | Có snapshot ngày | Bấm nút 12 | Xuất được, hoặc tự lưu cạnh workbook | Chưa chạy |
+| UAT-32 | Lệnh dừng máy CS=0 | Lệnh "Ngừng tổ máy", CS ra lệnh=0, CS hoàn thành=0, Hoàn thành=1 | Tính Qdd | Công suất về 0 kể từ thời điểm dừng | **KHÔNG ĐẠT** — xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md) |
 
 ## Nghi vấn cần xác nhận: UAT-11 (CSV sai ngày)
 

@@ -39,8 +39,10 @@ Qdd-Smart-System/
 │   └── PROJECT_STATUS.md
 ├── legacy/
 │   └── ...                 # Bản Excel/VBA v1.3.1 đang chạy chính thức
+├── tools/
+│   └── reference_engine/   # Bản tái hiện thuật toán bằng Python để kiểm tra/đối chiếu
 └── test-data/
-    └── ...                 # Dữ liệu thực tế dùng để kiểm tra độ chính xác
+    └── ...                 # Dữ liệu thực tế dùng để kiểm tra độ chính xác (gitignore)
 ```
 
 ## Công nghệ

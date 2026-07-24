@@ -10,6 +10,7 @@
 - Đưa bản Excel/VBA v1.3.1 (bản chính thức đang chạy) vào `legacy/`.
 - Xác nhận hướng kiến trúc Giai đoạn 2: **Google Sheets + Apps Script Library dùng chung**, không làm Web App trung tâm — ghi lại quyết định và lý do ở `docs/05_System_Architecture.md`.
 - Thêm `docs/04_Algorithm_Specification.md` — trích xuất trực tiếp từ công thức Excel thật (`XU_LY_LENH`, `DOAN_CONG_SUAT`, `DIEN_TICH`, `TINH_TOAN`) và code VBA, phát hiện quan trọng: toàn bộ Ramp Engine/nội suy/tích phân diện tích nằm ở công thức Excel, không nằm trong VBA; đồng thời phát hiện nghi vấn UAT-11 (CSV sai ngày có thể không còn bị từ chối trong v1.3.1).
+- Kiểm tra độ chính xác bằng dữ liệu vận hành thật (10 ngày, 07/2026, nhà máy Duyên Hải 1): 18/19 tổ hợp ngày+tổ máy khớp gần tuyệt đối với kết quả tính tay. Phát hiện lỗ hổng thật trong R01-R03: lệnh dừng máy với CS ra lệnh=0 bị loại khỏi tính toán, gây sai công suất đến hết ngày — thêm UAT-32, xem `docs/15_Accuracy_Validation_2026-07.md`.
 
 ## v1.3.1 — Sửa lỗi compile All-in-One
 
