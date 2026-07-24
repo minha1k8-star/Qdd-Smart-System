@@ -47,6 +47,14 @@ Chọn khoảng ngày + tổ máy (tick chọn S1/S2), bấm **Tính hàng loạ
 
 Chọn tháng, bấm **Tổng hợp** — gộp trực tiếp từ các ngày đã tính trong `KET_QUA` (không cần tính lại, không cần snapshot như VBA).
 
+### 6. Xuất báo cáo
+
+Chọn khoảng ngày (chọn 1 ngày thì để Từ ngày = Đến ngày), chọn tổ máy, chọn định dạng (Excel/PDF), bấm **Xuất báo cáo**. Chỉ xuất được ngày **đã tính xong** (có trong `KET_QUA`) — ngày nào chưa tính sẽ báo riêng, không chặn các ngày còn lại.
+
+File xuất ra: **mỗi ngày 1 tab**, các tổ máy đã chọn nằm **cạnh nhau trong cùng tab** (giống layout file báo cáo gốc, ví dụ cột B:J = S1, cột L:T = S2) — không phải mỗi tổ máy 1 tab riêng. File lưu vào cùng thư mục Google Drive với Sheet này, sidebar hiện link để mở/tải ngay.
+
+> Lần đầu dùng mục này, Google có thể hiện lại màn hình xin quyền truy cập Drive (để lưu file xuất ra) — bấm **Allow** như lúc thiết lập ban đầu.
+
 ## Danh sách lệnh
 
 Nhập/dán trực tiếp vào sheet **`LENH`** (không qua sidebar) — mỗi dòng 1 lệnh, có thể nhiều ngày cùng lúc (khác VBA — không cần xoá dữ liệu ngày cũ để nhập ngày mới). Cột `Thời điểm BĐTH` phải là kiểu ngày-giờ thật (không phải text).
@@ -55,7 +63,7 @@ Nhập/dán trực tiếp vào sheet **`LENH`** (không qua sidebar) — mỗi d
 
 - Carry-over qua nửa đêm (R07) đầy đủ — hiện chỉ xấp xỉ bằng Qdd chu kỳ cuối ngày trước (xem mục "Tính 1 ngày" ở trên).
 - Cảnh báo lệnh 0-0 (UAT-34, xem [ROADMAP.md](../../ROADMAP.md)).
-- Xuất báo cáo ngày/tháng ra file Excel/PDF riêng — hiện chỉ ghi vào sheet `KET_QUA`/`BAO_CAO_THANG`.
+- Xuất báo cáo tháng ra file riêng (mục 6 sidebar hiện chỉ xuất theo ngày/khoảng ngày, chưa xuất trực tiếp từ `BAO_CAO_THANG`).
 - Kiểm tra cấu trúc/backup tự động (tương đương nút 11, 13 VBA).
 - Nhập lệnh qua sidebar (hiện vẫn nhập trực tiếp vào sheet `LENH`).
 - Schema `LENH` rút gọn (9 cột) so với `LENH_GOC` gốc (25 cột) — chỉ giữ đúng trường thuật toán cần dùng.

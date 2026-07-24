@@ -143,3 +143,27 @@ function sidebar_monthlyReport(monthStr) {
   return 'Đã tổng hợp ' + report.tongHop.soNgay + ' (ngày, tổ máy). Tổng Qdư: ' +
     report.tongHop.tongQdu.toFixed(3) + ' MWh. Xem sheet BAO_CAO_THANG.';
 }
+
+/**
+ * Xuất báo cáo cho khoảng ngày + tổ máy đã chọn (chỉ đọc dữ liệu ĐÃ CÓ
+ * trong KET_QUA, không tính lại) thành 1 file Excel/PDF riêng.
+ * @returns {{html: string}}  Trả về HTML nhỏ (có link tải) để sidebar hiển thị trực tiếp.
+ */
+function sidebar_exportReport(fromStr, toStr, units, format) {
+  var fromDate = parseIsoDate_(fromStr);
+  var toDate = parseIsoDate_(toStr);
+  if (!fromDate || !toDate || toDate < fromDate) throw new Error('Khoảng ngày không hợp lệ.');
+  if (!units || units.length === 0) throw new Error('Chọn ít nhất 1 tổ máy.');
+
+  var dates = [];
+  for (var d = new Date(fromDate); d <= toDate; d.setDate(d.getDate() + 1)) {
+    dates.push(new Date(d));
+  }
+
+  var result = buildAndExportReport_(dates, units, format);
+  var html = '✓ Đã xuất file: <a href="' + result.url + '" target="_blank">' + result.name + '</a>';
+  if (result.missing.length > 0) {
+    html += '<br><br>Bỏ qua (chưa có dữ liệu):<br>' + result.missing.join('<br>');
+  }
+  return { html: html };
+}

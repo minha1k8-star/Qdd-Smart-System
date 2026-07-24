@@ -74,6 +74,24 @@
 <label>Tháng <input type="month" id="reportMonth"></label>
 <button id="btnReport" onclick="submitMonthlyReport()">Tổng hợp</button>
 
+<h3>6. Xuất báo cáo</h3>
+<div class="hint">
+  Xuất 1 hoặc nhiều ngày ĐÃ TÍNH XONG (trong KET_QUA) ra 1 file riêng - mỗi ngày 1 tab, các tổ máy đã chọn nằm cạnh nhau trong cùng tab (giống layout file báo cáo gốc). Xuất 1 ngày thì chọn Từ ngày = Đến ngày.
+</div>
+<label>Từ ngày <input type="date" id="exportFromDate"></label>
+<label>Đến ngày <input type="date" id="exportToDate"></label>
+<div class="checks">
+  <label><input type="checkbox" id="exportS1" checked> S1</label>
+  <label><input type="checkbox" id="exportS2" checked> S2</label>
+</div>
+<label>Định dạng
+  <select id="exportFormat">
+    <option value="xlsx">Excel (.xlsx)</option>
+    <option value="pdf">PDF</option>
+  </select>
+</label>
+<button id="btnExport" onclick="submitExport()">Xuất báo cáo</button>
+
 <script>
   function setStatus(cls, text) {
     var el = document.getElementById('status');
@@ -85,6 +103,14 @@
       el.appendChild(spin);
     }
     el.appendChild(document.createTextNode(text));
+    el.scrollIntoView({ block: 'nearest' });
+  }
+
+  /** Chỉ dùng cho nội dung do server tự sinh (có link tải), không dùng cho text người dùng gõ trực tiếp. */
+  function setStatusHtml(cls, html) {
+    var el = document.getElementById('status');
+    el.className = cls;
+    el.innerHTML = html;
     el.scrollIntoView({ block: 'nearest' });
   }
 
@@ -231,5 +257,22 @@
       .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
       .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
       .sidebar_monthlyReport(month);
+  }
+
+  function submitExport() {
+    var fromDate = document.getElementById('exportFromDate').value;
+    var toDate = document.getElementById('exportToDate').value;
+    var format = document.getElementById('exportFormat').value;
+    var units = [];
+    if (document.getElementById('exportS1').checked) units.push('S1');
+    if (document.getElementById('exportS2').checked) units.push('S2');
+    if (!fromDate || !toDate) { setStatus('err', 'Chọn đủ khoảng ngày.'); return; }
+    if (units.length === 0) { setStatus('err', 'Chọn ít nhất 1 tổ máy.'); return; }
+    var restore = withButton('btnExport', 'Đang xuất…', null);
+    setStatus('busy', 'Đang tạo file báo cáo...');
+    google.script.run
+      .withSuccessHandler(function (result) { restore(); setStatusHtml('ok', result.html); })
+      .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
+      .sidebar_exportReport(fromDate, toDate, units, format);
   }
 </script>

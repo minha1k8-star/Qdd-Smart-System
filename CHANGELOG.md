@@ -2,7 +2,13 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — Tải CSV hàng loạt
+## [Unreleased] — Xuất báo cáo ngày/khoảng ngày ra file riêng
+
+- Thêm `ExportReport.js` + mục "6. Xuất báo cáo" trong sidebar: chọn khoảng ngày + tổ máy + định dạng (Excel/PDF), xuất từ dữ liệu đã có trong `KET_QUA` (không tính lại) thành 1 file lưu vào Google Drive, sidebar hiện link tải.
+- Layout xuất: **mỗi ngày 1 tab**, các tổ máy đã chọn nằm **cạnh nhau trong cùng tab** — khớp layout file báo cáo gốc (S1/S2 cạnh nhau), không phải mỗi tổ máy 1 tab riêng.
+- Đã đẩy lên Sheet thật.
+
+## Tải CSV hàng loạt
 
 - **Tải CSV hàng loạt** (mục mới trong sidebar): chọn nhiều file CSV cùng lúc, tự nhận diện tổ máy/loại dữ liệu bằng cách so tên file với mã công tơ đã cấu hình (tận dụng quy ước đặt tên thật `<ngày><tháng><mã công tơ>.CSV`), tự đọc ngày từng file — phục vụ tính hàng loạt nhiều ngày mà không phải upload từng file một. File không tự nhận diện được báo riêng theo tên, xử lý tay bằng mục "Lưu CSV" (1 file).
 - Quyết định: **danh sách lệnh vẫn nhập/dán tay vào sheet LENH**, không làm import file — nguồn là .xlsx nhị phân, không đọc trực tiếp bằng JS phía trình duyệt như CSV (text thuần) được; người dùng xác nhận copy tay là đủ đơn giản, không cần đầu tư thêm.
