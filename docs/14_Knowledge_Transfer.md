@@ -53,6 +53,14 @@ Yêu cầu nghiệp vụ thay đổi qua thời gian: ban đầu quy trình "ch�
 
 (Suy ra từ kiến trúc `LICH_SU_THANG`/`LS_...` và quy tắc "không được xoá" trong AGENTS.md) — nếu báo cáo tháng đọc trực tiếp từ `TINH_TOAN` (dữ liệu ngày đang mở), báo cáo sẽ thay đổi mỗi khi người dùng mở lại workbook và tính một ngày khác. Snapshot đảm bảo báo cáo tháng phản ánh đúng kết quả **đã chốt tại thời điểm tính**, không bị ghi đè bởi thao tác sau đó.
 
+## Giới hạn vận hành: lệnh "0-0" không được tự động phát hiện (07/2026, UAT-32)
+
+Khi tổ máy dừng do sự cố (trip) và được ghi nhận bằng một lệnh có cả CS ra lệnh và CS hoàn thành đều bằng 0 ("lệnh 0-0"), hệ thống **chủ động loại bỏ** lệnh này khỏi tính toán — đây là quy tắc nghiệp vụ có chủ đích (xác nhận với người phụ trách nghiệp vụ), không phải lỗi. Tương tự, khi khởi động lại sau sự cố, lệnh chỉ được coi là "đã hoàn thành" và bắt đầu tính lại khi **CS ra lệnh và CS hoàn thành cùng bằng một giá trị tải thật** (ví dụ 435,7-435,7).
+
+Hệ quả thực tế: nếu dữ liệu vận hành chỉ có đúng lệnh 0-0 (không có gì khác báo hiệu dừng máy), **công cụ sẽ âm thầm giữ nguyên công suất trước đó cho hết ngày** thay vì đưa về 0 — không có cảnh báo nào hiện ra để người vận hành biết mà can thiệp tay. Đây chính là nguyên nhân bảng tính tay ngày 07/07/2026 (tổ S2) cho kết quả khác công cụ: người tính tay biết sự cố đã xảy ra trong thực tế và tự điền tay, không phải công cụ tự suy ra được.
+
+**Định hướng xử lý (kế hoạch, chưa triển khai)**: thay vì lặng lẽ giữ nguyên công suất sai, hệ thống nên **cảnh báo rõ ràng** khi phát hiện một lệnh 0-0 trong ngày đang tính — để người vận hành biết mà xử lý thủ công, thay vì báo cáo âm thầm sai số. Xem hạng mục tương ứng ở [ROADMAP.md](../ROADMAP.md) (Giai đoạn 2/3) và [UAT-34](09_Test_Cases.md).
+
 ## Việc còn tồn đọng (theo lịch sử trao đổi, cần xác nhận lại trên bản v1.3.1)
 
 - Chưa rõ toàn bộ các lỗi trên đã được xác nhận hết trên bản v1.3.1 hay chỉ một phần — vì bộ UAT hiện tại (31 case) toàn bộ đang ở trạng thái "Chưa chạy" (xem [09_Test_Cases.md](09_Test_Cases.md)). Cần thực thi UAT-04 (ramp qua 00:00), UAT-08 (ngắt ramp), UAT-24/UAT-30/UAT-31 (xuất báo cáo tháng Mac/Windows) trước tiên vì đây là các nhóm lỗi lịch sử nặng nhất.

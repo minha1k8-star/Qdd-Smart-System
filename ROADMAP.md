@@ -29,6 +29,7 @@ Mục tiêu: hệ thống hoá toàn bộ tri thức nghiệp vụ/kỹ thuật 
 - [ ] Chuyển toàn bộ logic Qdd/Qdư từ VBA sang `QDD-Core-Library` (Apps Script), bám sát `docs/04_Algorithm_Specification.md`.
 - [ ] Viết test tự động dựa trên 31 UAT case ở `docs/09_Test_Cases.md`.
 - [ ] Kiểm thử với bộ dữ liệu đã xác nhận từ hệ thống Excel/VBA (đối chiếu số liệu 1:1, không chỉ chạy UAT mới).
+- [ ] **Cảnh báo lệnh "0-0" (UAT-34)**: khi phát hiện một lệnh có CS ra lệnh = CS hoàn thành = 0 trong ngày đang tính, hiển thị cảnh báo rõ ràng cho người vận hành thay vì âm thầm giữ nguyên công suất trước đó — xem [14_Knowledge_Transfer.md](docs/14_Knowledge_Transfer.md#giới-hạn-vận-hành-lệnh-0-0-không-được-tự-động-phát-hiện-072026-uat-32). Chỉ cảnh báo, không tự ý sửa số.
 
 ## Giai đoạn 4 — Hoàn thiện (chưa bắt đầu)
 

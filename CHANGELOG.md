@@ -10,7 +10,7 @@
 - Đưa bản Excel/VBA v1.3.1 (bản chính thức đang chạy) vào `legacy/`.
 - Xác nhận hướng kiến trúc Giai đoạn 2: **Google Sheets + Apps Script Library dùng chung**, không làm Web App trung tâm — ghi lại quyết định và lý do ở `docs/05_System_Architecture.md`.
 - Thêm `docs/04_Algorithm_Specification.md` — trích xuất trực tiếp từ công thức Excel thật (`XU_LY_LENH`, `DOAN_CONG_SUAT`, `DIEN_TICH`, `TINH_TOAN`) và code VBA, phát hiện quan trọng: toàn bộ Ramp Engine/nội suy/tích phân diện tích nằm ở công thức Excel, không nằm trong VBA; đồng thời phát hiện nghi vấn UAT-11 (CSV sai ngày có thể không còn bị từ chối trong v1.3.1).
-- Kiểm tra độ chính xác bằng dữ liệu vận hành thật (10 ngày, 07/2026, nhà máy Duyên Hải 1): 18/19 tổ hợp ngày+tổ máy khớp gần tuyệt đối với kết quả tính tay. Phát hiện lỗ hổng thật trong R01-R03: lệnh dừng máy với CS ra lệnh=0 bị loại khỏi tính toán, gây sai công suất đến hết ngày — thêm UAT-32, xem `docs/15_Accuracy_Validation_2026-07.md`.
+- Kiểm tra độ chính xác bằng dữ liệu vận hành thật (10 ngày, 07/2026, nhà máy Duyên Hải 1): 18/19 tổ hợp ngày+tổ máy khớp gần tuyệt đối với kết quả tính tay. 1 trường hợp lệch (07/07, tổ S2, sự cố/trip) — điều tra ban đầu nghi là lỗ hổng công thức (thử vá `O>0`→`O>=0`), sau khi xác nhận trực tiếp với người phụ trách nghiệp vụ thì **kết luận hành vi gốc đúng theo thiết kế** (lệnh 0-0 chủ đích không tính; khởi động lại cần CS ra lệnh=CS hoàn thành cùng giá trị) — đã hoàn tác bản vá thử nghiệm, không sửa `legacy/`. Thêm UAT-32 (đã đóng), UAT-33, và UAT-34 (đề xuất cảnh báo khi phát hiện lệnh 0-0, kế hoạch Giai đoạn 2/3 — không tự sửa số). Xem `docs/15_Accuracy_Validation_2026-07.md`, `docs/14_Knowledge_Transfer.md`, `ROADMAP.md`.
 
 ## v1.3.1 — Sửa lỗi compile All-in-One
 

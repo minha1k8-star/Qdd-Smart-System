@@ -33,7 +33,9 @@ Nguồn gốc: sheet `KIEM_THU_UAT` trong workbook chính thức (`legacy/CongCu
 | UAT-29 | Kiểm tra module tháng | Có lịch sử tháng | Bấm nút 13 | Báo module tháng ĐẠT | Chưa chạy |
 | UAT-30 | Xuất báo cáo tháng trên Windows | Có snapshot ngày | Bấm nút 12 | Không còn lỗi "Cannot run the macro" | Chưa chạy |
 | UAT-31 | Xuất báo cáo tháng trên Mac | Có snapshot ngày | Bấm nút 12 | Xuất được, hoặc tự lưu cạnh workbook | Chưa chạy |
-| UAT-32 | Lệnh dừng máy CS=0 | Lệnh "Ngừng tổ máy", CS ra lệnh=0, CS hoàn thành=0, Hoàn thành=1 | Tính Qdd | Công suất về 0 kể từ thời điểm dừng | **KHÔNG ĐẠT** — xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md) |
+| UAT-32 | Lệnh 0-0 (trip/dừng sự cố) không được tính | Lệnh MO "Ngừng tổ máy", CS ra lệnh=0, CS hoàn thành=0, Hoàn thành=1 | Tính Qdd | Lệnh bị loại khỏi `LENH_DIEU_DO`, không tính vào Qdd | **ĐÃ XÁC NHẬN ĐÚNG** — hành vi gốc (`>0`) đúng theo nghiệp vụ, không sửa. Xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md) |
+| UAT-33 | Khởi động lại tổ máy sau sự cố | Lệnh MO, CS ra lệnh = CS hoàn thành = tải thật (vd 435,7-435,7), Hoàn thành=1 | Tính Qdd | Lệnh được coi là hoàn thành, bắt đầu tính Qdu từ tải đó | Chưa chạy — chưa có dữ liệu thật đúng mẫu 2 giá trị bằng nhau để kiểm chứng (dữ liệu 07/07 chỉ có CS ra lệnh, thiếu CS hoàn thành) |
+| UAT-34 | Cảnh báo lệnh 0-0 (kế hoạch, chưa triển khai) | Có lệnh CS ra lệnh=CS hoàn thành=0 trong ngày đang tính | Tính và kiểm tra | Hiển thị cảnh báo cho người vận hành biết có lệnh dừng máy chưa được tính — không tự ý sửa Qdd | Chưa triển khai — dự kiến Giai đoạn 2/3 (Apps Script), xem [ROADMAP.md](../ROADMAP.md) |
 
 ## Nghi vấn cần xác nhận: UAT-11 (CSV sai ngày)
 

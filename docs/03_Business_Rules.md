@@ -35,7 +35,7 @@ Danh sách lệnh gốc (`LENH_GOC`) có nhiều loại lệnh (`Y`), công su�
 
 Lệnh nào không thoả điều kiện `P=1` (hợp lệ) bị loại khỏi `LENH_DIEU_DO` — không tham gia tính toán.
 
-> **Khoảng trống đã phát hiện qua dữ liệu thực tế (07/2026)**: điều kiện `E>0`/`P>0` khiến một lệnh **dừng máy hợp lệ với công suất mục tiêu = 0** (rất tự nhiên với lệnh "Ngừng tổ máy") bị loại hoàn toàn khỏi tính toán, làm công suất bị giữ sai ở mức trước đó thay vì về 0. Xem chi tiết và đề xuất xử lý ở [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md) và test case [UAT-32](09_Test_Cases.md).
+> **Xác nhận nghiệp vụ (07/2026), UAT-32**: điều kiện `>0` cho cả SO và MO là **chủ đích, không phải lỗi**. Lệnh "0-0" (CS ra lệnh = CS hoàn thành = 0, ví dụ lệnh dừng máy do sự cố/trip) **không được tính** — bị loại khỏi `LENH_DIEU_DO` đúng như thiết kế. Ngược lại, khi khởi động lại tổ máy, lệnh chỉ được coi là **đã hoàn thành và bắt đầu tính Qdu** khi CS ra lệnh **và** CS hoàn thành cùng bằng một giá trị tải thật (ví dụ 435,7-435,7) — nếu dữ liệu vận hành chỉ điền CS ra lệnh mà bỏ trống/để 0 ở CS hoàn thành, lệnh đó chưa đủ điều kiện để công cụ tự nhận là hoàn thành. Xem điều tra đầy đủ ở [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
 
 ### R04 — Vì sao không dùng thời điểm hoàn thành
 
