@@ -35,7 +35,15 @@
 <div class="hint" id="csvDateNote"></div>
 <button id="btnCsv" onclick="submitCsv()">Lưu CSV</button>
 
-<h3>2. Tính 1 ngày</h3>
+<h3>2. Tải CSV hàng loạt</h3>
+<div class="hint">
+  Dùng khi tính nhiều ngày (mục 4) - chọn CÙNG LÚC nhiều file CSV. Hệ thống tự nhận diện tổ máy/loại dữ liệu bằng cách so tên file với mã công tơ đã cấu hình ở CAI_DAT, và tự đọc ngày từ nội dung từng file - không cần chọn tay từng file.
+  File nào không tự nhận diện được sẽ báo riêng, lưu tay bằng mục 1 ở trên.
+</div>
+<label>Nhiều file CSV <input type="file" id="csvBulkFiles" accept=".csv" multiple></label>
+<button id="btnCsvBulk" onclick="submitCsvBulk()">Tải hàng loạt</button>
+
+<h3>3. Tính 1 ngày</h3>
 <div class="hint">
   Trước khi bấm Tính, cần đã có: (1) danh sách lệnh trong sheet LENH cho ngày này (có thể không có lệnh nào cũng được),
   (2) đủ CSV 6001 và 6303 cho ngày này (mục 1 ở trên).<br>
@@ -48,9 +56,9 @@
 </label>
 <button id="btnOneDay" onclick="submitOneDay()">Tính</button>
 
-<h3>3. Tính hàng loạt</h3>
+<h3>4. Tính hàng loạt</h3>
 <div class="hint">
-  Tính nhiều ngày liên tiếp cùng lúc, cho 1 hoặc cả 2 tổ máy. Điều kiện giống mục 2, áp dụng cho từng ngày trong khoảng đã chọn.
+  Tính nhiều ngày liên tiếp cùng lúc, cho 1 hoặc cả 2 tổ máy. Điều kiện giống mục 3, áp dụng cho từng ngày trong khoảng đã chọn.
   Ngày nào thiếu CSV hoặc thiếu P0 sẽ được báo riêng trong kết quả, KHÔNG làm dừng các ngày còn lại.
 </div>
 <label>Từ ngày <input type="date" id="fromDate"></label>
@@ -61,7 +69,7 @@
 </div>
 <button id="btnBatch" onclick="submitBatch()">Tính hàng loạt</button>
 
-<h3>4. Báo cáo tháng</h3>
+<h3>5. Báo cáo tháng</h3>
 <div class="hint">Gộp lại các ngày ĐÃ TÍNH XONG (đang có trong KET_QUA) của tháng được chọn - không tự tính bù ngày còn thiếu, cần tính đủ các ngày bằng mục 2/3 trước.</div>
 <label>Tháng <input type="month" id="reportMonth"></label>
 <button id="btnReport" onclick="submitMonthlyReport()">Tổng hợp</button>
@@ -70,7 +78,13 @@
   function setStatus(cls, text) {
     var el = document.getElementById('status');
     el.className = cls;
-    el.innerHTML = (cls === 'busy' ? '<span class="spin"></span>' : '') + text;
+    el.textContent = '';
+    if (cls === 'busy') {
+      var spin = document.createElement('span');
+      spin.className = 'spin';
+      el.appendChild(spin);
+    }
+    el.appendChild(document.createTextNode(text));
     el.scrollIntoView({ block: 'nearest' });
   }
 
@@ -149,6 +163,35 @@
     };
     reader.onerror = function () { restore(); setStatus('err', '✗ Không đọc được file.'); };
     reader.readAsText(fileInput.files[0]);
+  }
+
+  function readFileAsText_(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function (e) { resolve(e.target.result); };
+      reader.onerror = function () { reject(new Error('Không đọc được file ' + file.name)); };
+      reader.readAsText(file);
+    });
+  }
+
+  function submitCsvBulk() {
+    var fileInput = document.getElementById('csvBulkFiles');
+    var fileList = Array.prototype.slice.call(fileInput.files);
+    if (fileList.length === 0) { setStatus('err', 'Chọn ít nhất 1 file CSV.'); return; }
+    var restore = withButton('btnCsvBulk', 'Đang tải…', null);
+    setStatus('busy', 'Đang đọc ' + fileList.length + ' file...');
+    Promise.all(fileList.map(function (file) {
+      return readFileAsText_(file).then(function (content) { return { filename: file.name, content: content }; });
+    })).then(function (files) {
+      setStatus('busy', 'Đang lưu ' + files.length + ' file lên hệ thống...');
+      google.script.run
+        .withSuccessHandler(function (msg) { restore(); setStatus('ok', msg); })
+        .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
+        .sidebar_saveCsvBulk(files);
+    }).catch(function (err) {
+      restore();
+      setStatus('err', '✗ ' + err.message);
+    });
   }
 
   function submitOneDay() {

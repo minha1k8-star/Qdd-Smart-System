@@ -74,6 +74,89 @@ function appendCommand(command) {
 }
 
 /**
+ * @returns {Array<{unit:string, role:string, code:string}>} 4 mã công tơ đã cấu hình (bỏ ô trống)
+ */
+function getAllConfiguredMeters_() {
+  var out = [];
+  ['S1', 'S2'].forEach(function (unit) {
+    ['Qdc', 'Qmp'].forEach(function (role) {
+      var code = resolveMeterCode_(unit, role);
+      if (code) out.push({ unit: unit, role: role, code: code });
+    });
+  });
+  return out;
+}
+
+/**
+ * Dò (tổ máy, loại dữ liệu) từ TÊN FILE, dựa vào mã công tơ đã cấu hình
+ * trong CAI_DAT. Tên file CSV thật thường có dạng <ngày><tháng><mã công
+ * tơ>.CSV (vd "17076001.CSV" = ngày 17, tháng 07, công tơ 6001) - mã công
+ * tơ luôn nằm ở CUỐI phần số của tên file, nên so khớp theo endsWith.
+ * @param {string} filename
+ * @returns {{unit:string, role:string, code:string}|null}
+ */
+function matchMeterFromFilename_(filename) {
+  var base = String(filename).replace(/\.[^.]+$/, ''); // bỏ phần đuôi .csv
+  var meters = getAllConfiguredMeters_();
+  // Ưu tiên mã dài hơn trước, tránh mã ngắn khớp nhầm vào phần đuôi của mã dài hơn.
+  meters.sort(function (a, b) { return b.code.length - a.code.length; });
+  for (var i = 0; i < meters.length; i++) {
+    if (base.indexOf(meters[i].code) !== -1 && base.slice(-meters[i].code.length) === meters[i].code) {
+      return meters[i];
+    }
+  }
+  return null;
+}
+
+/**
+ * Đọc thử ngày ở cột A của dòng dữ liệu đầu tiên trong CSV (dd-mm-yy(yy)
+ * hoặc dd/mm/yy(yy) hoặc yyyy-mm-dd). Dùng cho luồng tải hàng loạt phía
+ * server (luồng tải 1 file dùng bản JS phía client trong Sidebar.html để
+ * điền trực tiếp lên form, xem parseCsvDateGuess ở đó).
+ * @param {string} csvText
+ * @returns {Date|null}
+ */
+function guessDateFromCsvText_(csvText) {
+  var lines = String(csvText).split(/\r?\n/);
+  var firstLine = null;
+  for (var i = 0; i < lines.length; i++) {
+    if (lines[i].trim().length > 0) { firstLine = lines[i]; break; }
+  }
+  if (!firstLine) return null;
+  var firstCell = firstLine.split(',')[0].trim().replace(/^"|"$/g, '');
+
+  var m = firstCell.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+
+  m = firstCell.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})$/);
+  if (m) {
+    var year = m[3];
+    if (year.length === 2) year = (Number(year) <= 79 ? '20' : '19') + year;
+    return new Date(Number(year), Number(m[2]) - 1, Number(m[1]));
+  }
+  return null;
+}
+
+/** Ghi/ghi đè 1 dòng CSV_DATA cho (ngày, mã công tơ) - dùng chung cho luồng lưu 1 file và lưu hàng loạt. */
+function saveCsvRow_(date, meterCode, kwhGiao) {
+  var dataSh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CSV_DATA);
+  var lastRow = dataSh.getLastRow();
+  if (lastRow >= 2) {
+    var existing = dataSh.getRange(2, 1, lastRow - 1, 2).getValues();
+    var dateStrFmt = Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    for (var i = existing.length - 1; i >= 0; i--) {
+      var rowDate = existing[i][0];
+      var rowDateStr = rowDate instanceof Date
+        ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(rowDate);
+      if (rowDateStr === dateStrFmt && String(existing[i][1]) === meterCode) {
+        dataSh.deleteRow(i + 2);
+      }
+    }
+  }
+  dataSh.appendRow([date, meterCode].concat(kwhGiao));
+}
+
+/**
  * Đọc 48 giá trị KwhGiao theo (ngày, tổ máy, loại dữ liệu) - mã công tơ
  * thật được TRA TỪ CAI_DAT (khác nhau giữa các tổ máy/nhà máy, không cố
  * định "6001"/"6303").

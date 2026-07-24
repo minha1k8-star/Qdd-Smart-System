@@ -15,24 +15,53 @@ function sidebar_saveCsv(dateStr, unit, role, csvText) {
   }
 
   var kwhGiao = QDDCoreLibrary.extractKwhGiaoFromCsv(csvText);
-
-  var dataSh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CSV_DATA);
-  var lastRow = dataSh.getLastRow();
-  if (lastRow >= 2) {
-    var existing = dataSh.getRange(2, 1, lastRow - 1, 2).getValues();
-    var dateStrFmt = Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-    for (var i = existing.length - 1; i >= 0; i--) {
-      var rowDate = existing[i][0];
-      var rowDateStr = rowDate instanceof Date
-        ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(rowDate);
-      if (rowDateStr === dateStrFmt && String(existing[i][1]) === meterCode) {
-        dataSh.deleteRow(i + 2);
-      }
-    }
-  }
-  dataSh.appendRow([date, meterCode].concat(kwhGiao));
+  saveCsvRow_(date, meterCode, kwhGiao);
   return 'Đã lưu CSV ' + role + ' (công tơ ' + meterCode + ', tổ ' + unit + ') cho ngày ' +
     Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd/MM/yyyy') + '.';
+}
+
+/**
+ * Tải hàng loạt nhiều file CSV cùng lúc - tự dò (tổ máy, loại dữ liệu) từ
+ * TÊN FILE (khớp với mã công tơ đã cấu hình trong CAI_DAT) và tự đọc
+ * ngày từ NỘI DUNG file. File nào không tự dò được sẽ bị bỏ qua, báo lại
+ * tên file + lý do để xử lý tay bằng mục "Lưu CSV" (1 file).
+ *
+ * @param {Array<{filename:string, content:string}>} files
+ * @returns {string}
+ */
+function sidebar_saveCsvBulk(files) {
+  var savedCount = 0;
+  var skipped = [];
+
+  files.forEach(function (f) {
+    var meterMatch = matchMeterFromFilename_(f.filename);
+    if (!meterMatch) {
+      skipped.push(f.filename + ': không khớp mã công tơ nào đã cấu hình trong CAI_DAT');
+      return;
+    }
+    var date = guessDateFromCsvText_(f.content);
+    if (!date) {
+      skipped.push(f.filename + ': không đọc được ngày trong nội dung file');
+      return;
+    }
+    var kwhGiao;
+    try {
+      kwhGiao = QDDCoreLibrary.extractKwhGiaoFromCsv(f.content);
+    } catch (e) {
+      skipped.push(f.filename + ': ' + e.message);
+      return;
+    }
+    saveCsvRow_(date, meterMatch.code, kwhGiao);
+    savedCount++;
+  });
+
+  var msg = 'Đã lưu ' + savedCount + '/' + files.length + ' file.';
+  if (skipped.length > 0) {
+    msg += ' Bỏ qua ' + skipped.length + ' file:\n' + skipped.slice(0, 15).join('\n');
+    if (skipped.length > 15) msg += '\n... và ' + (skipped.length - 15) + ' file khác.';
+    msg += '\n(Lưu tay các file này ở mục "Lưu CSV" phía trên.)';
+  }
+  return msg;
 }
 
 function sidebar_calcOneDay(dateStr, unit) {

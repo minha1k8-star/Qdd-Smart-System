@@ -2,7 +2,12 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — Sidebar UI thay cho hộp thoại prompt
+## [Unreleased] — Tải CSV hàng loạt
+
+- **Tải CSV hàng loạt** (mục mới trong sidebar): chọn nhiều file CSV cùng lúc, tự nhận diện tổ máy/loại dữ liệu bằng cách so tên file với mã công tơ đã cấu hình (tận dụng quy ước đặt tên thật `<ngày><tháng><mã công tơ>.CSV`), tự đọc ngày từng file — phục vụ tính hàng loạt nhiều ngày mà không phải upload từng file một. File không tự nhận diện được báo riêng theo tên, xử lý tay bằng mục "Lưu CSV" (1 file).
+- Quyết định: **danh sách lệnh vẫn nhập/dán tay vào sheet LENH**, không làm import file — nguồn là .xlsx nhị phân, không đọc trực tiếp bằng JS phía trình duyệt như CSV (text thuần) được; người dùng xác nhận copy tay là đủ đơn giản, không cần đầu tư thêm.
+
+## Sidebar UI thay cho hộp thoại prompt
 
 Phản hồi người dùng: thao tác qua `prompt()` gõ tay ngày tháng + phải tự điền P0 + CSV qua 2 bước cảm giác rời rạc, khó dùng hơn "1 nút bấm" của VBA cũ. Đã làm lại:
 
