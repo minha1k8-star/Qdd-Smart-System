@@ -23,7 +23,7 @@ Cập nhật lần cuối: 2026-07-24.
 
 ## Sprint 1 — QDD-Core-Library + Google Sheets Template
 
-🟡 Đang thực hiện. Đã xong: khung project `src/QDD-Core-Library/`, port CommandFilter/RampEngine/Segments/AreaIntegration/QddCalculator/CsvParser/BatchCalculator/MonthlyReport, 29/29 test cục bộ pass. Hỗ trợ tính nhiều ngày/nhiều tổ máy cùng lúc (khác VBA) và báo cáo tháng trực tiếp không cần snapshot. Chưa xong: carry-over R07, cảnh báo UAT-34, thiết kế sheet lưu trữ nhiều ngày, triển khai thật lên Apps Script (cần đăng nhập Google thủ công), Sheet mẫu.
+🟢 Đã triển khai thật. `QDD-Core-Library` đã push lên Apps Script (đã login, đã publish version 1). Sheet mẫu đầu tiên (Duyên Hải 1) đã tạo, gắn Library, có menu 6 chức năng (thiết lập, lưu CSV, tính 1 ngày, tính hàng loạt, báo cáo tháng). 29/29 test cục bộ pass. Chưa xong: carry-over R07 (phải nhập tay P0), cảnh báo UAT-34, xuất file Excel/PDF riêng, đủ 15 chức năng như VBA.
 
 ## Sprint 2 — Algorithm (migrate)
 

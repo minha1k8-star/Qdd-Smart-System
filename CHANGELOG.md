@@ -2,7 +2,13 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — Giai đoạn 2: khởi tạo QDD-Core-Library
+## [Unreleased] — Giai đoạn 2: triển khai thật + Sheet mẫu
+
+- **Triển khai thật QDD-Core-Library lên Google Apps Script** (đăng nhập, tạo project, push code). Khắc phục lỗi "Premature close" của `clasp login` (do Node.js v24 quá mới) bằng cách cài thêm Node 20 LTS qua Homebrew chỉ để chạy đăng nhập. Publish version 1 làm Library, Script ID `10_vjTSgVjZodA7xTkJ_qJaGom3JDx_tnYE0YgWA_cphh1Q7g_lTKMLUO`.
+- Thêm `.claspignore` (loại file test Node ra khỏi bản đẩy Apps Script - nếu không sẽ lỗi toàn bộ thư viện vì `require`/`fs` không tồn tại trong môi trường Apps Script).
+- **Tạo Sheet mẫu nhà máy đầu tiên** (`src/NhaMay-Mau-Template/`, Duyên Hải 1) — Google Sheets thật, gắn `QDD-Core-Library`, có menu 6 chức năng: thiết lập sheet, lưu CSV (tận dụng File > Import có sẵn của Sheets), tính 1 ngày, tính hàng loạt nhiều ngày/nhiều tổ máy, tổng hợp báo cáo tháng trực tiếp từ kết quả đã có. Giới hạn: chưa có carry-over R07 (P0 phải nhập tay vào sheet `P0_NGAY`).
+
+## Giai đoạn 2: khởi tạo QDD-Core-Library
 
 - Khởi tạo `src/QDD-Core-Library/` (Apps Script Library, quản lý bằng `clasp`). Port CommandFilter (R01-R03, giữ đúng quy tắc UAT-32), RampEngine (R06, nội suy ngắt ramp), Segments, AreaIntegration (R08, tích phân hình thang), QddCalculator (R09-R14), CsvParser (R10/R12) — trực tiếp từ `tools/reference_engine/qdd_engine.py` đã kiểm chứng bằng dữ liệu thật.
 - Thêm bộ test cục bộ chạy bằng Node (`tests/run_tests.js`, 17/17 pass), không cần deploy Apps Script, không cần dữ liệu thật — mã hoá quy tắc UAT-32 thành test tự động để tránh sửa nhầm lại.
