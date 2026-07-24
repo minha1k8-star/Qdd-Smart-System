@@ -2,7 +2,14 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — Documentation Foundation
+## [Unreleased] — Giai đoạn 2: khởi tạo QDD-Core-Library
+
+- Khởi tạo `src/QDD-Core-Library/` (Apps Script Library, quản lý bằng `clasp`). Port CommandFilter (R01-R03, giữ đúng quy tắc UAT-32), RampEngine (R06, nội suy ngắt ramp), Segments, AreaIntegration (R08, tích phân hình thang), QddCalculator (R09-R14), CsvParser (R10/R12) — trực tiếp từ `tools/reference_engine/qdd_engine.py` đã kiểm chứng bằng dữ liệu thật.
+- Thêm bộ test cục bộ chạy bằng Node (`tests/run_tests.js`, 17/17 pass), không cần deploy Apps Script, không cần dữ liệu thật — mã hoá quy tắc UAT-32 thành test tự động để tránh sửa nhầm lại.
+- Thêm `BatchCalculator.js` (tính nhiều ngày/nhiều tổ máy cùng lúc — khác biệt kiến trúc lớn so với VBA vốn chỉ tính được 1 ngày) và `MonthlyReport.js` (tổng hợp báo cáo tháng trực tiếp từ dữ liệu gốc, không cần snapshot như VBA). Cập nhật `docs/05_System_Architecture.md` với thiết kế luồng nhập dữ liệu (vừa từng ngày vừa upload hàng loạt). Tổng 29/29 test pass.
+- Chưa port: carry-over qua nửa đêm (R07), báo cáo tháng/snapshot phía Sheet (định dạng/xuất), cảnh báo lệnh 0-0 (UAT-34), thiết kế sheet lưu trữ nhiều ngày. Chưa triển khai thật lên Apps Script (cần người dùng tự `clasp login`).
+
+## Documentation Foundation
 
 - Khởi tạo repo GitHub `Qdd-Smart-System`.
 - Thêm `CLAUDE.md`, `AGENTS.md`, `docs/AI_CONTEXT.md` — hướng dẫn làm việc cho AI agent.

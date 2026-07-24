@@ -75,9 +75,28 @@ Mỗi nhà máy: dữ liệu, cấu hình (`CAI_DAT` — tốc độ ramp, hệ 
 3. Người phụ trách nhà máy mới điền `CAI_DAT` theo thông số thực tế của nhà máy đó.
 4. Khi thư viện có bản vá lỗi, thông báo cho các nhà máy đang dùng để họ tự cập nhật số phiên bản Library trong Apps Script Editor (không cần thay đổi gì khác).
 
+## Nhiều ngày, nhiều tổ máy cùng lúc (khác biệt kiến trúc lớn so với VBA)
+
+Bản Excel/VBA chỉ tính được **1 ngày tại một thời điểm** — không phải giới hạn thuật toán, mà do `CAI_DAT!B4` là một ô cấu hình toàn cục duy nhất mà mọi sheet downstream (`LENH_GOC`, `LENH_DIEU_DO`, `XU_LY_LENH`...) đều gắn theo, nên tính ngày khác phải ghi đè ngày cũ. Đây là lý do VBA cần cơ chế "snapshot" (`LICH_SU_THANG`, sheet ẩn `LS_...`) để không mất dữ liệu khi ghi đè.
+
+`QDD-Core-Library` không có giới hạn này: hàm tính toán nhận **ngày + tổ máy làm tham số** (`QDD.QddCalculator.calculateDay`, `QDD.BatchCalculator.calculateMultiple`), không có "ô cấu hình toàn cục" nào bị ghi đè giữa các lần gọi — có thể tính hàng chục ngày × nhiều tổ máy trong cùng một lần chạy.
+
+**Luồng nhập dữ liệu** (xác nhận với người dùng 2026-07-24): hỗ trợ **cả hai**:
+1. Nhập từng ngày như thói quen cũ — nhưng thay vì ghi đè, dữ liệu được **tích luỹ thêm** vào một sheet lệnh dùng chung có cột ngày (tương tự cấu trúc `LENH_GOC` nhưng trải nhiều ngày), và một sheet CSV tích luỹ tương tự theo (ngày, mã công tơ).
+2. Upload hàng loạt nhiều ngày cùng lúc (nhiều file CSV + danh sách lệnh) — hệ thống tự nhận diện ngày của từng file rồi tính hàng loạt bằng `QDD.BatchCalculator`.
+
+**Báo cáo tháng**: vì mỗi ngày độc lập ngay từ khi tính (không sheet nào bị ghi đè), báo cáo tháng (`QDD.MonthlyReport.aggregate`) tính **trực tiếp từ dữ liệu gốc** bất cứ lúc nào, không cần bước "chốt" dữ liệu như VBA.
+
+**Xuất báo cáo từng ngày**: mỗi phần tử kết quả của `calculateDay`/`calculateMultiple` đã là báo cáo ngày đầy đủ (48 chu kỳ), có thể xuất độc lập bất cứ lúc nào — không phải tính năng riêng cần xây thêm ở tầng engine.
+
+Chi tiết cài đặt: [`src/QDD-Core-Library/README.md`](../src/QDD-Core-Library/README.md).
+
 ## Việc cần làm tiếp (Giai đoạn 2)
 
-- [ ] Viết `docs/04_Algorithm_Specification.md` làm đặc tả kỹ thuật cho `QDD-Core-Library` (đang chờ phân tích chi tiết VBA hiện tại).
-- [ ] Thiết lập repo/thư mục cho `QDD-Core-Library` (quản lý bằng `clasp`), migrate logic từ VBA sang Apps Script theo đặc tả.
-- [ ] Viết test tự động dựa trên `docs/09_Test_Cases.md` (31 UAT) — chạy được cả trên bản VBA cũ (baseline) và bản Apps Script mới để đối chiếu 1:1.
+- [x] Viết `docs/04_Algorithm_Specification.md` làm đặc tả kỹ thuật cho `QDD-Core-Library`.
+- [x] Thiết lập `src/QDD-Core-Library/` (quản lý bằng `clasp`), port CommandFilter/RampEngine/Segments/AreaIntegration/QddCalculator/CsvParser/BatchCalculator/MonthlyReport từ Python đã kiểm chứng, 29/29 test cục bộ pass.
+- [ ] Viết test tự động dựa trên `docs/09_Test_Cases.md` (31 UAT) — hiện chỉ có test smoke bằng dữ liệu giả lập, chưa map đủ 31 case UAT.
+- [ ] Port carry-over qua nửa đêm (R07), báo cáo tháng phía Sheet (khác `MonthlyReport.js` — cần lớp xuất/định dạng), cảnh báo lệnh 0-0 (UAT-34).
+- [ ] Thiết kế sheet lưu trữ nhiều ngày (lệnh tích luỹ có cột ngày, CSV tích luỹ theo ngày+công tơ) — xem mục "Nhiều ngày, nhiều tổ máy cùng lúc" ở trên.
+- [ ] Triển khai thật lên Apps Script (`clasp login`/`create`/`push`) — cần người dùng tự đăng nhập Google.
 - [ ] Tạo Google Sheets mẫu (template) cho nhà máy đầu tiên, gắn Library.

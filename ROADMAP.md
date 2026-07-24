@@ -20,7 +20,9 @@ Mục tiêu: hệ thống hoá toàn bộ tri thức nghiệp vụ/kỹ thuật 
 
 **Xác nhận ngày 2026-07-24**: chuyển sang **Google Sheets + Apps Script gắn liền từng file + Thư viện code dùng chung (Apps Script Library)**. **Không làm Web App trung tâm** — lý do và phương án đã cân nhắc xem [05_System_Architecture.md](docs/05_System_Architecture.md). Quyết định này xuất phát từ mục tiêu dự án: được xây dựng để đề xuất công nhận **sáng kiến kỹ thuật**, dự kiến nhân rộng cho nhiều nhà máy khác — cần vừa nhân rộng dễ dàng vừa giữ được khả năng audit công thức bằng mắt.
 
-- [ ] Thiết lập `QDD-Core-Library` (Apps Script Library quản lý bằng `clasp` + Git) chứa logic Ramp Engine, nội suy, carry-over, tích phân diện tích, quy đổi Qdd/Qdư.
+- [x] Thiết lập khung `QDD-Core-Library` (`src/QDD-Core-Library/`, quản lý bằng `clasp` + Git) — đã port CommandFilter (R01-R03), RampEngine (R06), Segments, AreaIntegration (R08), QddCalculator (R09-R14), CsvParser (R10/R12), có test cục bộ (17/17 pass, không cần dữ liệu thật). Xem `src/QDD-Core-Library/README.md`.
+- [ ] Chưa port: carry-over qua nửa đêm (R07), báo cáo tháng/snapshot, cảnh báo lệnh 0-0 (UAT-34).
+- [ ] Triển khai thật lên Apps Script (`clasp login`/`create`/`push`) — cần bạn tự đăng nhập Google, xem hướng dẫn trong README ở trên.
 - [ ] Tạo Google Sheets mẫu (template) cho nhà máy đầu tiên, gắn Library.
 - [ ] Xây dựng menu/sidebar Apps Script thay thế 15 nút VBA hiện tại (không làm Web App URL riêng).
 

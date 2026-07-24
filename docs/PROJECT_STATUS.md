@@ -23,7 +23,7 @@ Cập nhật lần cuối: 2026-07-24.
 
 ## Sprint 1 — QDD-Core-Library + Google Sheets Template
 
-⬜ Chưa bắt đầu — chờ hoàn tất Sprint 0 (`04_Algorithm_Specification.md`, chạy UAT baseline trên v1.3.1). Hướng đã xác nhận: Apps Script Library dùng chung + Google Sheets template/nhà máy, không làm Web App (xem [05_System_Architecture.md](05_System_Architecture.md)).
+🟡 Đang thực hiện. Đã xong: khung project `src/QDD-Core-Library/`, port CommandFilter/RampEngine/Segments/AreaIntegration/QddCalculator/CsvParser/BatchCalculator/MonthlyReport, 29/29 test cục bộ pass. Hỗ trợ tính nhiều ngày/nhiều tổ máy cùng lúc (khác VBA) và báo cáo tháng trực tiếp không cần snapshot. Chưa xong: carry-over R07, cảnh báo UAT-34, thiết kế sheet lưu trữ nhiều ngày, triển khai thật lên Apps Script (cần đăng nhập Google thủ công), Sheet mẫu.
 
 ## Sprint 2 — Algorithm (migrate)
 

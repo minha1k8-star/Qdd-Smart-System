@@ -1,0 +1,17 @@
+{
+  "name": "qdd-core-library",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Apps Script Library dùng chung cho QDD Smart System (Qdd/Qdư) - xem docs/05_System_Architecture.md",
+  "scripts": {
+    "login": "clasp login",
+    "create": "clasp create --type standalone --title \"QDD-Core-Library\" --rootDir .",
+    "push": "clasp push",
+    "open": "clasp open",
+    "watch": "clasp push --watch",
+    "test": "node tests/run_tests.js"
+  },
+  "devDependencies": {
+    "@google/clasp": "^2.4.2"
+  }
+}

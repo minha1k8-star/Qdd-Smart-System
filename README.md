@@ -39,6 +39,8 @@ Qdd-Smart-System/
 │   └── PROJECT_STATUS.md
 ├── legacy/
 │   └── ...                 # Bản Excel/VBA v1.3.1 đang chạy chính thức
+├── src/
+│   └── QDD-Core-Library/   # Apps Script Library (Giai đoạn 2/3) - xem src/QDD-Core-Library/README.md
 ├── tools/
 │   └── reference_engine/   # Bản tái hiện thuật toán bằng Python để kiểm tra/đối chiếu
 └── test-data/
