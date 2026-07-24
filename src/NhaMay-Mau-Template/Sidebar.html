@@ -20,14 +20,14 @@
 <div id="status"></div>
 
 <h3>1. Lưu CSV công tơ</h3>
-<div class="hint">Chọn tổ máy, loại dữ liệu (Qdc/Qmp) rồi chọn file CSV - hệ thống <b>tự đọc ngày ghi trong file</b> và điền sẵn vào ô Ngày (bạn xem lại/sửa nếu cần), đồng thời tự tra đúng mã công tơ theo cấu hình ở CAI_DAT (mỗi tổ máy/nhà máy có mã công tơ khác nhau, không cố định 6001/6303). Cần lưu đủ CẢ Qdc và Qmp cho 1 (ngày, tổ máy) thì mới tính được ngày đó.</div>
+<div class="hint">Chọn tổ máy, loại dữ liệu rồi chọn file CSV - hệ thống <b>tự đọc ngày ghi trong file</b> và điền sẵn vào ô Ngày (xem lại/sửa nếu cần). Cần lưu đủ CẢ Qdc và Qmp cho 1 (ngày, tổ máy) thì mới tính được ngày đó.</div>
 <label>Tổ máy
   <select id="csvUnit"><option value="S1">S1</option><option value="S2">S2</option></select>
 </label>
 <label>Loại dữ liệu
   <select id="csvRole">
-    <option value="Qdc">Qdc (công suất giao - công tơ 1)</option>
-    <option value="Qmp">Qmp (công suất mua - công tơ 2)</option>
+    <option value="Qdc">Qdc</option>
+    <option value="Qmp">Qmp</option>
   </select>
 </label>
 <label>File CSV <input type="file" id="csvFile" accept=".csv" onchange="onCsvFileSelected()"></label>
