@@ -1,0 +1,109 @@
+<style>
+  body { font-family: Arial, sans-serif; font-size: 13px; padding: 0 8px; }
+  h3 { margin: 16px 0 6px; font-size: 13px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  label { display: block; margin-top: 8px; font-size: 12px; color: #444; }
+  input, select { width: 100%; box-sizing: border-box; padding: 5px; margin-top: 2px; }
+  button { margin-top: 10px; width: 100%; padding: 8px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; }
+  button:hover { background: #3367d6; }
+  button:disabled { background: #aaa; cursor: default; }
+  .checks label { display: inline-block; width: auto; margin-right: 12px; }
+  .checks input { width: auto; }
+  #status { margin-top: 14px; padding: 8px; border-radius: 4px; font-size: 12px; white-space: pre-wrap; display: none; }
+  #status.ok { background: #e6f4ea; color: #1e4620; display: block; }
+  #status.err { background: #fce8e6; color: #611a15; display: block; }
+  #status.busy { background: #fef7e0; color: #664d03; display: block; }
+</style>
+
+<h3>1. Lưu CSV công tơ</h3>
+<label>Ngày <input type="date" id="csvDate"></label>
+<label>Công tơ
+  <select id="csvMeter">
+    <option value="6001">6001 (Qdc)</option>
+    <option value="6303">6303 (Qmp)</option>
+  </select>
+</label>
+<label>File CSV <input type="file" id="csvFile" accept=".csv"></label>
+<button onclick="submitCsv()">Lưu CSV</button>
+
+<h3>2. Tính 1 ngày</h3>
+<label>Ngày <input type="date" id="oneDate"></label>
+<label>Tổ máy
+  <select id="oneUnit"><option value="S1">S1</option><option value="S2">S2</option></select>
+</label>
+<button onclick="submitOneDay()">Tính</button>
+
+<h3>3. Tính hàng loạt</h3>
+<label>Từ ngày <input type="date" id="fromDate"></label>
+<label>Đến ngày <input type="date" id="toDate"></label>
+<div class="checks">
+  <label><input type="checkbox" id="batchS1" checked> S1</label>
+  <label><input type="checkbox" id="batchS2"> S2</label>
+</div>
+<button onclick="submitBatch()">Tính hàng loạt</button>
+
+<h3>4. Báo cáo tháng</h3>
+<label>Tháng <input type="month" id="reportMonth"></label>
+<button onclick="submitMonthlyReport()">Tổng hợp (từ KET_QUA đã có)</button>
+
+<div id="status"></div>
+
+<script>
+  function setStatus(cls, text) {
+    var el = document.getElementById('status');
+    el.className = cls;
+    el.textContent = text;
+  }
+
+  function submitCsv() {
+    var date = document.getElementById('csvDate').value;
+    var meter = document.getElementById('csvMeter').value;
+    var fileInput = document.getElementById('csvFile');
+    if (!date) { setStatus('err', 'Chọn ngày trước.'); return; }
+    if (!fileInput.files.length) { setStatus('err', 'Chọn file CSV trước.'); return; }
+    setStatus('busy', 'Đang xử lý...');
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      google.script.run
+        .withSuccessHandler(function (msg) { setStatus('ok', msg); })
+        .withFailureHandler(function (err) { setStatus('err', 'Lỗi: ' + err.message); })
+        .sidebar_saveCsv(date, meter, e.target.result);
+    };
+    reader.readAsText(fileInput.files[0]);
+  }
+
+  function submitOneDay() {
+    var date = document.getElementById('oneDate').value;
+    var unit = document.getElementById('oneUnit').value;
+    if (!date) { setStatus('err', 'Chọn ngày trước.'); return; }
+    setStatus('busy', 'Đang tính...');
+    google.script.run
+      .withSuccessHandler(function (msg) { setStatus('ok', msg); })
+      .withFailureHandler(function (err) { setStatus('err', 'Lỗi: ' + err.message); })
+      .sidebar_calcOneDay(date, unit);
+  }
+
+  function submitBatch() {
+    var fromDate = document.getElementById('fromDate').value;
+    var toDate = document.getElementById('toDate').value;
+    var units = [];
+    if (document.getElementById('batchS1').checked) units.push('S1');
+    if (document.getElementById('batchS2').checked) units.push('S2');
+    if (!fromDate || !toDate) { setStatus('err', 'Chọn đủ khoảng ngày.'); return; }
+    if (units.length === 0) { setStatus('err', 'Chọn ít nhất 1 tổ máy.'); return; }
+    setStatus('busy', 'Đang tính hàng loạt...');
+    google.script.run
+      .withSuccessHandler(function (msg) { setStatus('ok', msg); })
+      .withFailureHandler(function (err) { setStatus('err', 'Lỗi: ' + err.message); })
+      .sidebar_calcBatch(fromDate, toDate, units);
+  }
+
+  function submitMonthlyReport() {
+    var month = document.getElementById('reportMonth').value; // yyyy-MM
+    if (!month) { setStatus('err', 'Chọn tháng trước.'); return; }
+    setStatus('busy', 'Đang tổng hợp...');
+    google.script.run
+      .withSuccessHandler(function (msg) { setStatus('ok', msg); })
+      .withFailureHandler(function (err) { setStatus('err', 'Lỗi: ' + err.message); })
+      .sidebar_monthlyReport(month);
+  }
+</script>

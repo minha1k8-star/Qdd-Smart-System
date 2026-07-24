@@ -68,6 +68,41 @@ function readCsv48_(date, meterCode) {
   return null;
 }
 
+/**
+ * Lấy P0 cho (ngày, tổ máy) - ưu tiên giá trị nhập tay trong P0_NGAY, nếu
+ * không có thì SUY RA từ chu kỳ cuối (48) của KẾT QUẢ NGÀY HÔM TRƯỚC đã
+ * tính (nếu có). Đây là XẤP XỈ, không phải carry-over R07 đầy đủ (không
+ * mô phỏng ramp còn dở dang qua nửa đêm, chỉ lấy đúng Qdd cuối ngày trước
+ * làm điểm bắt đầu) - đủ dùng cho phần lớn trường hợp thực tế (ramp
+ * thường hoàn tất trong ngày), nhưng KHÔNG chính xác nếu ramp thật sự
+ * đang dở dang lúc 24:00 (xem UAT-04, docs/09_Test_Cases.md).
+ *
+ * @returns {{value:number, source:string}|null}
+ */
+function readOrInferP0_(date, unit) {
+  var manual = readP0_(date, unit);
+  if (manual !== null) return { value: manual, source: 'nhập tay' };
+
+  var prevDate = new Date(date);
+  prevDate.setDate(prevDate.getDate() - 1);
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.KET_QUA);
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) return null;
+  var rows = sh.getRange(2, 1, lastRow - 1, KET_QUA_HEADERS.length).getValues();
+  var prevDateStr = Utilities.formatDate(prevDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  var lastPeriodValue = null;
+  rows.forEach(function (r) {
+    var rowDate = r[0];
+    var rowDateStr = rowDate instanceof Date
+      ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(rowDate);
+    if (rowDateStr === prevDateStr && String(r[1]).toUpperCase() === unit.toUpperCase() && Number(r[2]) === 48) {
+      lastPeriodValue = Number(r[3]); // cột D = Qdd (MW)
+    }
+  });
+  if (lastPeriodValue === null) return null;
+  return { value: lastPeriodValue, source: 'suy ra từ chu kỳ cuối ngày ' + Utilities.formatDate(prevDate, Session.getScriptTimeZone(), 'dd/MM') + ' (xấp xỉ, xem README)' };
+}
+
 /** Lấy P0 đã nhập tay cho (ngày, tổ máy) từ sheet P0_NGAY - xem giới hạn ở README (chưa tự động carry-over R07). */
 function readP0_(date, unit) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.P0_NGAY);

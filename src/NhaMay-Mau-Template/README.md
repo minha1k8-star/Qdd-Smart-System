@@ -9,37 +9,45 @@ Google Sheets đầu tiên gắn `QDD-Core-Library`, dùng làm **bản mẫu đ
 ## Bắt đầu dùng
 
 1. Mở Sheet ở link trên. Nếu chưa thấy menu **"QDD Smart System"** trên thanh menu, tải lại trang (F5).
-2. **QDD Smart System → 1. Thiết lập sheet** — tạo đủ các sheet cần thiết (chỉ cần chạy 1 lần).
+2. **QDD Smart System → Thiết lập sheet** — tạo đủ các sheet cần thiết (chỉ cần chạy 1 lần).
 3. Điền `CAI_DAT` đúng thông số thật của nhà máy (tốc độ ramp, hệ số Qdd_V, dung sai) — mặc định đang để theo Duyên Hải 1.
+4. **QDD Smart System → Bảng điều khiển** — mở sidebar bên phải, dùng cho mọi thao tác còn lại (không cần dùng menu nữa).
 
-## Nhập dữ liệu
+## Bảng điều khiển (sidebar)
 
-### Danh sách lệnh
+Toàn bộ thao tác nằm gọn trong 1 sidebar, có lịch chọn ngày và upload file trực tiếp — không còn phải gõ tay ngày tháng hay qua 2 bước nhập CSV như trước.
 
-Nhập/dán trực tiếp vào sheet **`LENH`** — mỗi dòng 1 lệnh, có thể nhiều ngày cùng lúc (khác VBA — không cần xoá dữ liệu ngày cũ để nhập ngày mới). Cột `Thời điểm BĐTH` phải là kiểu ngày-giờ thật (không phải text).
+### 1. Lưu CSV công tơ
 
-### CSV công tơ (Qdc/Qmp)
+Chọn ngày, chọn công tơ (6001 = Qdc, 6303 = Qmp), chọn file CSV từ máy, bấm **Lưu CSV**. Xong ngay trong 1 bước — trình duyệt tự đọc file, gửi thẳng lên hệ thống.
 
-1. Mở sheet **`CSV_STAGING`** → **File → Import → Upload** → chọn file CSV (6001 hoặc 6303) → **Insert new sheet** hoặc **Replace current sheet** (dùng tính năng nhập CSV có sẵn của Google Sheets, không tự viết lại logic tách cột như VBA).
-2. Quay lại menu **QDD Smart System → 2. Lưu CSV → 6001** (hoặc **3. → 6303**), nhập đúng ngày của file đó khi được hỏi.
-3. Lặp lại cho từng ngày, từng công tơ.
+### 2. Tính 1 ngày
 
-### P0 (công suất đầu ngày)
+Chọn ngày (lịch), chọn tổ máy, bấm **Tính**.
 
-**Giới hạn quan trọng**: bản này **chưa cài đặt carry-over qua nửa đêm (R07)** — không tự tính P0 từ ngày trước như VBA. Phải điền tay vào sheet **`P0_NGAY`** (Ngày, Tổ máy, P0) trước khi tính ngày đó.
+**P0 (công suất đầu ngày)** được **tự động lấy từ chu kỳ cuối cùng của ngày liền trước đã tính** (nếu có) — không cần nhập tay như trước nữa, trừ **ngày đầu tiên sử dụng hệ thống** (chưa có ngày nào trước đó) thì vẫn cần điền 1 lần vào sheet `P0_NGAY`.
 
-## Tính toán
+> Lưu ý: đây là P0 **xấp xỉ** (lấy đúng Qdd chu kỳ cuối ngày trước), chưa phải carry-over R07 đầy đủ (chưa mô phỏng ramp còn dở dang qua nửa đêm) — đủ dùng cho phần lớn trường hợp thực tế.
 
-- **QDD Smart System → 4. Tính 1 ngày** — nhập ngày + tổ máy, kết quả ghi vào `KET_QUA`.
-- **QDD Smart System → 5. Tính nhiều ngày** — nhập khoảng ngày + tổ máy (vd `S1,S2`), tính hàng loạt. Ngày nào thiếu P0/CSV sẽ báo lỗi riêng, không chặn các ngày khác.
-- **QDD Smart System → 6. Tổng hợp báo cáo tháng** — tổng hợp trực tiếp từ `KET_QUA` đã có (không cần tính lại, không cần snapshot như VBA).
+### 3. Tính hàng loạt
+
+Chọn khoảng ngày + tổ máy (tick chọn S1/S2), bấm **Tính hàng loạt**. Ngày nào thiếu CSV sẽ báo trong kết quả, không chặn các ngày khác.
+
+### 4. Báo cáo tháng
+
+Chọn tháng, bấm **Tổng hợp** — gộp trực tiếp từ các ngày đã tính trong `KET_QUA` (không cần tính lại, không cần snapshot như VBA).
+
+## Danh sách lệnh
+
+Nhập/dán trực tiếp vào sheet **`LENH`** (không qua sidebar) — mỗi dòng 1 lệnh, có thể nhiều ngày cùng lúc (khác VBA — không cần xoá dữ liệu ngày cũ để nhập ngày mới). Cột `Thời điểm BĐTH` phải là kiểu ngày-giờ thật (không phải text).
 
 ## Chưa làm (so với VBA v1.3.1)
 
-- Carry-over qua nửa đêm (R07) — phải điền P0 tay.
+- Carry-over qua nửa đêm (R07) đầy đủ — hiện chỉ xấp xỉ bằng Qdd chu kỳ cuối ngày trước (xem mục "Tính 1 ngày" ở trên).
 - Cảnh báo lệnh 0-0 (UAT-34, xem [ROADMAP.md](../../ROADMAP.md)).
 - Xuất báo cáo ngày/tháng ra file Excel/PDF riêng — hiện chỉ ghi vào sheet `KET_QUA`/`BAO_CAO_THANG`.
 - Kiểm tra cấu trúc/backup tự động (tương đương nút 11, 13 VBA).
+- Nhập lệnh qua sidebar (hiện vẫn nhập trực tiếp vào sheet `LENH`).
 - Schema `LENH` rút gọn (9 cột) so với `LENH_GOC` gốc (25 cột) — chỉ giữ đúng trường thuật toán cần dùng.
 
 ## Cập nhật code sau này

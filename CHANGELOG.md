@@ -2,7 +2,16 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — Giai đoạn 2: triển khai thật + Sheet mẫu
+## [Unreleased] — Sidebar UI thay cho hộp thoại prompt
+
+Phản hồi người dùng: thao tác qua `prompt()` gõ tay ngày tháng + phải tự điền P0 + CSV qua 2 bước cảm giác rời rạc, khó dùng hơn "1 nút bấm" của VBA cũ. Đã làm lại:
+
+- **`Sidebar.html` + `Controller.js`** thay toàn bộ menu prompt-based: 1 bảng điều khiển duy nhất, có lịch chọn ngày (`<input type=date>`), upload file CSV trực tiếp (đọc bằng FileReader phía trình duyệt, gửi thẳng lên server - bỏ hẳn bước Import vào CSV_STAGING).
+- **Tự động suy ra P0** từ chu kỳ cuối ngày liền trước đã tính (`readOrInferP0_`) — chỉ còn cần nhập tay P0_NGAY cho đúng 1 lần (ngày đầu tiên dùng hệ thống). Đây là xấp xỉ, chưa phải carry-over R07 đầy đủ.
+- Bỏ sheet `CSV_STAGING`, menu rút gọn còn 2 mục (Bảng điều khiển, Thiết lập sheet).
+- Đã đẩy lên Sheet thật (Duyên Hải 1).
+
+## Giai đoạn 2: triển khai thật + Sheet mẫu
 
 - **Triển khai thật QDD-Core-Library lên Google Apps Script** (đăng nhập, tạo project, push code). Khắc phục lỗi "Premature close" của `clasp login` (do Node.js v24 quá mới) bằng cách cài thêm Node 20 LTS qua Homebrew chỉ để chạy đăng nhập. Publish version 1 làm Library, Script ID `10_vjTSgVjZodA7xTkJ_qJaGom3JDx_tnYE0YgWA_cphh1Q7g_lTKMLUO`.
 - Thêm `.claspignore` (loại file test Node ra khỏi bản đẩy Apps Script - nếu không sẽ lỗi toàn bộ thư viện vì `require`/`fs` không tồn tại trong môi trường Apps Script).
