@@ -2,6 +2,12 @@
 
 Quy tắc làm việc bắt buộc cho mọi AI agent (Claude Code, Codex, ChatGPT, hoặc con người) khi đóng góp vào repo QDD Smart System.
 
+## Cạm bẫy kỹ thuật đã gặp thật (đọc trước khi sửa code Apps Script)
+
+- **KHÔNG dùng `instanceof` cho dữ liệu truyền qua ranh giới Apps Script Library** (`Date`, `Array`, `Error`...). Mỗi scope có constructor riêng, nên `x instanceof Date` luôn sai khi `x` được tạo ở script gọi. Lỗi này từng khiến toàn bộ lệnh điều độ bị loại âm thầm, Qdd phẳng bằng P0 cả ngày mà không báo lỗi gì. Dùng duck typing (`typeof v.getTime === 'function'`).
+- **Không đọc dữ liệu sheet theo VỊ TRÍ cột** — luôn dò theo TÊN tiêu đề. Người dùng có thể dán file gốc với thứ tự cột khác, hoặc sheet còn cấu trúc của bản cũ.
+- Sau khi sửa `src/QDD-Core-Library/`, phải **tạo version mới** (`npx clasp version "..."`) và cập nhật số version trong `src/NhaMay-Mau-Template/appsscript.json` — nếu không, Sheet vẫn chạy code cũ.
+
 ## Nguyên tắc cốt lõi
 
 1. **Không thay đổi Business Rule** (`docs/03_Business_Rules.md`, R01-R14 và các quy tắc bổ sung) nếu chưa có Test Case tương ứng trong `docs/09_Test_Cases.md` / sheet `KIEM_THU_UAT`.

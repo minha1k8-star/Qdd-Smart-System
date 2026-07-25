@@ -2,7 +2,19 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — LENH giống file gốc, cảnh báo lệnh 0-0, dọn dữ liệu
+## [Unreleased] — Sửa lỗi `instanceof Date` qua Library boundary (nghiêm trọng)
+
+**Triệu chứng**: mọi ngày tính ra Qdd phẳng đúng bằng P0 suốt 48 chu kỳ, không lệnh nào được áp dụng — không báo lỗi gì.
+
+**Nguyên nhân**: `CommandFilter.selectEffective` kiểm tra `c.bdth instanceof Date`. Khi Sheet gọi sang `QDD-Core-Library`, mỗi scope có **constructor `Date` riêng**, nên Date tạo ở script gọi KHÔNG thoả `instanceof Date` bên trong thư viện → toàn bộ lệnh bị loại âm thầm. Dữ liệu `LENH` hoàn toàn hợp lệ (đã kiểm chứng kiểu dữ liệu qua gviz: CS ra lệnh/hoàn thành là number, BĐTH là datetime) — lỗi thuần tuý ở code.
+
+**Khắc phục**: thay bằng kiểm tra theo đặc điểm (`typeof v.getTime === 'function'`), không phụ thuộc constructor. Thêm test hồi quy mô phỏng Date đến từ scope khác (31/31 test pass). Thư viện lên **version 2**, Sheet mẫu trỏ sang version 2.
+
+**Xác nhận bằng dữ liệu thật**: ngày 17/07/2026 tổ S1 — sai lệch **0,0000 MW trên cả 48 chu kỳ** so với bảng tính tay `Kiểm tra Qdu`.
+
+> Bài học ghi lại cho người/AI tiếp nhận: **không dùng `instanceof` cho dữ liệu truyền qua ranh giới Apps Script Library** (Date, Array, Error...). Dùng duck typing.
+
+## LENH giống file gốc, cảnh báo lệnh 0-0, dọn dữ liệu
 
 **Sự cố đã xử lý (dữ liệu thật)**: kết quả tính ra sai toàn bộ 20 tổ hợp (Qdd phẳng = P0, không lệnh nào được nhận). Hai nguyên nhân độc lập:
 1. Sheet `LENH` còn cấu trúc 9 cột cũ trong khi code đọc theo vị trí cột của cấu trúc mới → lệch cột → mọi lệnh bị loại. **Khắc phục**: `readAllCommands_` và `importCommandsFromStaging_` giờ dò cột theo **TÊN tiêu đề**, không theo vị trí; `LENH` được dựng lại đúng 25 cột giống hệt file gốc (Nhà máy ở cột B) và tự ánh xạ dữ liệu cũ sang đúng cột.

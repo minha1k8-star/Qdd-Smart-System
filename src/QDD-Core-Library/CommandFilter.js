@@ -36,6 +36,20 @@ QDD.CommandFilter = (function () {
     return date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
   }
 
+  /**
+   * Kiểm tra "có phải Date không" bằng đặc điểm (duck typing), KHÔNG dùng
+   * `instanceof Date`.
+   *
+   * LÝ DO QUAN TRỌNG: khi thư viện này được gọi từ script khác qua Apps
+   * Script Library, mỗi scope có constructor `Date` RIÊNG. Một Date tạo ở
+   * script gọi sẽ KHÔNG thoả `instanceof Date` bên trong thư viện, khiến
+   * mọi lệnh bị loại âm thầm và Qdd phẳng bằng P0 cả ngày (lỗi đã gặp
+   * thật trên dữ liệu vận hành). Duck typing tránh hẳn cạm bẫy này.
+   */
+  function isDateLike(v) {
+    return !!v && typeof v.getTime === 'function' && !isNaN(v.getTime());
+  }
+
   function sameDate(a, b) {
     return a.getFullYear() === b.getFullYear() &&
       a.getMonth() === b.getMonth() &&
@@ -53,7 +67,7 @@ QDD.CommandFilter = (function () {
     var out = [];
 
     commands.forEach(function (c) {
-      if (!c.bdth || !(c.bdth instanceof Date)) return;
+      if (!isDateLike(c.bdth) || !isDateLike(targetDate)) return;
       if (!sameDate(c.bdth, targetDate)) return;
       if ((c.toMay || '').toUpperCase().slice(0, 2) !== unitPrefix) return;
       if (!isCompleted(c.hoanThanh)) return;

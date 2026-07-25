@@ -240,5 +240,38 @@ console.log('8) MonthlyReport');
   check('tongHop.tongQdc = 2 ngay x 48 chu ky x 100 MWh', report.tongHop.tongQdc, 9600, 1e-6);
 }
 
+// ---------------------------------------------------------------------
+// 9) Date qua ranh gioi Apps Script Library (loi that da gap)
+//    Khi goi thu vien tu script khac, moi scope co constructor Date RIENG,
+//    nen `instanceof Date` luon sai -> moi lenh bi loai am tham.
+//    Gia lap bang mot object Date-like tu scope khac (khong instanceof Date).
+// ---------------------------------------------------------------------
+console.log('9) Date tu scope khac (Library boundary)');
+{
+  function foreignDate(y, m, d, hh, mm, ss) {
+    const real = new Date(y, m, d, hh || 0, mm || 0, ss || 0);
+    // Object KHONG phai instanceof Date nhung co day du method can dung.
+    return {
+      getTime: () => real.getTime(),
+      getFullYear: () => real.getFullYear(),
+      getMonth: () => real.getMonth(),
+      getDate: () => real.getDate(),
+      getHours: () => real.getHours(),
+      getMinutes: () => real.getMinutes(),
+      getSeconds: () => real.getSeconds(),
+    };
+  }
+
+  const raw = [{
+    id: 'FOREIGN', toMay: 'S1', csRaLenh: 500, csHoanThanh: 500,
+    bdth: foreignDate(2026, 6, 17, 18, 50, 16),
+    hoanThanh: 1, dungLenh: false, nguonLenh: 'MO',
+  }];
+
+  const eff = QDD.CommandFilter.selectEffective(raw, foreignDate(2026, 6, 17), 'S1');
+  checkTrue('Nhan dung lenh du Date den tu scope khac', eff.length === 1);
+  check('Giay trong ngay tinh dung tu Date-like', eff.length ? eff[0].seconds : NaN, 18 * 3600 + 50 * 60 + 16);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail > 0 ? 1 : 0);
