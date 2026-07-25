@@ -45,10 +45,20 @@ function computeOneDay_(date, unit) {
       effectiveCommands: effectiveCommands, p0: p0Info.value, qdc48: qdc48, qmp48: qmp48,
       qddVCoef: config.qddVCoef, tolerance: config.tolerance,
     });
+    var warnings = detectZeroZeroCommands_(allCommands, date, unit);
+    if (effectiveCommands.length === 0) {
+      // Ngày không có lệnh nào vẫn tính được (Qdd giữ nguyên P0 cả ngày) và
+      // đó có thể là đúng thực tế. Nhưng nếu chỉ vì QUÊN NHẬP LỆNH thì kết
+      // quả sai mà trông vẫn "thành công" - lỗi này đã xảy ra thật với ngày
+      // 19-20/07, nên phải cảnh báo rõ.
+      warnings.push('Không có lệnh hiệu lực nào trong sheet LENH cho ngày/tổ máy này ' +
+        '-> Qdd giữ nguyên P0 = ' + p0Info.value + ' MW suốt 48 chu kỳ. ' +
+        'Kiểm tra lại xem đã nhập danh sách lệnh chưa (nếu ngày đó thực sự không có lệnh thì bỏ qua).');
+    }
     return {
       periods: periods,
       p0Source: p0Info.source,
-      warnings: detectZeroZeroCommands_(allCommands, date, unit),
+      warnings: warnings,
     };
   } catch (e) {
     return { error: e.message };
