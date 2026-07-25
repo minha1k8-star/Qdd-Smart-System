@@ -25,13 +25,7 @@ Chọn tổ máy, chọn loại dữ liệu (Qdc/Qmp), chọn file CSV từ máy
 
 > **Khác với VBA cũ**: bản VBA v1.3.1 chủ động **không đọc** ngày trong CSV (chỉ để tham khảo), vì Excel từng đọc sai định dạng ngày tuỳ theo Regional Settings của từng máy (Mac/Windows) — xem [docs/14_Knowledge_Transfer.md](../../docs/14_Knowledge_Transfer.md). Google Apps Script không có giới hạn đó (không phụ thuộc cài đặt vùng của máy người dùng khi đọc chuỗi text), nên bản này đọc và dùng ngày trong file làm gợi ý tự động, có kiểm tra lại bằng mắt trước khi lưu.
 
-### 2. Tải CSV hàng loạt
-
-Dùng khi cần nhập nhiều ngày cùng lúc (chuẩn bị cho mục 4). Chọn **nhiều file CSV cùng lúc** trong hộp thoại chọn file — hệ thống tự nhận diện tổ máy + loại dữ liệu bằng cách **so tên file với mã công tơ đã cấu hình** trong `CAI_DAT` (tên file thật thường có dạng `<ngày><tháng><mã công tơ>.CSV`, vd `17076001.CSV`), và tự đọc ngày từ nội dung từng file — không cần chọn tay từng file một.
-
-File nào không tự nhận diện được (tên file không khớp mã công tơ nào, hoặc không đọc được ngày) sẽ được báo riêng theo tên file, xử lý tay bằng mục 1.
-
-### 3. Tính 1 ngày
+### 2. Tính 1 ngày
 
 Chọn ngày (lịch), chọn tổ máy, bấm **Tính**.
 
@@ -39,21 +33,31 @@ Chọn ngày (lịch), chọn tổ máy, bấm **Tính**.
 
 > Lưu ý: đây là P0 **xấp xỉ** (lấy đúng Qdd chu kỳ cuối ngày trước), chưa phải carry-over R07 đầy đủ (chưa mô phỏng ramp còn dở dang qua nửa đêm) — đủ dùng cho phần lớn trường hợp thực tế.
 
+### 3. Tải CSV hàng loạt
+
+Dùng khi cần nhập nhiều ngày cùng lúc (chuẩn bị cho mục 4). Chọn **nhiều file CSV cùng lúc** trong hộp thoại chọn file — hệ thống tự nhận diện tổ máy + loại dữ liệu bằng cách **so tên file với mã công tơ đã cấu hình** trong `CAI_DAT` (tên file thật thường có dạng `<ngày><tháng><mã công tơ>.CSV`, vd `17076001.CSV`), và tự đọc ngày từ nội dung từng file — không cần chọn tay từng file một.
+
+File nào không tự nhận diện được (tên file không khớp mã công tơ nào, hoặc không đọc được ngày) sẽ được báo riêng theo tên file, xử lý tay bằng mục 1.
+
 ### 4. Tính hàng loạt
 
 Chọn khoảng ngày + tổ máy (tick chọn S1/S2), bấm **Tính hàng loạt**. Ngày nào thiếu CSV sẽ báo trong kết quả, không chặn các ngày khác.
 
 ### 5. Báo cáo tháng
 
-Chọn tháng, bấm **Tổng hợp** — gộp trực tiếp từ các ngày đã tính trong `KET_QUA` (không cần tính lại, không cần snapshot như VBA).
+Chọn tháng + tổ máy + định dạng, bấm **Tổng hợp + Xuất file**. Làm 2 việc cùng lúc:
+1. Cập nhật bảng tổng số liệu (Qdc/Qmp/Qdd_V/Qdư mỗi ngày) vào sheet `BAO_CAO_THANG`.
+2. **Xuất 1 file gộp TOÀN BỘ các ngày đã tính trong tháng đó** (mỗi ngày 1 tab, các tổ máy đã chọn nằm cạnh nhau trong cùng tab — xem layout ở mục 6) — sidebar hiện link tải ngay.
 
-### 6. Xuất báo cáo
+Không tự tính bù ngày còn thiếu — cần tính đủ các ngày bằng mục 2/4 trước.
 
-Chọn khoảng ngày (chọn 1 ngày thì để Từ ngày = Đến ngày), chọn tổ máy, chọn định dạng (Excel/PDF), bấm **Xuất báo cáo**. Chỉ xuất được ngày **đã tính xong** (có trong `KET_QUA`) — ngày nào chưa tính sẽ báo riêng, không chặn các ngày còn lại.
+### 6. Xuất báo cáo (1 hoặc vài ngày cụ thể)
 
-File xuất ra: **mỗi ngày 1 tab**, các tổ máy đã chọn nằm **cạnh nhau trong cùng tab** (giống layout file báo cáo gốc, ví dụ cột B:J = S1, cột L:T = S2) — không phải mỗi tổ máy 1 tab riêng. File lưu vào cùng thư mục Google Drive với Sheet này, sidebar hiện link để mở/tải ngay.
+Giống mục 5 nhưng cho khoảng ngày tự do (không nhất thiết cả tháng) — chọn khoảng ngày (chọn 1 ngày thì để Từ ngày = Đến ngày), chọn tổ máy, chọn định dạng (Excel/PDF), bấm **Xuất báo cáo**. Chỉ xuất được ngày **đã tính xong** (có trong `KET_QUA`) — ngày nào chưa tính sẽ báo riêng, không chặn các ngày còn lại.
 
-> Lần đầu dùng mục này, Google có thể hiện lại màn hình xin quyền truy cập Drive (để lưu file xuất ra) — bấm **Allow** như lúc thiết lập ban đầu.
+File xuất ra (mục 5 và 6 dùng chung layout): **mỗi ngày 1 tab**, các tổ máy đã chọn nằm **cạnh nhau trong cùng tab** (giống layout file báo cáo gốc, ví dụ cột B:J = S1, cột L:T = S2) — không phải mỗi tổ máy 1 tab riêng. File lưu vào cùng thư mục Google Drive với Sheet này, sidebar hiện link để mở/tải ngay.
+
+> Lần đầu dùng mục 5/6, Google có thể hiện lại màn hình xin quyền truy cập Drive (để lưu file xuất ra) — bấm **Allow** như lúc thiết lập ban đầu.
 
 ## Danh sách lệnh
 

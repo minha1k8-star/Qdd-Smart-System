@@ -106,9 +106,16 @@ function sidebar_calcBatch(fromStr, toStr, units) {
   return msg;
 }
 
-function sidebar_monthlyReport(monthStr) {
+/**
+ * Tổng hợp số liệu tháng vào BAO_CAO_THANG VÀ xuất file gộp tất cả các
+ * ngày đã tính trong tháng đó (mỗi ngày 1 tab, tổ máy cạnh nhau - giống
+ * mục "Xuất báo cáo"), chỉ cho các tổ máy được chọn.
+ * @returns {{html: string}}
+ */
+function sidebar_monthlyReport(monthStr, units, format) {
   var m = String(monthStr).trim().match(/^(\d{4})-(\d{2})$/); // input type=month -> yyyy-MM
   if (!m) throw new Error('Định dạng tháng không hợp lệ.');
+  if (!units || units.length === 0) throw new Error('Chọn ít nhất 1 tổ máy.');
   var year = Number(m[1]), month = Number(m[2]) - 1;
 
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.KET_QUA);
@@ -117,17 +124,21 @@ function sidebar_monthlyReport(monthStr) {
   var rows = sh.getRange(2, 1, lastRow - 1, KET_QUA_HEADERS.length).getValues();
 
   var byDayUnit = {};
+  var dateSet = {};
   rows.forEach(function (r) {
     var date = r[0];
     if (!(date instanceof Date) || date.getMonth() !== month || date.getFullYear() !== year) return;
     var unit = r[1];
-    var key = Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd') + '|' + unit;
+    if (units.indexOf(unit) === -1) return;
+    var dateKey = Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    var key = dateKey + '|' + unit;
     if (!byDayUnit[key]) byDayUnit[key] = { date: date, unit: unit, periods: [] };
     byDayUnit[key].periods.push({ qdc: r[5], qddV: r[4], qmp: r[9], qdu: r[10] });
+    dateSet[dateKey] = date;
   });
 
   var dayResults = Object.keys(byDayUnit).map(function (k) { return byDayUnit[k]; });
-  if (dayResults.length === 0) throw new Error('Không có dữ liệu KET_QUA cho tháng ' + m[2] + '/' + m[1] + '.');
+  if (dayResults.length === 0) throw new Error('Không có dữ liệu KET_QUA cho tháng ' + m[2] + '/' + m[1] + ' (với tổ máy đã chọn).');
 
   var report = QDDCoreLibrary.aggregateMonthlyReport(dayResults);
 
@@ -140,8 +151,17 @@ function sidebar_monthlyReport(monthStr) {
   if (outRows.length > 0) {
     outSh.getRange(2, 1, outRows.length, BAO_CAO_THANG_HEADERS.length).setValues(outRows);
   }
-  return 'Đã tổng hợp ' + report.tongHop.soNgay + ' (ngày, tổ máy). Tổng Qdư: ' +
-    report.tongHop.tongQdu.toFixed(3) + ' MWh. Xem sheet BAO_CAO_THANG.';
+
+  var dates = Object.keys(dateSet).sort().map(function (k) { return dateSet[k]; });
+  var exportResult = buildAndExportReport_(dates, units, format);
+
+  var html = 'Đã tổng hợp ' + report.tongHop.soNgay + ' (ngày, tổ máy). Tổng Qdư: ' +
+    report.tongHop.tongQdu.toFixed(3) + ' MWh (xem sheet BAO_CAO_THANG).<br><br>' +
+    '✓ File báo cáo tháng: <a href="' + exportResult.url + '" target="_blank">' + exportResult.name + '</a>';
+  if (exportResult.missing.length > 0) {
+    html += '<br><br>Bỏ qua (chưa có dữ liệu):<br>' + exportResult.missing.join('<br>');
+  }
+  return { html: html };
 }
 
 /**

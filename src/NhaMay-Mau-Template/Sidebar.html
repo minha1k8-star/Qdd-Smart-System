@@ -35,15 +35,7 @@
 <div class="hint" id="csvDateNote"></div>
 <button id="btnCsv" onclick="submitCsv()">Lưu CSV</button>
 
-<h3>2. Tải CSV hàng loạt</h3>
-<div class="hint">
-  Dùng khi tính nhiều ngày (mục 4) - chọn CÙNG LÚC nhiều file CSV. Hệ thống tự nhận diện tổ máy/loại dữ liệu bằng cách so tên file với mã công tơ đã cấu hình ở CAI_DAT, và tự đọc ngày từ nội dung từng file - không cần chọn tay từng file.
-  File nào không tự nhận diện được sẽ báo riêng, lưu tay bằng mục 1 ở trên.
-</div>
-<label>Nhiều file CSV <input type="file" id="csvBulkFiles" accept=".csv" multiple></label>
-<button id="btnCsvBulk" onclick="submitCsvBulk()">Tải hàng loạt</button>
-
-<h3>3. Tính 1 ngày</h3>
+<h3>2. Tính 1 ngày</h3>
 <div class="hint">
   Trước khi bấm Tính, cần đã có: (1) danh sách lệnh trong sheet LENH cho ngày này (có thể không có lệnh nào cũng được),
   (2) đủ CSV 6001 và 6303 cho ngày này (mục 1 ở trên).<br>
@@ -56,9 +48,17 @@
 </label>
 <button id="btnOneDay" onclick="submitOneDay()">Tính</button>
 
+<h3>3. Tải CSV hàng loạt</h3>
+<div class="hint">
+  Dùng khi tính nhiều ngày (mục 4) - chọn CÙNG LÚC nhiều file CSV. Hệ thống tự nhận diện tổ máy/loại dữ liệu bằng cách so tên file với mã công tơ đã cấu hình ở CAI_DAT, và tự đọc ngày từ nội dung từng file - không cần chọn tay từng file.
+  File nào không tự nhận diện được sẽ báo riêng, lưu tay bằng mục 1 ở trên.
+</div>
+<label>Nhiều file CSV <input type="file" id="csvBulkFiles" accept=".csv" multiple></label>
+<button id="btnCsvBulk" onclick="submitCsvBulk()">Tải hàng loạt</button>
+
 <h3>4. Tính hàng loạt</h3>
 <div class="hint">
-  Tính nhiều ngày liên tiếp cùng lúc, cho 1 hoặc cả 2 tổ máy. Điều kiện giống mục 3, áp dụng cho từng ngày trong khoảng đã chọn.
+  Tính nhiều ngày liên tiếp cùng lúc, cho 1 hoặc cả 2 tổ máy. Điều kiện giống mục 2, áp dụng cho từng ngày trong khoảng đã chọn.
   Ngày nào thiếu CSV hoặc thiếu P0 sẽ được báo riêng trong kết quả, KHÔNG làm dừng các ngày còn lại.
 </div>
 <label>Từ ngày <input type="date" id="fromDate"></label>
@@ -70,13 +70,25 @@
 <button id="btnBatch" onclick="submitBatch()">Tính hàng loạt</button>
 
 <h3>5. Báo cáo tháng</h3>
-<div class="hint">Gộp lại các ngày ĐÃ TÍNH XONG (đang có trong KET_QUA) của tháng được chọn - không tự tính bù ngày còn thiếu, cần tính đủ các ngày bằng mục 2/3 trước.</div>
-<label>Tháng <input type="month" id="reportMonth"></label>
-<button id="btnReport" onclick="submitMonthlyReport()">Tổng hợp</button>
-
-<h3>6. Xuất báo cáo</h3>
 <div class="hint">
-  Xuất 1 hoặc nhiều ngày ĐÃ TÍNH XONG (trong KET_QUA) ra 1 file riêng - mỗi ngày 1 tab, các tổ máy đã chọn nằm cạnh nhau trong cùng tab (giống layout file báo cáo gốc). Xuất 1 ngày thì chọn Từ ngày = Đến ngày.
+  Xuất TOÀN BỘ các ngày ĐÃ TÍNH XONG (trong KET_QUA) của tháng được chọn thành 1 file (mỗi ngày 1 tab, các tổ máy cạnh nhau) - không tự tính bù ngày còn thiếu, cần tính đủ các ngày bằng mục 2/4 trước. Đồng thời cập nhật bảng tổng số liệu (Qdc/Qmp/Qdư...) vào sheet BAO_CAO_THANG.
+</div>
+<label>Tháng <input type="month" id="reportMonth"></label>
+<div class="checks">
+  <label><input type="checkbox" id="reportS1" checked> S1</label>
+  <label><input type="checkbox" id="reportS2" checked> S2</label>
+</div>
+<label>Định dạng file xuất
+  <select id="reportFormat">
+    <option value="xlsx">Excel (.xlsx)</option>
+    <option value="pdf">PDF</option>
+  </select>
+</label>
+<button id="btnReport" onclick="submitMonthlyReport()">Tổng hợp + Xuất file</button>
+
+<h3>6. Xuất báo cáo (1 hoặc vài ngày cụ thể)</h3>
+<div class="hint">
+  Giống mục 5 nhưng chọn đúng khoảng ngày tự do (không nhất thiết cả tháng) - mỗi ngày 1 tab, các tổ máy đã chọn nằm cạnh nhau trong cùng tab (giống layout file báo cáo gốc). Xuất 1 ngày thì chọn Từ ngày = Đến ngày.
 </div>
 <label>Từ ngày <input type="date" id="exportFromDate"></label>
 <label>Đến ngày <input type="date" id="exportToDate"></label>
@@ -250,13 +262,18 @@
 
   function submitMonthlyReport() {
     var month = document.getElementById('reportMonth').value;
+    var format = document.getElementById('reportFormat').value;
+    var units = [];
+    if (document.getElementById('reportS1').checked) units.push('S1');
+    if (document.getElementById('reportS2').checked) units.push('S2');
     if (!month) { setStatus('err', 'Chọn tháng trước.'); return; }
+    if (units.length === 0) { setStatus('err', 'Chọn ít nhất 1 tổ máy.'); return; }
     var restore = withButton('btnReport', 'Đang tổng hợp…', null);
-    setStatus('busy', 'Đang tổng hợp báo cáo tháng...');
+    setStatus('busy', 'Đang tổng hợp và xuất file báo cáo tháng...');
     google.script.run
-      .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
+      .withSuccessHandler(function (result) { restore(); setStatusHtml('ok', result.html); })
       .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
-      .sidebar_monthlyReport(month);
+      .sidebar_monthlyReport(month, units, format);
   }
 
   function submitExport() {

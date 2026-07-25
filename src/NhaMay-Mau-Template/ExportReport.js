@@ -101,7 +101,8 @@ function buildAndExportReport_(dates, units, format) {
     sh.getRange(4, 1, 48, 1).setValues(chuKyRows);
 
     sh.setFrozenRows(3);
-    sh.setFrozenColumns(1);
+    // Không cố định cột: dòng tiêu đề (hàng 1) gộp toàn bộ các cột, cố định
+    // dù chỉ 1 cột cũng bị Google Sheets báo lỗi vì cắt ngang ô hợp nhất.
     sh.autoResizeColumns(1, lastCol);
   });
 

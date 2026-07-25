@@ -2,7 +2,14 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — Xuất báo cáo ngày/khoảng ngày ra file riêng
+## [Unreleased] — Sửa lỗi xuất file + Báo cáo tháng xuất file gộp
+
+- **Sửa lỗi xuất Excel/PDF**: `setFrozenColumns(1)` xung đột với ô tiêu đề gộp toàn bộ cột ở hàng 1 (Google Sheets báo lỗi "không thể cố định cột chỉ chứa một phần ô hợp nhất") — bỏ cố định cột, chỉ giữ cố định hàng.
+- **Đổi vị trí mục 2/3** trong sidebar: "Tính 1 ngày" lên mục 2 (đi cùng "Lưu CSV" mục 1), "Tải CSV hàng loạt" xuống mục 3 (đi cùng "Tính hàng loạt" mục 4) — nhóm đúng theo luồng dùng đơn lẻ vs hàng loạt.
+- **"Báo cáo tháng" giờ xuất file thật**: ngoài cập nhật `BAO_CAO_THANG`, giờ xuất luôn 1 file gộp toàn bộ các ngày đã tính trong tháng (mỗi ngày 1 tab, tổ máy cạnh nhau), dùng chung cơ chế với mục "Xuất báo cáo" — thêm lựa chọn tổ máy + định dạng vào form.
+- Đã đẩy lên Sheet thật.
+
+## Xuất báo cáo ngày/khoảng ngày ra file riêng
 
 - Thêm `ExportReport.js` + mục "6. Xuất báo cáo" trong sidebar: chọn khoảng ngày + tổ máy + định dạng (Excel/PDF), xuất từ dữ liệu đã có trong `KET_QUA` (không tính lại) thành 1 file lưu vào Google Drive, sidebar hiện link tải.
 - Layout xuất: **mỗi ngày 1 tab**, các tổ máy đã chọn nằm **cạnh nhau trong cùng tab** — khớp layout file báo cáo gốc (S1/S2 cạnh nhau), không phải mỗi tổ máy 1 tab riêng.
