@@ -11,6 +11,7 @@
  */
 
 var SHEETS = {
+  HUONG_DAN: 'HUONG_DAN',
   CAI_DAT: 'CAI_DAT',
   LENH: 'LENH',
   LENH_STAGING: 'LENH_STAGING',
@@ -152,8 +153,9 @@ function setupAllSheets() {
   ensureSheet_(SHEETS.KET_QUA, KET_QUA_HEADERS);
   ensureSheet_(SHEETS.BAO_CAO_THANG, BAO_CAO_THANG_HEADERS);
   removeLeftoverSheet_('CSV_STAGING'); // sheet cũ từ thiết kế trước, không còn dùng (đọc CSV trực tiếp trong sidebar)
+  buildHuongDanSheet_(); // ghi lại sheet hướng dẫn, đặt ngoài cùng bên trái
 
-  SpreadsheetApp.getUi().alert('Đã tạo đủ các sheet cần thiết. Nhớ điền đúng "Mã công tơ Qdc/Qmp" cho từng tổ máy trong CAI_DAT (khác nhau giữa S1/S2 và giữa các nhà máy). Mở menu "QDD Smart System → Bảng điều khiển" để bắt đầu nhập CSV/tính toán.');
+  SpreadsheetApp.getUi().alert('Đã tạo đủ các sheet cần thiết. Xem sheet HUONG_DAN (ngoài cùng bên trái) để biết cách dùng. Nhớ điền đúng "Mã công tơ Qdc/Qmp" cho từng tổ máy trong CAI_DAT trước khi tính.');
 }
 
 /** Xoá 1 sheet cũ không còn dùng nếu tồn tại (dọn dẹp khi nâng cấp từ bản cũ). */

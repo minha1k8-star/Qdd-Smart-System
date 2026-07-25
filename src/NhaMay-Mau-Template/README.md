@@ -16,6 +16,8 @@ Google Sheets đầu tiên gắn `QDD-Core-Library`, dùng làm **bản mẫu đ
    - **Nhãn báo cáo** cho từng tổ (mặc định `S1DH1`, `S2DH1`) — hiện trên đầu mỗi khối trong file xuất.
 4. **QDD Smart System → Bảng điều khiển** — mở sidebar bên phải, dùng cho mọi thao tác còn lại.
 
+Sheet **`HUONG_DAN`** (ngoài cùng bên trái) chứa toàn bộ hướng dẫn sử dụng ngay trong file — người dùng mới đọc là làm được, không cần tìm tài liệu bên ngoài. Sheet này do hệ thống tự ghi lại mỗi lần chạy "Thiết lập sheet", đừng sửa tay.
+
 > **Người dùng cần quyền Chỉnh sửa (Editor)** mới thấy menu — người chỉ có quyền Xem sẽ không chạy được Apps Script.
 
 ## Bảng điều khiển (sidebar)

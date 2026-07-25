@@ -2,7 +2,13 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — File xuất bám sát bản "Kiểm tra Qdu" gốc
+## [Unreleased] — Sheet HUONG_DAN ngay trong file
+
+Thêm sheet **`HUONG_DAN`** (luôn nằm ngoài cùng bên trái) chứa hướng dẫn sử dụng đầy đủ ngay trong Google Sheets — tương đương sheet `HUONG_DAN` của bản VBA cũ, để người dùng mới hoặc người tiếp nhận sau này đọc là làm được mà không cần mở tài liệu bên ngoài. Nội dung gồm: chuẩn bị lần đầu, quy trình hàng ngày, làm nhiều ngày cùng lúc, xuất báo cáo, **ý nghĩa từng cảnh báo tự động**, vai trò từng sheet, và các lưu ý quan trọng (tắt "dọn dữ liệu" khi đang đối chiếu, quyền Chỉnh sửa mới thấy menu...).
+
+Sheet này do hệ thống ghi lại mỗi lần chạy "Thiết lập sheet".
+
+## File xuất bám sát bản "Kiểm tra Qdu" gốc
 
 - **Tổ máy chưa có dữ liệu vẫn giữ nguyên bảng** trong file xuất (để trống, bỏ hàng tổng) thay vì biến mất — đúng như bản gốc luôn có cả S1 và S2 cạnh nhau, bên nào chưa nhập thì bỏ trống. Ngày mà không tổ máy nào có dữ liệu thì vẫn bỏ qua, không tạo tab rỗng.
 - Cột **Qdư âm/dương** trong file xuất: chỉ ghi `âm`/`dương`, khi Qdư = 0 thì để dấu **`-`** đúng như bản gốc (không ghi "trong ±3%" — chữ đó giữ lại cho sheet `KET_QUA` nội bộ vì dễ đọc hơn khi làm việc).
