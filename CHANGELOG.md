@@ -2,7 +2,12 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — R07: ramp vắt qua nửa đêm đã chạy tiếp sang ngày sau
+## [Unreleased] — File xuất bám sát bản "Kiểm tra Qdu" gốc
+
+- **Tổ máy chưa có dữ liệu vẫn giữ nguyên bảng** trong file xuất (để trống, bỏ hàng tổng) thay vì biến mất — đúng như bản gốc luôn có cả S1 và S2 cạnh nhau, bên nào chưa nhập thì bỏ trống. Ngày mà không tổ máy nào có dữ liệu thì vẫn bỏ qua, không tạo tab rỗng.
+- Cột **Qdư âm/dương** trong file xuất: chỉ ghi `âm`/`dương`, khi Qdư = 0 thì để dấu **`-`** đúng như bản gốc (không ghi "trong ±3%" — chữ đó giữ lại cho sheet `KET_QUA` nội bộ vì dễ đọc hơn khi làm việc).
+
+## R07: ramp vắt qua nửa đêm đã chạy tiếp sang ngày sau
 
 Hoàn thiện nốt quy tắc **R07 (carry-over)** — trước đó mới chỉ đúng công suất *tại* 24:00, còn phần ramp **chưa hoàn tất** thì ngày hôm sau giữ nguyên công suất đó cho tới khi có lệnh mới, sai so với thực tế (tổ máy vẫn đang tăng/giảm tải nốt).
 

@@ -66,16 +66,37 @@ function readKetQuaMetricsForExport_(date, unit) {
       ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(rowDate);
     if (rowDateStr === dateStr && String(r[1]).toUpperCase() === unit.toUpperCase()) {
       // KET_QUA: 3=Qdd, 4=Qdd_V, 5=Qdc, 6=P_Qdc, 7=Ngưỡng dưới, 8=Ngưỡng trên, 9=Qmp, 10=Qdư, 11=Dấu hiệu
-      byChuKy[parsePeriodNumber_(r[2])] = [r[3], r[4], r[5], r[9], r[10], r[11], r[6], r[7], r[8], ''];
+      byChuKy[parsePeriodNumber_(r[2])] = [r[3], r[4], r[5], r[9], r[10], exportSignLabel_(r[11]), r[6], r[7], r[8], ''];
     }
   });
   if (Object.keys(byChuKy).length === 0) return null;
-  var emptyRow = EXPORT_METRIC_COLUMNS.map(function () { return ''; });
   var out = [];
   for (var i = 1; i <= 48; i++) {
-    out.push(byChuKy[i] || emptyRow.slice());
+    out.push(byChuKy[i] || emptyMetricRow_());
   }
   return out;
+}
+
+/** 48 dòng trống - dùng cho tổ máy chưa có dữ liệu (vẫn giữ bảng trong báo cáo). */
+function emptyMetricsForExport_() {
+  var out = [];
+  for (var i = 0; i < 48; i++) out.push(emptyMetricRow_());
+  return out;
+}
+
+function emptyMetricRow_() {
+  return EXPORT_METRIC_COLUMNS.map(function () { return ''; });
+}
+
+/**
+ * Nhãn cột "Qdư âm/dương" trong file xuất, bám đúng bản "Kiểm tra Qdu" gốc:
+ * chỉ ghi "âm"/"dương", còn khi Qdư = 0 (nằm trong dải dung sai) thì để dấu
+ * "-" - không ghi chữ "trong ±3%" như sheet KET_QUA nội bộ.
+ */
+function exportSignLabel_(value) {
+  var s = String(value == null ? '' : value).trim().toLowerCase();
+  if (s === 'âm' || s === 'dương') return s;
+  return '-';
 }
 
 function uniqueSheetName_(ss, baseName) {
@@ -100,16 +121,23 @@ function buildAndExportReport_(dates, units, format) {
 
   dates.forEach(function (date) {
     var dateLabel = Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd-MM-yyyy');
+    // Luôn dựng bảng cho MỌI tổ máy được chọn - tổ nào chưa có dữ liệu thì
+    // để bảng trống, đúng như bản "Kiểm tra Qdu" gốc (S1 và S2 luôn nằm
+    // cạnh nhau, bên nào chưa nhập thì bỏ trống chứ không mất bảng).
     var blocks = [];
+    var hasAnyData = false;
     units.forEach(function (unit) {
       var rows = readKetQuaMetricsForExport_(date, unit);
       if (!rows) {
-        missing.push(dateLabel + ' ' + unit + ': chưa có trong KET_QUA (chưa tính ngày này)');
+        missing.push(dateLabel + ' ' + unit + ': chưa có trong KET_QUA (để bảng trống trong báo cáo)');
+        blocks.push({ unit: unit, rows: emptyMetricsForExport_(), empty: true });
         return;
       }
+      hasAnyData = true;
       blocks.push({ unit: unit, rows: rows });
     });
-    if (blocks.length === 0) return;
+    // Ngày mà KHÔNG tổ máy nào có dữ liệu thì bỏ hẳn, không tạo tab rỗng.
+    if (!hasAnyData) return;
 
     var sheetName = uniqueSheetName_(temp, dateLabel);
     var sh;
@@ -137,7 +165,8 @@ function buildAndExportReport_(dates, units, format) {
       sh.getRange(3, startCol, 1, EXPORT_BLOCK_WIDTH).setValues([EXPORT_METRIC_COLUMNS]).setFontWeight('bold');
       sh.getRange(EXPORT_FIRST_DATA_ROW, startCol, block.rows.length, EXPORT_BLOCK_WIDTH).setValues(block.rows);
 
-      // Hàng tổng ngày cho các cột MWh
+      // Bảng trống thì không cộng tổng (tránh hiện 0 gây hiểu nhầm là đã tính ra 0).
+      if (block.empty) return;
       EXPORT_TOTAL_COL_OFFSETS.forEach(function (offset) {
         var col = startCol + offset;
         var colLetter = columnLetter_(col);

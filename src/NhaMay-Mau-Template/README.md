@@ -55,6 +55,10 @@ Như mục 6 nhưng cho khoảng ngày tự do. Chỉ xuất được ngày **đ
 
 **Layout file xuất** (chung cho mục 6 và 7, bám file `Kiểm tra Qdu` gốc): mỗi ngày 1 tab; A1 = `MWh`; cột A là chu kỳ dạng `01 [00:00-00:30]`; các tổ máy nằm **liền cột** (B:K = tổ 1, L:U = tổ 2) với thứ tự `Qdd | Qdd_V | Qdc | Qmp | Qdư | Qdư âm/dương | P_Qdc | Ngưỡng dưới | Ngưỡng trên | Ghi chú`; cuối bảng có hàng **Tổng ngày**. File lưu cùng thư mục Drive với Sheet, sidebar hiện link tải.
 
+Hai điểm bám sát bản gốc:
+- **Tổ máy chưa có dữ liệu vẫn giữ nguyên bảng** (để trống, không có hàng tổng) — không bị mất bảng như trước.
+- Cột **Qdư âm/dương** chỉ ghi `âm` / `dương`; khi Qdư = 0 (trong dải dung sai) thì để dấu **`-`**, không ghi chữ "trong ±3%" (chữ đó chỉ dùng trong sheet `KET_QUA` nội bộ cho dễ đọc).
+
 ### 8. Dọn dữ liệu cũ
 Dùng khi bàn giao Sheet cho người khác, hoặc khi dữ liệu tích luỹ nhiều tháng. Giữ nguyên `CAI_DAT` và kết quả của **N ngày gần nhất** (để P0 vẫn tự suy được), xoá phần còn lại. Có hộp xác nhận trước khi chạy.
 
