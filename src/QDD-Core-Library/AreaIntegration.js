@@ -43,7 +43,17 @@ QDD.AreaIntegration = (function () {
     return qdd;
   }
 
-  return { cycleQdd: cycleQdd, computeDay: computeDay };
+  /**
+   * Công suất tại 24:00 của ngày - dùng làm P0 cho ngày kế tiếp.
+   * @returns {number}
+   */
+  function endPowerOfDay(effectiveCommands, p0) {
+    var rampRows = QDD.RampEngine.buildRows(effectiveCommands, p0);
+    var segments = QDD.Segments.build(rampRows, p0);
+    return QDD.Segments.endPowerOfDay(segments, p0);
+  }
+
+  return { cycleQdd: cycleQdd, computeDay: computeDay, endPowerOfDay: endPowerOfDay };
 })();
 
 if (typeof module !== 'undefined' && module.exports) { module.exports = QDD; }

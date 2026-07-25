@@ -2,7 +2,23 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — Sửa lỗi `instanceof Date` qua Library boundary (nghiêm trọng)
+## [Unreleased] — P0 phải là công suất tại 24:00, không phải Qdd chu kỳ 48
+
+**Triệu chứng**: ngày 19/07 lệch đều +29,43 MW ở 36 chu kỳ đầu so với bảng tính tay, dù ngày 17 và 18 khớp tuyệt đối.
+
+**Nguyên nhân**: P0 của ngày sau lấy **Qdd chu kỳ 48** của ngày trước — đó là công suất TRUNG BÌNH khoảng 23:30–24:00, không phải công suất TẠI 24:00. Ngày 18/07 lúc đó đang giảm tải 533,1 → 435,7 nên trung bình là 465,131 còn giá trị cuối mới là 435,7. Sai ở điểm khởi đầu nên sai lan ra cả ngày.
+
+**Khắc phục**:
+- Thêm `Segments.endPowerOfDay` / `AreaIntegration.endPowerOfDay`; `calculateDay` trả kèm `endPower`.
+- Sau mỗi lần tính, Sheet **tự ghi P0 cho ngày kế tiếp** vào `P0_NGAY` (ghi chú "Tự động từ cuối ngày ..."), **không ghi đè** dòng người dùng nhập tay. Bỏ hẳn cách suy P0 từ Qdd chu kỳ 48.
+
+**Lỗi thứ hai phát hiện cùng lúc**: trong `Segments.build`, khi ramp bị **cắt giữa chừng** (lệnh mới đến, hoặc hết ngày), công suất cuối đoạn vẫn ghi là mục tiêu `D` thay vì giá trị nội suy tại điểm cắt → sai độ dốc đoạn → sai diện tích. Đã sửa theo đúng công thức gốc `DOAN_CONG_SUAT!F`.
+
+**Sửa thêm**: mục "Dọn dữ liệu cũ" xoá nhầm cả dòng P0 của ngày kế tiếp — chính là giá trị cần để tính ngày tiếp theo. Giờ giữ lại.
+
+Thư viện lên **version 3**. 36/36 test pass (thêm 5 test khoá riêng 2 lỗi này).
+
+## Sửa lỗi `instanceof Date` qua Library boundary (nghiêm trọng)
 
 **Triệu chứng**: mọi ngày tính ra Qdd phẳng đúng bằng P0 suốt 48 chu kỳ, không lệnh nào được áp dụng — không báo lỗi gì.
 

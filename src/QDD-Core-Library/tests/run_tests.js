@@ -273,5 +273,45 @@ console.log('9) Date tu scope khac (Library boundary)');
   check('Giay trong ngay tinh dung tu Date-like', eff.length ? eff[0].seconds : NaN, 18 * 3600 + 50 * 60 + 16);
 }
 
+// ---------------------------------------------------------------------
+// 10) Ramp bi CAT: cong suat cuoi doan phai la gia tri NOI SUY, khong phai
+//     muc tieu D. Va cong suat cuoi ngay (P0 ngay sau) phai la P tai 24:00,
+//     KHONG phai Qdd trung binh cua chu ky 48.
+//     (Loi that: ngay 19/07 lay Qdd CK48 = 465.131 lam P0 thay vi 435.7)
+// ---------------------------------------------------------------------
+console.log('10) Ramp bi cat + cong suat cuoi ngay');
+{
+  // Lenh luc 23:24 ha tai tu 533.1 -> 435.7 (giong ngay 18/07 that).
+  // Toc do 3.5 MW/phut -> can (533.1-435.7)/3.5*60 = 1669.7s, bat dau
+  // 23:24 (84240s) -> ket thuc 85909.7s < 86400 -> ramp HOAN TAT trong ngay.
+  const cmds = [{ seconds: 84240, p: 435.7 }];
+  const rows = QDD.RampEngine.buildRows(cmds, 533.1);
+  const segs = QDD.Segments.build(rows, 533.1);
+  check('Cong suat tai 24:00 = muc tieu (ramp da xong)',
+    QDD.Segments.endPowerOfDay(segs, 533.1), 435.7, 1e-9);
+
+  const qdd = QDD.AreaIntegration.computeDay(cmds, 533.1);
+  checkTrue('Qdd chu ky 48 KHAC cong suat cuoi ngay (trung binh vs tuc thoi)',
+    Math.abs(qdd[47] - 435.7) > 1);
+
+  // Ramp bi cat giua chung boi nua dem: bat dau 23:50, muc tieu cach xa.
+  const cut = [{ seconds: 85800, p: 600 }];
+  const rowsCut = QDD.RampEngine.buildRows(cut, 400);
+  const segsCut = QDD.Segments.build(rowsCut, 400);
+  const H = (600 - 400) / QDD.Config.RAMP_RATE_MW_PER_MIN * 60; // 3428.57s
+  const expectedAtMidnight = 400 + (600 - 400) * (86400 - 85800) / H;
+  check('Ramp bi cat luc 24:00 -> P noi suy dung',
+    QDD.Segments.endPowerOfDay(segsCut, 400), expectedAtMidnight, 1e-6);
+  checkTrue('P luc 24:00 nho hon muc tieu (vi chua ramp xong)',
+    QDD.Segments.endPowerOfDay(segsCut, 400) < 600);
+
+  // calculateDay tra kem endPower
+  const res = QDD.QddCalculator.calculateDay({
+    effectiveCommands: cmds, p0: 533.1,
+    qdc48: Array(48).fill(100000), qmp48: Array(48).fill(50000),
+  });
+  check('calculateDay tra kem endPower', res.endPower, 435.7, 1e-9);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail > 0 ? 1 : 0);

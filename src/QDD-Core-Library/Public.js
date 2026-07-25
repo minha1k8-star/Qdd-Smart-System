@@ -33,6 +33,16 @@ function extractKwhGiaoFromCsv(csvText) {
 }
 
 /**
+ * Công suất tại 24:00 của ngày - dùng làm P0 cho ngày kế tiếp.
+ * KHÔNG dùng Qdd chu kỳ 48 thay cho giá trị này (xem Segments.endPowerOfDay).
+ * @param {Array<{seconds:number,p:number}>} effectiveCommands
+ * @param {number} p0
+ */
+function getEndOfDayPower(effectiveCommands, p0) {
+  return QDD.AreaIntegration.endPowerOfDay(effectiveCommands, p0);
+}
+
+/**
  * Tính nhiều ngày/nhiều tổ máy cùng lúc - xem QDD.BatchCalculator.
  * @param {import('./BatchCalculator').DayInput[]} dayInputs
  */

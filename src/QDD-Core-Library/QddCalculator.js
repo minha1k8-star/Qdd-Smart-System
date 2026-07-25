@@ -36,6 +36,7 @@ QDD.QddCalculator = (function () {
     }
 
     var qddArr = QDD.AreaIntegration.computeDay(input.effectiveCommands, input.p0);
+    var endPower = QDD.AreaIntegration.endPowerOfDay(input.effectiveCommands, input.p0);
     var results = [];
 
     for (var i = 0; i < QDD.Config.PERIOD_COUNT; i++) {
@@ -73,6 +74,10 @@ QDD.QddCalculator = (function () {
       });
     }
 
+    // Gắn công suất cuối ngày vào kết quả để tầng gọi lưu làm P0 ngày sau.
+    // Dùng thuộc tính trên mảng thay vì đổi kiểu trả về, để không phá vỡ
+    // các chỗ đang duyệt kết quả như một mảng 48 phần tử.
+    results.endPower = endPower;
     return results;
   }
 

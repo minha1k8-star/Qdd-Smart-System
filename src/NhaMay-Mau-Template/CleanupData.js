@@ -45,11 +45,21 @@ function cleanupOldData_(keepDays) {
     });
   }
 
-  // --- P0_NGAY: giữ đúng các ngày còn lại trong KET_QUA (nếu có), xoá phần còn lại ---
+  // --- P0_NGAY: giữ các ngày còn kết quả, VÀ ngày kế tiếp ngày mới nhất ---
+  // Phải giữ P0 của ngày kế tiếp, vì đó chính là giá trị đã được ghi tự động
+  // để tính ngày hôm sau. Xoá mất nó thì sau khi dọn sẽ không tính tiếp được
+  // mà phải nhập tay lại - đúng điều tính năng này muốn tránh.
+  var p0KeepKeys = keepDateKeys.slice();
+  if (keepDateKeys.length > 0) {
+    var newest = keepDateKeys[keepDateKeys.length - 1].split('-');
+    var nextDay = new Date(Number(newest[0]), Number(newest[1]) - 1, Number(newest[2]) + 1);
+    p0KeepKeys.push(Utilities.formatDate(nextDay, Session.getScriptTimeZone(), 'yyyy-MM-dd'));
+  }
+
   var p0Sh = ss.getSheetByName(SHEETS.P0_NGAY);
   if (p0Sh) {
     removed.p0 = rewriteSheetRows_(p0Sh, function (row) {
-      return keepDateKeys.indexOf(dateKeyOf_(row[0])) !== -1;
+      return p0KeepKeys.indexOf(dateKeyOf_(row[0])) !== -1;
     });
   }
 
@@ -94,7 +104,7 @@ function sidebar_cleanupOldData(keepDays) {
       var p = k.split('-');
       return p[2] + '/' + p[1] + '/' + p[0];
     });
-    msg += '\nGiữ lại kết quả ngày: ' + pretty.join(', ') + ' (để P0 ngày kế tiếp tự suy ra được).';
+    msg += '\nGiữ lại kết quả ngày: ' + pretty.join(', ') + ', và giữ P0 của ngày kế tiếp để tính tiếp được ngay.';
   } else {
     msg += '\nĐã xoá sạch KET_QUA - lần tính tiếp theo phải nhập lại P0 vào sheet P0_NGAY.';
   }

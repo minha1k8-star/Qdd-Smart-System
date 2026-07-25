@@ -33,7 +33,8 @@ function computeOneDay_(date, unit) {
   var effectiveCommands = QDDCoreLibrary.selectEffectiveCommands(allCommands, date, unit);
   var p0Info = readOrInferP0_(date, unit);
   if (p0Info === null) {
-    return { error: 'Chưa có P0 (không có trong P0_NGAY, và ngày trước đó chưa được tính). Cần điền tay P0_NGAY cho ngày đầu tiên.' };
+    return { error: 'Chưa có P0 cho ngày/tổ máy này trong sheet P0_NGAY. ' +
+      'P0 được ghi tự động sau khi tính ngày liền trước - nếu đây là ngày đầu tiên (hoặc ngày trước chưa tính), hãy điền tay 1 dòng vào P0_NGAY.' };
   }
   var qdc48 = readCsv48_(date, unit, 'Qdc');
   var qmp48 = readCsv48_(date, unit, 'Qmp');
@@ -58,6 +59,7 @@ function computeOneDay_(date, unit) {
     return {
       periods: periods,
       p0Source: p0Info.source,
+      endPower: periods.endPower,
       warnings: warnings,
     };
   } catch (e) {
