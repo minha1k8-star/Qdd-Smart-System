@@ -35,7 +35,15 @@
 <div class="hint" id="csvDateNote"></div>
 <button id="btnCsv" onclick="submitCsv()">Lưu CSV</button>
 
-<h3>2. Tính 1 ngày</h3>
+<h3>2. Nhập danh sách lệnh</h3>
+<div class="hint">
+  Có 2 cách, dùng cách nào cũng được:<br><br>
+  <b>Cách A - dán thẳng:</b> sheet <b>LENH</b> có cấu trúc GIỐNG HỆT file gốc (25 cột, Nhà máy ở cột B), nên copy toàn bộ file gốc dán thẳng vào LENH (từ dòng 2) là xong, không cần bấm gì thêm.<br><br>
+  <b>Cách B - qua LENH_STAGING (nên dùng khi nhập bổ sung):</b> dán file gốc vào sheet <b>LENH_STAGING</b> (giữ dòng tiêu đề) rồi bấm nút bên dưới. Hệ thống dò cột theo TÊN tiêu đề nên không sợ lệch cột, đồng thời gộp thông minh vào LENH: lệnh trùng ID Lệnh sẽ được cập nhật thay vì nhân đôi, và tự sắp xếp lại theo thời gian.
+</div>
+<button id="btnImportCmd" onclick="submitImportCommands()">Nhập từ LENH_STAGING</button>
+
+<h3>3. Tính 1 ngày</h3>
 <div class="hint">
   Trước khi bấm Tính, cần đã có: (1) danh sách lệnh trong sheet LENH cho ngày này (có thể không có lệnh nào cũng được),
   (2) đủ CSV 6001 và 6303 cho ngày này (mục 1 ở trên).<br>
@@ -46,19 +54,20 @@
 <label>Tổ máy
   <select id="oneUnit"><option value="S1">S1</option><option value="S2">S2</option></select>
 </label>
+<div class="checks"><label><input type="checkbox" id="oneCleanup" checked> Dọn lệnh + CSV của ngày này sau khi tính xong</label></div>
 <button id="btnOneDay" onclick="submitOneDay()">Tính</button>
 
-<h3>3. Tải CSV hàng loạt</h3>
+<h3>4. Tải CSV hàng loạt</h3>
 <div class="hint">
-  Dùng khi tính nhiều ngày (mục 4) - chọn CÙNG LÚC nhiều file CSV. Hệ thống tự nhận diện tổ máy/loại dữ liệu bằng cách so tên file với mã công tơ đã cấu hình ở CAI_DAT, và tự đọc ngày từ nội dung từng file - không cần chọn tay từng file.
+  Dùng khi tính nhiều ngày (mục 5) - chọn CÙNG LÚC nhiều file CSV. Hệ thống tự nhận diện tổ máy/loại dữ liệu bằng cách so tên file với mã công tơ đã cấu hình ở CAI_DAT, và tự đọc ngày từ nội dung từng file - không cần chọn tay từng file.
   File nào không tự nhận diện được sẽ báo riêng, lưu tay bằng mục 1 ở trên.
 </div>
 <label>Nhiều file CSV <input type="file" id="csvBulkFiles" accept=".csv" multiple></label>
 <button id="btnCsvBulk" onclick="submitCsvBulk()">Tải hàng loạt</button>
 
-<h3>4. Tính hàng loạt</h3>
+<h3>5. Tính hàng loạt</h3>
 <div class="hint">
-  Tính nhiều ngày liên tiếp cùng lúc, cho 1 hoặc cả 2 tổ máy. Điều kiện giống mục 2, áp dụng cho từng ngày trong khoảng đã chọn.
+  Tính nhiều ngày liên tiếp cùng lúc, cho 1 hoặc cả 2 tổ máy. Điều kiện giống mục 3, áp dụng cho từng ngày trong khoảng đã chọn.
   Ngày nào thiếu CSV hoặc thiếu P0 sẽ được báo riêng trong kết quả, KHÔNG làm dừng các ngày còn lại.
 </div>
 <label>Từ ngày <input type="date" id="fromDate"></label>
@@ -67,11 +76,12 @@
   <label><input type="checkbox" id="batchS1" checked> S1</label>
   <label><input type="checkbox" id="batchS2"> S2</label>
 </div>
+<div class="checks"><label><input type="checkbox" id="batchCleanup" checked> Dọn lệnh + CSV của các ngày đã tính xong</label></div>
 <button id="btnBatch" onclick="submitBatch()">Tính hàng loạt</button>
 
-<h3>5. Báo cáo tháng</h3>
+<h3>6. Báo cáo tháng</h3>
 <div class="hint">
-  Xuất TOÀN BỘ các ngày ĐÃ TÍNH XONG (trong KET_QUA) của tháng được chọn thành 1 file (mỗi ngày 1 tab, các tổ máy cạnh nhau) - không tự tính bù ngày còn thiếu, cần tính đủ các ngày bằng mục 2/4 trước. Đồng thời cập nhật bảng tổng số liệu (Qdc/Qmp/Qdư...) vào sheet BAO_CAO_THANG.
+  Xuất TOÀN BỘ các ngày ĐÃ TÍNH XONG (trong KET_QUA) của tháng được chọn thành 1 file (mỗi ngày 1 tab, các tổ máy cạnh nhau) - không tự tính bù ngày còn thiếu, cần tính đủ các ngày bằng mục 3/5 trước. Đồng thời cập nhật bảng tổng số liệu (Qdc/Qmp/Qdư...) vào sheet BAO_CAO_THANG.
 </div>
 <label>Tháng <input type="month" id="reportMonth"></label>
 <div class="checks">
@@ -86,9 +96,9 @@
 </label>
 <button id="btnReport" onclick="submitMonthlyReport()">Tổng hợp + Xuất file</button>
 
-<h3>6. Xuất báo cáo (1 hoặc vài ngày cụ thể)</h3>
+<h3>7. Xuất báo cáo (1 hoặc vài ngày cụ thể)</h3>
 <div class="hint">
-  Giống mục 5 nhưng chọn đúng khoảng ngày tự do (không nhất thiết cả tháng) - mỗi ngày 1 tab, các tổ máy đã chọn nằm cạnh nhau trong cùng tab (giống layout file báo cáo gốc). Xuất 1 ngày thì chọn Từ ngày = Đến ngày.
+  Giống mục 6 nhưng chọn đúng khoảng ngày tự do (không nhất thiết cả tháng) - mỗi ngày 1 tab, các tổ máy đã chọn nằm cạnh nhau trong cùng tab (giống layout file báo cáo gốc). Xuất 1 ngày thì chọn Từ ngày = Đến ngày.
 </div>
 <label>Từ ngày <input type="date" id="exportFromDate"></label>
 <label>Đến ngày <input type="date" id="exportToDate"></label>
@@ -103,6 +113,19 @@
   </select>
 </label>
 <button id="btnExport" onclick="submitExport()">Xuất báo cáo</button>
+
+<h3>8. Dọn dữ liệu cũ</h3>
+<div class="hint">
+  Dùng khi bàn giao Sheet cho người khác dùng thử, hoặc khi dữ liệu tích luỹ nhiều tháng làm sheet nặng.<br>
+  <b>Giữ nguyên:</b> cấu hình trong CAI_DAT.<br>
+  <b>Giữ lại:</b> kết quả của số ngày gần nhất bạn chọn (nên để 1) - để P0 ngày kế tiếp vẫn tự suy ra được, không phải nhập tay.<br>
+  <b>Xoá sạch:</b> LENH, LENH_STAGING, CSV_DATA, BAO_CAO_THANG, P0_NGAY và phần KET_QUA cũ hơn.<br>
+  Dữ liệu gốc vẫn còn trong file CSV/danh sách lệnh trên máy, cần thì nhập lại.
+</div>
+<label>Giữ lại kết quả của mấy ngày gần nhất
+  <input type="number" id="cleanupKeepDays" value="1" min="0" max="60">
+</label>
+<button id="btnCleanup" onclick="submitCleanup()">Dọn dữ liệu cũ</button>
 
 <script>
   function setStatus(cls, text) {
@@ -197,7 +220,7 @@
       google.script.run
         .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
         .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
-        .sidebar_saveCsv(date, unit, role, e.target.result);
+        .sidebar_saveCsv(date, unit, role, e.target.result, fileInput.files[0].name);
     };
     reader.onerror = function () { restore(); setStatus('err', '✗ Không đọc được file.'); };
     reader.readAsText(fileInput.files[0]);
@@ -241,7 +264,7 @@
     google.script.run
       .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
       .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
-      .sidebar_calcOneDay(date, unit);
+      .sidebar_calcOneDay(date, unit, document.getElementById('oneCleanup').checked);
   }
 
   function submitBatch() {
@@ -257,7 +280,7 @@
     google.script.run
       .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
       .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
-      .sidebar_calcBatch(fromDate, toDate, units);
+      .sidebar_calcBatch(fromDate, toDate, units, document.getElementById('batchCleanup').checked);
   }
 
   function submitMonthlyReport() {
@@ -291,5 +314,30 @@
       .withSuccessHandler(function (result) { restore(); setStatusHtml('ok', result.html); })
       .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
       .sidebar_exportReport(fromDate, toDate, units, format);
+  }
+
+  function submitImportCommands() {
+    var restore = withButton('btnImportCmd', 'Đang nhập…', null);
+    setStatus('busy', 'Đang đọc LENH_STAGING và gộp vào LENH...');
+    google.script.run
+      .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
+      .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
+      .sidebar_importCommands();
+  }
+
+  function submitCleanup() {
+    var keepDays = Number(document.getElementById('cleanupKeepDays').value);
+    if (isNaN(keepDays) || keepDays < 0) { setStatus('err', 'Số ngày giữ lại không hợp lệ.'); return; }
+    var warn = keepDays === 0
+      ? 'Sẽ XOÁ SẠCH toàn bộ dữ liệu, kể cả KET_QUA (lần tính sau phải nhập lại P0).'
+      : 'Sẽ xoá LENH, CSV_DATA, BAO_CAO_THANG và toàn bộ KET_QUA, chỉ giữ lại kết quả của ' + keepDays + ' ngày gần nhất.';
+    if (!confirm(warn + '\n\nCấu hình CAI_DAT được giữ nguyên. Thao tác này không hoàn tác được. Tiếp tục?')) return;
+
+    var restore = withButton('btnCleanup', 'Đang dọn…', null);
+    setStatus('busy', 'Đang dọn dữ liệu...');
+    google.script.run
+      .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
+      .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
+      .sidebar_cleanupOldData(keepDays);
   }
 </script>

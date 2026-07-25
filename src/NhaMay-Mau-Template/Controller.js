@@ -4,7 +4,18 @@
  * lỗi (withFailureHandler bên client bắt lại).
  */
 
-function sidebar_saveCsv(dateStr, unit, role, csvText) {
+function sidebar_importCommands() {
+  var result = importCommandsFromStaging_();
+  var msg = 'Đã nhập ' + result.imported + ' lệnh mới, cập nhật ' + result.updated + ' lệnh đã có (trùng ID Lệnh).';
+  if (result.skipped.length > 0) {
+    msg += ' Bỏ qua ' + result.skipped.length + ' dòng lỗi:\n' +
+      result.skipped.slice(0, 15).map(function (s) { return 'Dòng ' + s.row + ': ' + s.reason; }).join('\n');
+    if (result.skipped.length > 15) msg += '\n... và ' + (result.skipped.length - 15) + ' dòng khác.';
+  }
+  return msg;
+}
+
+function sidebar_saveCsv(dateStr, unit, role, csvText, filename) {
   var date = parseIsoDate_(dateStr);
   if (!date) throw new Error('Ngày không hợp lệ.');
 
@@ -12,6 +23,18 @@ function sidebar_saveCsv(dateStr, unit, role, csvText) {
   if (!meterCode) {
     throw new Error('Chưa cấu hình mã công tơ ' + role + ' cho tổ ' + unit +
       ' trong sheet CAI_DAT (dòng "Mã công tơ ' + role + ' - ' + unit + '"). Điền mã công tơ thật rồi thử lại.');
+  }
+
+  // Chặn lỗi chọn nhầm file: nếu tên file khớp một mã công tơ đã cấu hình
+  // KHÁC với mã của (tổ máy, loại dữ liệu) đang chọn thì dừng lại. Lỗi này
+  // từng xảy ra thật và gây sai số âm thầm (lưu dữ liệu Qmp vào ô Qdc).
+  if (filename) {
+    var fromName = matchMeterFromFilename_(filename);
+    if (fromName && fromName.code !== meterCode) {
+      throw new Error('Tên file "' + filename + '" ứng với công tơ ' + fromName.code +
+        ' (' + fromName.role + ' - ' + fromName.unit + '), nhưng bạn đang chọn ' + role + ' - ' + unit +
+        ' (công tơ ' + meterCode + '). Chọn lại cho khớp, hoặc dùng mục "Tải CSV hàng loạt" để hệ thống tự nhận diện.');
+    }
   }
 
   var kwhGiao = QDDCoreLibrary.extractKwhGiaoFromCsv(csvText);
@@ -64,7 +87,7 @@ function sidebar_saveCsvBulk(files) {
   return msg;
 }
 
-function sidebar_calcOneDay(dateStr, unit) {
+function sidebar_calcOneDay(dateStr, unit, cleanupSource) {
   var date = parseIsoDate_(dateStr);
   if (!date) throw new Error('Ngày không hợp lệ.');
 
@@ -73,16 +96,25 @@ function sidebar_calcOneDay(dateStr, unit) {
 
   clearResultsForDate_(date, unit);
   appendResultToSheet_(date, unit, result.periods);
-  return 'Đã tính xong ' + Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd/MM/yyyy') +
+
+  var msg = 'Đã tính xong ' + Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd/MM/yyyy') +
     ' - tổ ' + unit + ' (P0 ' + result.p0Source + '). Xem sheet KET_QUA.';
+  if (cleanupSource) {
+    var removed = clearSourceDataForDate_(date, unit);
+    msg += ' Đã dọn ' + removed.lenh + ' dòng lệnh và ' + removed.csv + ' dòng CSV của ngày này.';
+  }
+  if (result.warnings && result.warnings.length > 0) {
+    msg += '\n\n⚠ CẢNH BÁO:\n' + result.warnings.join('\n');
+  }
+  return msg;
 }
 
-function sidebar_calcBatch(fromStr, toStr, units) {
+function sidebar_calcBatch(fromStr, toStr, units, cleanupSource) {
   var fromDate = parseIsoDate_(fromStr);
   var toDate = parseIsoDate_(toStr);
   if (!fromDate || !toDate || toDate < fromDate) throw new Error('Khoảng ngày không hợp lệ.');
 
-  var okCount = 0, errDetails = [];
+  var okCount = 0, errDetails = [], allWarnings = [], cleaned = { lenh: 0, csv: 0 };
   for (var d = new Date(fromDate); d <= toDate; d.setDate(d.getDate() + 1)) {
     var date = new Date(d);
     units.forEach(function (unit) {
@@ -94,14 +126,29 @@ function sidebar_calcBatch(fromStr, toStr, units) {
         clearResultsForDate_(date, unit);
         appendResultToSheet_(date, unit, result.periods);
         okCount++;
+        if (result.warnings && result.warnings.length > 0) {
+          result.warnings.forEach(function (w) { allWarnings.push(label + ': ' + w); });
+        }
+        if (cleanupSource) {
+          var removed = clearSourceDataForDate_(date, unit);
+          cleaned.lenh += removed.lenh;
+          cleaned.csv += removed.csv;
+        }
       }
     });
   }
 
   var msg = 'Đã tính xong ' + okCount + ' (ngày, tổ máy).';
+  if (cleanupSource && (cleaned.lenh > 0 || cleaned.csv > 0)) {
+    msg += ' Đã dọn ' + cleaned.lenh + ' dòng lệnh và ' + cleaned.csv + ' dòng CSV.';
+  }
   if (errDetails.length > 0) {
     msg += ' Lỗi/thiếu dữ liệu: ' + errDetails.length + '.\n' + errDetails.slice(0, 15).join('\n');
     if (errDetails.length > 15) msg += '\n... và ' + (errDetails.length - 15) + ' dòng khác.';
+  }
+  if (allWarnings.length > 0) {
+    msg += '\n\n⚠ CẢNH BÁO (' + allWarnings.length + '):\n' + allWarnings.slice(0, 10).join('\n');
+    if (allWarnings.length > 10) msg += '\n... và ' + (allWarnings.length - 10) + ' cảnh báo khác.';
   }
   return msg;
 }

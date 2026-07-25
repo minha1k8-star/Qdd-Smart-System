@@ -8,69 +8,64 @@ Google Sheets đầu tiên gắn `QDD-Core-Library`, dùng làm **bản mẫu đ
 
 ## Bắt đầu dùng
 
-1. Mở Sheet ở link trên. Nếu chưa thấy menu **"QDD Smart System"** trên thanh menu, tải lại trang (F5).
-2. **QDD Smart System → Thiết lập sheet** — tạo đủ các sheet cần thiết (chạy được nhiều lần, tự bù các dòng cấu hình còn thiếu nếu chạy lại sau khi nâng cấp).
+1. Mở Sheet ở link trên. Nếu chưa thấy menu **"QDD Smart System"**, tải lại trang (F5).
+2. **QDD Smart System → Thiết lập sheet** — tạo/nâng cấp đủ các sheet cần thiết. Chạy lại nhiều lần được: tự bù dòng cấu hình còn thiếu và tự dựng lại `LENH` đúng cấu trúc mà không mất dữ liệu.
 3. Điền `CAI_DAT` đúng thông số thật của nhà máy:
    - Tốc độ ramp, hệ số Qdd_V, dung sai.
-   - **Mã công tơ Qdc/Qmp cho từng tổ máy** (4 dòng riêng: Qdc-S1, Qmp-S1, Qdc-S2, Qmp-S2). ⚠️ **Mã công tơ khác nhau giữa S1 và S2, và khác nhau giữa các nhà máy** — "6001"/"6303" chỉ là ví dụ mặc định cho Duyên Hải 1 tổ S1, phải tự điền đúng mã thật khi copy Sheet cho nhà máy/tổ máy khác.
-4. **QDD Smart System → Bảng điều khiển** — mở sidebar bên phải, dùng cho mọi thao tác còn lại (không cần dùng menu nữa).
+   - **Mã công tơ Qdc/Qmp cho từng tổ máy** (4 dòng: Qdc-S1, Qmp-S1, Qdc-S2, Qmp-S2). ⚠️ Mã công tơ khác nhau giữa S1/S2 và giữa các nhà máy — giá trị mặc định (6001/6303/6002/6301) chỉ đúng cho Duyên Hải 1.
+   - **Nhãn báo cáo** cho từng tổ (mặc định `S1DH1`, `S2DH1`) — hiện trên đầu mỗi khối trong file xuất.
+4. **QDD Smart System → Bảng điều khiển** — mở sidebar bên phải, dùng cho mọi thao tác còn lại.
+
+> **Người dùng cần quyền Chỉnh sửa (Editor)** mới thấy menu — người chỉ có quyền Xem sẽ không chạy được Apps Script.
 
 ## Bảng điều khiển (sidebar)
 
-Toàn bộ thao tác nằm gọn trong 1 sidebar, có lịch chọn ngày và upload file trực tiếp — không còn phải gõ tay ngày tháng hay qua 2 bước nhập CSV như trước.
-
 ### 1. Lưu CSV công tơ
+Chọn tổ máy + loại dữ liệu (Qdc/Qmp) + file CSV — hệ thống **tự đọc ngày trong file** điền sẵn vào ô Ngày, và tự tra mã công tơ theo `CAI_DAT`. Nếu tên file ứng với mã công tơ **khác** lựa chọn của bạn, hệ thống **chặn lại** thay vì lưu nhầm.
 
-Chọn tổ máy, chọn loại dữ liệu (Qdc/Qmp), chọn file CSV từ máy — **hệ thống tự đọc ngày ghi trong file** (cột A) và điền sẵn vào ô Ngày, bạn chỉ cần kiểm tra lại/sửa nếu cần rồi bấm **Lưu CSV**. Tự tra đúng mã công tơ theo cấu hình trong `CAI_DAT` (không cần nhớ mã công tơ là số mấy).
+> Bản VBA cũ chủ động bỏ qua ngày trong CSV vì Excel đọc sai định dạng theo Regional Settings từng máy (xem [docs/14_Knowledge_Transfer.md](../../docs/14_Knowledge_Transfer.md)). Apps Script không có giới hạn đó nên tính năng này được khôi phục.
 
-> **Khác với VBA cũ**: bản VBA v1.3.1 chủ động **không đọc** ngày trong CSV (chỉ để tham khảo), vì Excel từng đọc sai định dạng ngày tuỳ theo Regional Settings của từng máy (Mac/Windows) — xem [docs/14_Knowledge_Transfer.md](../../docs/14_Knowledge_Transfer.md). Google Apps Script không có giới hạn đó (không phụ thuộc cài đặt vùng của máy người dùng khi đọc chuỗi text), nên bản này đọc và dùng ngày trong file làm gợi ý tự động, có kiểm tra lại bằng mắt trước khi lưu.
+### 2. Nhập danh sách lệnh
+Hai cách, dùng cách nào cũng được:
+- **Dán thẳng**: sheet `LENH` có cấu trúc **giống hệt file gốc (25 cột, Nhà máy ở cột B)** nên copy toàn bộ file gốc dán vào từ dòng 2 là xong.
+- **Qua `LENH_STAGING`**: dán file gốc vào đó (giữ dòng tiêu đề) rồi bấm nút — hệ thống dò cột **theo tên tiêu đề** (không sợ lệch cột), gộp vào `LENH` theo ID Lệnh (trùng thì cập nhật, không nhân đôi) và sắp xếp lại theo thời gian.
 
-### 2. Tính 1 ngày
+Việc đọc dữ liệu luôn dò theo tên cột, nên `LENH` đổi thứ tự cột hay thừa/thiếu cột phụ đều không ảnh hưởng.
 
-Chọn ngày (lịch), chọn tổ máy, bấm **Tính**.
+### 3. Tính 1 ngày
+Chọn ngày + tổ máy → **Tính**.
 
-**P0 (công suất đầu ngày)** được **tự động lấy từ chu kỳ cuối cùng của ngày liền trước đã tính** (nếu có) — không cần nhập tay như trước nữa, trừ **ngày đầu tiên sử dụng hệ thống** (chưa có ngày nào trước đó) thì vẫn cần điền 1 lần vào sheet `P0_NGAY`.
+**P0** tự lấy từ chu kỳ cuối ngày liền trước đã tính; chỉ **ngày đầu tiên** dùng hệ thống mới cần điền tay 1 dòng vào `P0_NGAY`.
 
-> Lưu ý: đây là P0 **xấp xỉ** (lấy đúng Qdd chu kỳ cuối ngày trước), chưa phải carry-over R07 đầy đủ (chưa mô phỏng ramp còn dở dang qua nửa đêm) — đủ dùng cho phần lớn trường hợp thực tế.
+> P0 này là **xấp xỉ** (lấy Qdd chu kỳ 48 của ngày trước), chưa phải carry-over R07 đầy đủ.
 
-### 3. Tải CSV hàng loạt
+Tuỳ chọn **"Dọn lệnh + CSV của ngày này sau khi tính xong"** (mặc định bật) — xoá dữ liệu nguồn của đúng (ngày, tổ máy) vừa tính. Tắt đi khi đang dò lỗi để không phải nhập lại.
 
-Dùng khi cần nhập nhiều ngày cùng lúc (chuẩn bị cho mục 4). Chọn **nhiều file CSV cùng lúc** trong hộp thoại chọn file — hệ thống tự nhận diện tổ máy + loại dữ liệu bằng cách **so tên file với mã công tơ đã cấu hình** trong `CAI_DAT` (tên file thật thường có dạng `<ngày><tháng><mã công tơ>.CSV`, vd `17076001.CSV`), và tự đọc ngày từ nội dung từng file — không cần chọn tay từng file một.
+### 4. Tải CSV hàng loạt
+Chọn **nhiều file CSV cùng lúc** — hệ thống tự nhận diện tổ máy/loại dữ liệu bằng cách so tên file với mã công tơ trong `CAI_DAT` (tên file thật dạng `<ngày><tháng><mã công tơ>.CSV`, vd `17076001.CSV`) và tự đọc ngày từ nội dung. File không nhận diện được sẽ báo riêng theo tên.
 
-File nào không tự nhận diện được (tên file không khớp mã công tơ nào, hoặc không đọc được ngày) sẽ được báo riêng theo tên file, xử lý tay bằng mục 1.
+### 5. Tính hàng loạt
+Chọn khoảng ngày + tổ máy. Ngày nào thiếu dữ liệu sẽ báo riêng, không chặn các ngày còn lại. Cũng có tuỳ chọn dọn dữ liệu nguồn như mục 3.
 
-### 4. Tính hàng loạt
+### 6. Báo cáo tháng
+Chọn tháng + tổ máy + định dạng → làm 2 việc: cập nhật bảng tổng vào `BAO_CAO_THANG`, và **xuất 1 file gộp toàn bộ ngày đã tính trong tháng**.
 
-Chọn khoảng ngày + tổ máy (tick chọn S1/S2), bấm **Tính hàng loạt**. Ngày nào thiếu CSV sẽ báo trong kết quả, không chặn các ngày khác.
+### 7. Xuất báo cáo (ngày cụ thể)
+Như mục 6 nhưng cho khoảng ngày tự do. Chỉ xuất được ngày **đã tính xong**.
 
-### 5. Báo cáo tháng
+**Layout file xuất** (chung cho mục 6 và 7, bám file `Kiểm tra Qdu` gốc): mỗi ngày 1 tab; A1 = `MWh`; cột A là chu kỳ dạng `01 [00:00-00:30]`; các tổ máy nằm **liền cột** (B:K = tổ 1, L:U = tổ 2) với thứ tự `Qdd | Qdd_V | Qdc | Qmp | Qdư | Qdư âm/dương | P_Qdc | Ngưỡng dưới | Ngưỡng trên | Ghi chú`; cuối bảng có hàng **Tổng ngày**. File lưu cùng thư mục Drive với Sheet, sidebar hiện link tải.
 
-Chọn tháng + tổ máy + định dạng, bấm **Tổng hợp + Xuất file**. Làm 2 việc cùng lúc:
-1. Cập nhật bảng tổng số liệu (Qdc/Qmp/Qdd_V/Qdư mỗi ngày) vào sheet `BAO_CAO_THANG`.
-2. **Xuất 1 file gộp TOÀN BỘ các ngày đã tính trong tháng đó** (mỗi ngày 1 tab, các tổ máy đã chọn nằm cạnh nhau trong cùng tab — xem layout ở mục 6) — sidebar hiện link tải ngay.
+### 8. Dọn dữ liệu cũ
+Dùng khi bàn giao Sheet cho người khác, hoặc khi dữ liệu tích luỹ nhiều tháng. Giữ nguyên `CAI_DAT` và kết quả của **N ngày gần nhất** (để P0 vẫn tự suy được), xoá phần còn lại. Có hộp xác nhận trước khi chạy.
 
-Không tự tính bù ngày còn thiếu — cần tính đủ các ngày bằng mục 2/4 trước.
+## Cảnh báo tự động
 
-### 6. Xuất báo cáo (1 hoặc vài ngày cụ thể)
-
-Giống mục 5 nhưng cho khoảng ngày tự do (không nhất thiết cả tháng) — chọn khoảng ngày (chọn 1 ngày thì để Từ ngày = Đến ngày), chọn tổ máy, chọn định dạng (Excel/PDF), bấm **Xuất báo cáo**. Chỉ xuất được ngày **đã tính xong** (có trong `KET_QUA`) — ngày nào chưa tính sẽ báo riêng, không chặn các ngày còn lại.
-
-File xuất ra (mục 5 và 6 dùng chung layout): **mỗi ngày 1 tab**, các tổ máy đã chọn nằm **cạnh nhau trong cùng tab** (giống layout file báo cáo gốc, ví dụ cột B:J = S1, cột L:T = S2) — không phải mỗi tổ máy 1 tab riêng. File lưu vào cùng thư mục Google Drive với Sheet này, sidebar hiện link để mở/tải ngay.
-
-> Lần đầu dùng mục 5/6, Google có thể hiện lại màn hình xin quyền truy cập Drive (để lưu file xuất ra) — bấm **Allow** như lúc thiết lập ban đầu.
-
-## Danh sách lệnh
-
-Nhập/dán trực tiếp vào sheet **`LENH`** (không qua sidebar) — mỗi dòng 1 lệnh, có thể nhiều ngày cùng lúc (khác VBA — không cần xoá dữ liệu ngày cũ để nhập ngày mới). Cột `Thời điểm BĐTH` phải là kiểu ngày-giờ thật (không phải text).
+**Lệnh "0-0"** (CS ra lệnh = CS hoàn thành = 0, thường là trip/ngừng sự cố): theo quy tắc nghiệp vụ đã xác nhận, loại lệnh này **không được tính** — nhưng hệ thống sẽ **cảnh báo rõ** để người vận hành biết Qdd giai đoạn đó có thể cao hơn thực tế và tự xử lý. Hệ thống chỉ cảnh báo, không tự sửa số (UAT-34, xem [docs/09_Test_Cases.md](../../docs/09_Test_Cases.md)).
 
 ## Chưa làm (so với VBA v1.3.1)
 
-- Carry-over qua nửa đêm (R07) đầy đủ — hiện chỉ xấp xỉ bằng Qdd chu kỳ cuối ngày trước (xem mục "Tính 1 ngày" ở trên).
-- Cảnh báo lệnh 0-0 (UAT-34, xem [ROADMAP.md](../../ROADMAP.md)).
-- Xuất báo cáo tháng ra file riêng (mục 6 sidebar hiện chỉ xuất theo ngày/khoảng ngày, chưa xuất trực tiếp từ `BAO_CAO_THANG`).
+- Carry-over qua nửa đêm (R07) đầy đủ — hiện chỉ xấp xỉ bằng Qdd chu kỳ cuối ngày trước.
 - Kiểm tra cấu trúc/backup tự động (tương đương nút 11, 13 VBA).
-- Nhập lệnh qua sidebar (hiện vẫn nhập trực tiếp vào sheet `LENH`).
-- Schema `LENH` rút gọn (9 cột) so với `LENH_GOC` gốc (25 cột) — chỉ giữ đúng trường thuật toán cần dùng.
 
 ## Cập nhật code sau này
 
@@ -79,4 +74,4 @@ cd src/NhaMay-Mau-Template
 npx clasp push
 ```
 
-Khi `QDD-Core-Library` ra version mới, vào Apps Script Editor của Sheet này → **Libraries** → chọn version mới → Save, để cập nhật (không tự động, đúng theo kiến trúc đã chọn).
+Khi `QDD-Core-Library` ra version mới, vào Apps Script Editor của Sheet này → **Libraries** → chọn version mới → Save (không tự động, đúng theo kiến trúc đã chọn).

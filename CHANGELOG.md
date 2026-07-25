@@ -2,7 +2,21 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — Sửa lỗi xuất Excel, tự sắp xếp theo ngày, dọn CSV_STAGING
+## [Unreleased] — LENH giống file gốc, cảnh báo lệnh 0-0, dọn dữ liệu
+
+**Sự cố đã xử lý (dữ liệu thật)**: kết quả tính ra sai toàn bộ 20 tổ hợp (Qdd phẳng = P0, không lệnh nào được nhận). Hai nguyên nhân độc lập:
+1. Sheet `LENH` còn cấu trúc 9 cột cũ trong khi code đọc theo vị trí cột của cấu trúc mới → lệch cột → mọi lệnh bị loại. **Khắc phục**: `readAllCommands_` và `importCommandsFromStaging_` giờ dò cột theo **TÊN tiêu đề**, không theo vị trí; `LENH` được dựng lại đúng 25 cột giống hệt file gốc (Nhà máy ở cột B) và tự ánh xạ dữ liệu cũ sang đúng cột.
+2. Ngày 01/07 lưu nhầm file `01076303.CSV` vào ô Qdc (chọn sai ở mục "Lưu CSV"). **Khắc phục**: chặn ngay khi tên file ứng với mã công tơ khác lựa chọn.
+
+**Tính năng mới**
+- **UAT-34 — cảnh báo lệnh "0-0"**: khi ngày tính có lệnh CS ra lệnh = CS hoàn thành = 0 (trip/ngừng sự cố), sidebar cảnh báo rõ rằng lệnh đó không được tính theo quy tắc nghiệp vụ và Qdd có thể đang cao hơn thực tế. Chỉ cảnh báo, không tự sửa số (đúng nguyên tắc đã thống nhất).
+- **Dọn dữ liệu nguồn sau khi tính** (tuỳ chọn, mặc định bật): xoá lệnh + CSV của đúng (ngày, tổ máy) vừa tính xong.
+- **Dọn dữ liệu cũ** (mục 8): giữ CAI_DAT + kết quả N ngày gần nhất (để P0 vẫn tự suy được), xoá phần còn lại — dùng khi bàn giao hoặc khi dữ liệu tích luỹ nhiều tháng.
+- Nhập danh sách lệnh có 2 đường: dán thẳng vào `LENH` (đã giống hệt file gốc) hoặc qua `LENH_STAGING` để gộp thông minh theo ID Lệnh.
+
+**Khác**: `KET_QUA` gộp chu kỳ + khung giờ vào 1 ô (`01 [00:00-00:30]`) giống file gốc; file xuất báo cáo bám layout `Kiểm tra Qdu` (đơn vị MWh, nhãn tổ máy S1DH1/S2DH1 cấu hình được, thứ tự cột Qdd→Qdd_V→Qdc→Qmp→Qdư→âm/dương, hàng Tổng ngày); kết quả sắp xếp ngày mới nhất lên đầu; thao tác xoá dòng chuyển sang đọc-lọc-ghi-lại (nhanh hơn nhiều với vài nghìn dòng); mã công tơ S2 mặc định 6002/6301.
+
+## Sửa lỗi xuất Excel, tự sắp xếp theo ngày, dọn CSV_STAGING
 
 - **Sửa lỗi xuất Excel lần 2**: `DriveApp.getFileById().getAs(MimeType.MICROSOFT_EXCEL)` không hỗ trợ chuyển Google Sheets sang .xlsx — đổi sang gọi link xuất trực tiếp của Google (`docs.google.com/.../export?format=...`) qua `UrlFetchApp` + `ScriptApp.getOAuthToken()`.
 - **`CSV_DATA` và `KET_QUA` tự sắp xếp lại theo Ngày** sau mỗi lần lưu/tính (trước đó chỉ nối thêm vào cuối theo thứ tự thao tác, khó kiểm soát khi xem trực tiếp trong Sheet).

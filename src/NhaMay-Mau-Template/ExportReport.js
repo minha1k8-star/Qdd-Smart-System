@@ -2,14 +2,23 @@
  * Xuất báo cáo cho 1 hoặc nhiều ngày, nhiều tổ máy, thành 1 file Excel
  * hoặc PDF riêng - đọc từ dữ liệu ĐÃ CÓ trong KET_QUA (không tính lại).
  *
- * Layout: MỖI NGÀY 1 TAB, các tổ máy đã chọn nằm CẠNH NHAU trong cùng tab
- * (vd cột B:J = S1, cột L:T = S2) - giống layout file báo cáo gốc
- * (BAO_CAO_QDU/"Kiểm tra Qdu" có S1DH1 và S2DH1 cạnh nhau), không phải
- * mỗi tổ máy 1 tab riêng.
+ * Layout bám sát file "Kiểm tra Qdu" gốc:
+ *   A1        : "MWh" (đơn vị)
+ *   Hàng 2    : nhãn tổ máy (vd "S1DH1") gộp trên mỗi khối
+ *   Hàng 3    : tên cột; A3 = "Chu kỳ"
+ *   Hàng 4-51 : 48 chu kỳ, cột A dạng "01 [00:00-00:30]" (số + khung giờ CÙNG 1 ô)
+ *   Hàng 52   : tổng ngày (các cột MWh)
+ * Các khối tổ máy nằm CẠNH NHAU, liền cột (B:K = tổ 1, L:U = tổ 2).
  */
 
-var EXPORT_METRIC_COLUMNS = ['Qdd (MW)', 'Qdd_V (MWh)', 'Qdc (MWh)', 'P_Qdc (MW)', 'Ngưỡng dưới', 'Ngưỡng trên', 'Qmp (MWh)', 'Qdư (MWh)', 'Dấu hiệu'];
-var EXPORT_BLOCK_WIDTH = EXPORT_METRIC_COLUMNS.length; // 9
+// Thứ tự cột khớp file gốc: Qdd, Qdd_V, Qdc, Qmp, Qdư, Qdư âm/dương, rồi các cột đối chiếu, cuối cùng là Ghi chú.
+var EXPORT_METRIC_COLUMNS = ['Qdd', 'Qdd_V', 'Qdc', 'Qmp', 'Qdư', 'Qdư âm/dương', 'P_Qdc', 'Ngưỡng dưới', 'Ngưỡng trên', 'Ghi chú'];
+var EXPORT_BLOCK_WIDTH = EXPORT_METRIC_COLUMNS.length; // 10
+var EXPORT_BLOCK_STRIDE = EXPORT_BLOCK_WIDTH; // các khối liền nhau, không chừa cột trống (giống file gốc)
+var EXPORT_FIRST_DATA_ROW = 4;
+var EXPORT_TOTAL_ROW = EXPORT_FIRST_DATA_ROW + 48; // hàng 52
+/** Vị trí (0-based) trong EXPORT_METRIC_COLUMNS của các cột cần cộng tổng ngày (chỉ các cột MWh). */
+var EXPORT_TOTAL_COL_OFFSETS = [1, 2, 3, 4]; // Qdd_V, Qdc, Qmp, Qdư
 
 /**
  * Chuyển 1 Google Sheets thành blob Excel/PDF bằng link xuất trực tiếp
@@ -31,12 +40,18 @@ function exportSpreadsheetAsBlob_(spreadsheetId, format) {
   }
   return response.getBlob();
 }
-var EXPORT_BLOCK_STRIDE = EXPORT_BLOCK_WIDTH + 1; // +1 cột trống ngăn cách giữa các tổ máy
+
+/** Nhãn hiển thị của tổ máy trong báo cáo (vd "S1DH1"), lấy từ CAI_DAT; không có thì dùng "Tổ S1". */
+function reportUnitLabel_(unit) {
+  var key = 'REPORT_LABEL_' + unit.toUpperCase();
+  var label = CAI_DAT_LABELS[key] ? getConfigValue_(CAI_DAT_LABELS[key]) : null;
+  return label ? String(label).trim() : 'Tổ ' + unit;
+}
 
 /**
  * @param {Date} date
  * @param {string} unit
- * @returns {Array[]|null} 48 dòng (đúng thứ tự EXPORT_METRIC_COLUMNS, KHÔNG có cột Chu kỳ), hoặc null nếu chưa có
+ * @returns {Array[]|null} 48 dòng theo đúng thứ tự EXPORT_METRIC_COLUMNS (không gồm cột Chu kỳ), hoặc null nếu chưa có
  */
 function readKetQuaMetricsForExport_(date, unit) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.KET_QUA);
@@ -50,14 +65,15 @@ function readKetQuaMetricsForExport_(date, unit) {
     var rowDateStr = rowDate instanceof Date
       ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(rowDate);
     if (rowDateStr === dateStr && String(r[1]).toUpperCase() === unit.toUpperCase()) {
-      byChuKy[Number(r[2])] = [r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11]];
+      // KET_QUA: 3=Qdd, 4=Qdd_V, 5=Qdc, 6=P_Qdc, 7=Ngưỡng dưới, 8=Ngưỡng trên, 9=Qmp, 10=Qdư, 11=Dấu hiệu
+      byChuKy[parsePeriodNumber_(r[2])] = [r[3], r[4], r[5], r[9], r[10], r[11], r[6], r[7], r[8], ''];
     }
   });
-  var keys = Object.keys(byChuKy);
-  if (keys.length === 0) return null;
+  if (Object.keys(byChuKy).length === 0) return null;
+  var emptyRow = EXPORT_METRIC_COLUMNS.map(function () { return ''; });
   var out = [];
   for (var i = 1; i <= 48; i++) {
-    out.push(byChuKy[i] || ['', '', '', '', '', '', '', '', '']);
+    out.push(byChuKy[i] || emptyRow.slice());
   }
   return out;
 }
@@ -105,25 +121,40 @@ function buildAndExportReport_(dates, units, format) {
       sh = temp.insertSheet(sheetName);
     }
 
-    var lastCol = 1 + blocks.length * EXPORT_BLOCK_STRIDE - 1; // cột cuối cùng có dữ liệu (bỏ cột trống thừa sau khối cuối)
-    sh.getRange(1, 1, 1, lastCol).merge().setFontWeight('bold')
+    var lastCol = 1 + blocks.length * EXPORT_BLOCK_STRIDE;
+
+    // Hàng 1: đơn vị + tiêu đề ngày (gốc chỉ có "MWh" ở A1, thêm ngày ở cột B cho rõ khi xuất nhiều ngày)
+    sh.getRange(1, 1).setValue('MWh').setFontWeight('bold');
+    sh.getRange(1, 2, 1, lastCol - 1).merge().setFontWeight('bold')
       .setValue('BÁO CÁO Qdd/Qdư - Ngày ' + Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd/MM/yyyy'));
 
     sh.getRange(3, 1).setValue('Chu kỳ').setFontWeight('bold');
     blocks.forEach(function (block, i) {
       var startCol = 2 + i * EXPORT_BLOCK_STRIDE;
-      sh.getRange(2, startCol, 1, EXPORT_BLOCK_WIDTH).merge().setFontWeight('bold')
-        .setValue('Tổ ' + block.unit);
+      sh.getRange(2, startCol, 1, EXPORT_BLOCK_WIDTH).merge()
+        .setValue(reportUnitLabel_(block.unit))
+        .setFontWeight('bold').setHorizontalAlignment('center');
       sh.getRange(3, startCol, 1, EXPORT_BLOCK_WIDTH).setValues([EXPORT_METRIC_COLUMNS]).setFontWeight('bold');
-      sh.getRange(4, startCol, block.rows.length, EXPORT_BLOCK_WIDTH).setValues(block.rows);
+      sh.getRange(EXPORT_FIRST_DATA_ROW, startCol, block.rows.length, EXPORT_BLOCK_WIDTH).setValues(block.rows);
+
+      // Hàng tổng ngày cho các cột MWh
+      EXPORT_TOTAL_COL_OFFSETS.forEach(function (offset) {
+        var col = startCol + offset;
+        var colLetter = columnLetter_(col);
+        sh.getRange(EXPORT_TOTAL_ROW, col).setFormula(
+          '=SUM(' + colLetter + EXPORT_FIRST_DATA_ROW + ':' + colLetter + (EXPORT_TOTAL_ROW - 1) + ')'
+        ).setFontWeight('bold');
+      });
     });
+
     var chuKyRows = [];
-    for (var i = 1; i <= 48; i++) chuKyRows.push([i]);
-    sh.getRange(4, 1, 48, 1).setValues(chuKyRows);
+    for (var i = 1; i <= 48; i++) chuKyRows.push([periodLabel_(i)]);
+    sh.getRange(EXPORT_FIRST_DATA_ROW, 1, 48, 1).setValues(chuKyRows);
+    sh.getRange(EXPORT_TOTAL_ROW, 1).setValue('Tổng ngày').setFontWeight('bold');
 
     sh.setFrozenRows(3);
-    // Không cố định cột: dòng tiêu đề (hàng 1) gộp toàn bộ các cột, cố định
-    // dù chỉ 1 cột cũng bị Google Sheets báo lỗi vì cắt ngang ô hợp nhất.
+    // Không cố định cột: hàng 1 có ô gộp trải nhiều cột, cố định cột sẽ bị
+    // Google Sheets từ chối vì cắt ngang ô hợp nhất.
     sh.autoResizeColumns(1, lastCol);
   });
 
@@ -144,4 +175,15 @@ function buildAndExportReport_(dates, units, format) {
   DriveApp.getFileById(temp.getId()).setTrashed(true);
 
   return { url: outFile.getUrl(), name: fileName, missing: missing };
+}
+
+/** 1 -> "A", 27 -> "AA" (dùng để dựng công thức SUM theo cột). */
+function columnLetter_(col) {
+  var letter = '';
+  while (col > 0) {
+    var rem = (col - 1) % 26;
+    letter = String.fromCharCode(65 + rem) + letter;
+    col = Math.floor((col - 1) / 26);
+  }
+  return letter;
 }

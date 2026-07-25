@@ -45,8 +45,45 @@ function computeOneDay_(date, unit) {
       effectiveCommands: effectiveCommands, p0: p0Info.value, qdc48: qdc48, qmp48: qmp48,
       qddVCoef: config.qddVCoef, tolerance: config.tolerance,
     });
-    return { periods: periods, p0Source: p0Info.source };
+    return {
+      periods: periods,
+      p0Source: p0Info.source,
+      warnings: detectZeroZeroCommands_(allCommands, date, unit),
+    };
   } catch (e) {
     return { error: e.message };
   }
+}
+
+/**
+ * UAT-34: phát hiện lệnh "0-0" (CS ra lệnh = CS hoàn thành = 0, thường là
+ * lệnh ngừng tổ máy do sự cố/trip). Theo quy tắc nghiệp vụ đã xác nhận,
+ * loại lệnh này CHỦ ĐÍCH không được tính (xem docs/03_Business_Rules.md,
+ * docs/15_Accuracy_Validation_2026-07.md) - nhưng nếu không cảnh báo,
+ * công cụ sẽ âm thầm giữ nguyên công suất cũ đến hết ngày trong khi thực
+ * tế tổ máy đã ngừng, gây sai số lớn mà người dùng không biết.
+ *
+ * Hàm này KHÔNG tự sửa số liệu, chỉ báo để người vận hành tự xử lý.
+ * @returns {string[]} danh sách cảnh báo (rỗng nếu không có lệnh 0-0)
+ */
+function detectZeroZeroCommands_(allCommands, date, unit) {
+  var tz = Session.getScriptTimeZone();
+  var dateStr = Utilities.formatDate(date, tz, 'yyyy-MM-dd');
+  var unitPrefix = unit.toUpperCase().slice(0, 2);
+  var warnings = [];
+
+  allCommands.forEach(function (c) {
+    if (!(c.bdth instanceof Date)) return;
+    if (Utilities.formatDate(c.bdth, tz, 'yyyy-MM-dd') !== dateStr) return;
+    if (String(c.toMay || '').toUpperCase().slice(0, 2) !== unitPrefix) return;
+    var completed = (c.hoanThanh === 1 || c.hoanThanh === true || String(c.hoanThanh).toUpperCase() === 'TRUE');
+    if (!completed) return;
+    if (Number(c.csRaLenh) === 0 && Number(c.csHoanThanh) === 0) {
+      warnings.push('Lệnh 0-0 lúc ' + Utilities.formatDate(c.bdth, tz, 'HH:mm') +
+        ' (' + (c.noiDungLenh || c.id) + ') KHÔNG được tính theo quy tắc nghiệp vụ. ' +
+        'Nếu tổ máy thực sự đã ngừng, Qdd từ thời điểm này đang CAO HƠN thực tế - cần kiểm tra/điều chỉnh tay.');
+    }
+  });
+
+  return warnings;
 }

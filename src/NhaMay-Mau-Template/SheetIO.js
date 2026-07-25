@@ -41,36 +41,45 @@ function resolveMeterCode_(unit, role) {
   return value ? String(value).trim() : null;
 }
 
-/** @returns {import('../QDD-Core-Library/CommandFilter').RawCommand[]} */
+/**
+ * Đọc danh sách lệnh từ sheet LENH. Dò cột theo TÊN TIÊU ĐỀ (không theo
+ * vị trí), nên hoạt động đúng với cả:
+ *   - sheet LENH chuẩn 25 cột giống file gốc (dán thẳng file gốc vào),
+ *   - sheet LENH rút gọn của các bản cũ (9/10 cột),
+ *   - sheet có thứ tự cột khác hoặc thừa cột.
+ * @returns {import('../QDD-Core-Library/CommandFilter').RawCommand[]}
+ */
 function readAllCommands_() {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.LENH);
   var lastRow = sh.getLastRow();
-  if (lastRow < 2) return [];
-  var rows = sh.getRange(2, 1, lastRow - 1, LENH_HEADERS.length).getValues();
+  var lastCol = sh.getLastColumn();
+  if (lastRow < 2 || lastCol === 0) return [];
+
+  var headerRow = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+  var found = findCommandColumnIndices_(headerRow);
+  if (found.missing.length > 0) {
+    throw new Error('Sheet LENH thiếu cột: ' + found.missing.join(', ') +
+      '. Chạy "QDD Smart System → Thiết lập sheet" hoặc dán lại dữ liệu kèm dòng tiêu đề đúng tên.');
+  }
+  var idx = found.indices;
+
+  var rows = sh.getRange(2, 1, lastRow - 1, lastCol).getValues();
   return rows
-    .filter(function (r) { return r[0] !== ''; })
+    .filter(function (r) { return r[idx.id] !== '' && r[idx.id] !== null; })
     .map(function (r) {
       return {
-        id: r[0],
-        toMay: r[1],
-        noiDungLenh: r[2],
-        csRaLenh: r[3] === '' ? null : Number(r[3]),
-        csHoanThanh: r[4] === '' ? null : Number(r[4]),
-        bdth: r[5] instanceof Date ? r[5] : null,
-        hoanThanh: r[6],
-        dungLenh: r[7] === true || String(r[7]).toUpperCase() === 'TRUE',
-        nguonLenh: r[8],
+        id: r[idx.id],
+        nhaMay: idx.nhaMay !== undefined ? r[idx.nhaMay] : '',
+        toMay: r[idx.toMay],
+        noiDungLenh: r[idx.noiDungLenh],
+        csRaLenh: r[idx.csRaLenh] === '' ? null : Number(r[idx.csRaLenh]),
+        csHoanThanh: r[idx.csHoanThanh] === '' ? null : Number(r[idx.csHoanThanh]),
+        bdth: r[idx.bdth] instanceof Date ? r[idx.bdth] : null,
+        hoanThanh: r[idx.hoanThanh],
+        dungLenh: r[idx.dungLenh] === true || String(r[idx.dungLenh]).toUpperCase() === 'TRUE',
+        nguonLenh: r[idx.nguonLenh],
       };
     });
-}
-
-/** Ghi 1 lệnh mới vào cuối sheet LENH (dùng khi nhập tay từng lệnh). */
-function appendCommand(command) {
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.LENH);
-  sh.appendRow([
-    command.id, command.toMay, command.noiDungLenh, command.csRaLenh, command.csHoanThanh,
-    command.bdth, command.hoanThanh, command.dungLenh, command.nguonLenh,
-  ]);
 }
 
 /**
@@ -137,6 +146,31 @@ function guessDateFromCsvText_(csvText) {
   return null;
 }
 
+/**
+ * Giữ lại các dòng thoả `keepPredicate`, xoá phần còn lại - bằng cách đọc
+ * hết một lần rồi ghi lại, thay vì gọi deleteRow từng dòng (với vài nghìn
+ * dòng, cách deleteRow chậm hơn hàng chục lần và dễ timeout).
+ * @param {Sheet} sheet
+ * @param {function(Array, number): boolean} keepPredicate  (row, index) -> giữ hay không
+ * @returns {number} số dòng đã xoá
+ */
+function rewriteSheetRows_(sheet, keepPredicate) {
+  var lastRow = sheet.getLastRow();
+  var lastCol = sheet.getLastColumn();
+  if (lastRow < 2 || lastCol === 0) return 0;
+
+  var all = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  var kept = all.filter(keepPredicate);
+  var removedCount = all.length - kept.length;
+  if (removedCount === 0) return 0;
+
+  sheet.getRange(2, 1, lastRow - 1, lastCol).clearContent();
+  if (kept.length > 0) {
+    sheet.getRange(2, 1, kept.length, lastCol).setValues(kept);
+  }
+  return removedCount;
+}
+
 /** Sắp xếp lại toàn bộ dữ liệu (từ hàng 2 trở đi) của 1 sheet theo các cột chỉ định - gọi lại sau mỗi lần thêm/xoá dòng để luôn xem theo thứ tự ngày, không theo thứ tự thao tác. */
 function sortSheetRows_(sheet, sortSpecs) {
   var lastRow = sheet.getLastRow();
@@ -162,7 +196,7 @@ function saveCsvRow_(date, meterCode, kwhGiao) {
     }
   }
   dataSh.appendRow([date, meterCode].concat(kwhGiao));
-  sortSheetRows_(dataSh, [{ column: 1, ascending: true }, { column: 2, ascending: true }]);
+  sortSheetRows_(dataSh, [{ column: 1, ascending: false }, { column: 2, ascending: true }]); // ngày mới nhất lên đầu, giống KET_QUA
 }
 
 /**
@@ -221,7 +255,7 @@ function readOrInferP0_(date, unit) {
     var rowDate = r[0];
     var rowDateStr = rowDate instanceof Date
       ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(rowDate);
-    if (rowDateStr === prevDateStr && String(r[1]).toUpperCase() === unit.toUpperCase() && Number(r[2]) === 48) {
+    if (rowDateStr === prevDateStr && String(r[1]).toUpperCase() === unit.toUpperCase() && parsePeriodNumber_(r[2]) === 48) {
       lastPeriodValue = Number(r[3]); // cột D = Qdd (MW)
     }
   });
@@ -252,10 +286,12 @@ function readP0_(date, unit) {
 function appendResultToSheet_(date, unit, periods) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.KET_QUA);
   var rows = periods.map(function (p) {
-    return [date, unit, p.chuKy, p.qdd, p.qddV, p.qdc, p.pQdc, p.nguongDuoi, p.nguongTren, p.qmp, p.qdu, p.dauHieu];
+    return [date, unit, periodLabel_(p.chuKy), p.qdd, p.qddV, p.qdc, p.pQdc, p.nguongDuoi, p.nguongTren, p.qmp, p.qdu, p.dauHieu];
   });
   sh.getRange(sh.getLastRow() + 1, 1, rows.length, KET_QUA_HEADERS.length).setValues(rows);
-  sortSheetRows_(sh, [{ column: 1, ascending: true }, { column: 2, ascending: true }, { column: 3, ascending: true }]);
+  // Ngày MỚI NHẤT lên đầu (người dùng thường xem kết quả gần nhất trước),
+  // nhưng trong cùng 1 ngày thì tổ máy/chu kỳ vẫn tăng dần cho dễ đọc.
+  sortSheetRows_(sh, [{ column: 1, ascending: false }, { column: 2, ascending: true }, { column: 3, ascending: true }]);
 }
 
 /** Xoá sạch KET_QUA trước khi tính lại (tránh trùng lặp khi chạy lại cùng ngày). */
@@ -282,4 +318,55 @@ function clearResultsForDate_(date, unit) {
   if (filtered.length > 0) {
     sh.getRange(2, 1, filtered.length, KET_QUA_HEADERS.length).setValues(filtered);
   }
+}
+
+/**
+ * Dọn dữ liệu nguồn của đúng (ngày, tổ máy) VỪA TÍNH XONG: xoá các lệnh
+ * của tổ máy đó trong ngày đó khỏi LENH, và các dòng CSV_DATA ứng với
+ * mã công tơ của tổ máy đó trong ngày đó.
+ *
+ * Chỉ đụng đến đúng (ngày, tổ máy) đã tính - dữ liệu của tổ máy còn lại
+ * và các ngày khác giữ nguyên. Kết quả trong KET_QUA đã là giá trị tĩnh
+ * nên không bị ảnh hưởng; nếu cần tính lại thì nhập lại từ file gốc.
+ * @returns {{lenh:number, csv:number}} số dòng đã xoá
+ */
+function clearSourceDataForDate_(date, unit) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var tz = Session.getScriptTimeZone();
+  var dateStr = Utilities.formatDate(date, tz, 'yyyy-MM-dd');
+  var unitUpper = unit.toUpperCase();
+  var removed = { lenh: 0, csv: 0 };
+
+  // --- LENH: xoá lệnh của (ngày, tổ máy) ---
+  var lenhSh = ss.getSheetByName(SHEETS.LENH);
+  var lenhLastCol = lenhSh.getLastColumn();
+  if (lenhSh.getLastRow() >= 2 && lenhLastCol > 0) {
+    var lenhFound = findCommandColumnIndices_(lenhSh.getRange(1, 1, 1, lenhLastCol).getValues()[0]);
+    if (lenhFound.missing.length === 0) {
+      var li = lenhFound.indices;
+      removed.lenh = rewriteSheetRows_(lenhSh, function (row) {
+        var bdth = row[li.bdth];
+        if (!(bdth instanceof Date)) return true; // dòng không đọc được ngày -> giữ lại cho an toàn
+        var sameDay = Utilities.formatDate(bdth, tz, 'yyyy-MM-dd') === dateStr;
+        var sameUnit = String(row[li.toMay]).toUpperCase().slice(0, 2) === unitUpper.slice(0, 2);
+        return !(sameDay && sameUnit);
+      });
+    }
+  }
+
+  // --- CSV_DATA: xoá các mã công tơ của tổ máy đó trong ngày đó ---
+  var meterCodes = ['Qdc', 'Qmp']
+    .map(function (role) { return resolveMeterCode_(unit, role); })
+    .filter(function (c) { return !!c; });
+  if (meterCodes.length > 0) {
+    var csvSh = ss.getSheetByName(SHEETS.CSV_DATA);
+    removed.csv = rewriteSheetRows_(csvSh, function (row) {
+      var rowDate = row[0];
+      var rowDateStr = rowDate instanceof Date
+        ? Utilities.formatDate(rowDate, tz, 'yyyy-MM-dd') : String(rowDate);
+      return !(rowDateStr === dateStr && meterCodes.indexOf(String(row[1])) !== -1);
+    });
+  }
+
+  return removed;
 }
