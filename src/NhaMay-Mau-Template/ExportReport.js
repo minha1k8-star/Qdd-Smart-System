@@ -10,6 +10,27 @@
 
 var EXPORT_METRIC_COLUMNS = ['Qdd (MW)', 'Qdd_V (MWh)', 'Qdc (MWh)', 'P_Qdc (MW)', 'Ngưỡng dưới', 'Ngưỡng trên', 'Qmp (MWh)', 'Qdư (MWh)', 'Dấu hiệu'];
 var EXPORT_BLOCK_WIDTH = EXPORT_METRIC_COLUMNS.length; // 9
+
+/**
+ * Chuyển 1 Google Sheets thành blob Excel/PDF bằng link xuất trực tiếp
+ * của Google (docs.google.com/.../export) - KHÔNG dùng
+ * DriveApp.getFileById().getAs() vì hàm đó không hỗ trợ chuyển Google
+ * Sheets sang .xlsx (chỉ hỗ trợ vài kiểu chuyển đổi cố định).
+ * @param {string} spreadsheetId
+ * @param {string} format  "xlsx" | "pdf"
+ * @returns {Blob}
+ */
+function exportSpreadsheetAsBlob_(spreadsheetId, format) {
+  var url = 'https://docs.google.com/spreadsheets/d/' + spreadsheetId + '/export?format=' + format;
+  var response = UrlFetchApp.fetch(url, {
+    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
+    muteHttpExceptions: true,
+  });
+  if (response.getResponseCode() !== 200) {
+    throw new Error('Không xuất được file (' + format + '), mã lỗi ' + response.getResponseCode() + '.');
+  }
+  return response.getBlob();
+}
 var EXPORT_BLOCK_STRIDE = EXPORT_BLOCK_WIDTH + 1; // +1 cột trống ngăn cách giữa các tổ máy
 
 /**
@@ -112,9 +133,8 @@ function buildAndExportReport_(dates, units, format) {
   }
 
   SpreadsheetApp.flush();
-  var mimeType = format === 'pdf' ? MimeType.PDF : MimeType.MICROSOFT_EXCEL;
   var ext = format === 'pdf' ? '.pdf' : '.xlsx';
-  var blob = DriveApp.getFileById(temp.getId()).getAs(mimeType);
+  var blob = exportSpreadsheetAsBlob_(temp.getId(), format);
 
   var fileName = 'BaoCao_QDD_' + new Date().getTime() + ext;
   var parents = DriveApp.getFileById(SpreadsheetApp.getActiveSpreadsheet().getId()).getParents();

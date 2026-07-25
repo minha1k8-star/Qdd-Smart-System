@@ -137,7 +137,15 @@ function guessDateFromCsvText_(csvText) {
   return null;
 }
 
-/** Ghi/ghi đè 1 dòng CSV_DATA cho (ngày, mã công tơ) - dùng chung cho luồng lưu 1 file và lưu hàng loạt. */
+/** Sắp xếp lại toàn bộ dữ liệu (từ hàng 2 trở đi) của 1 sheet theo các cột chỉ định - gọi lại sau mỗi lần thêm/xoá dòng để luôn xem theo thứ tự ngày, không theo thứ tự thao tác. */
+function sortSheetRows_(sheet, sortSpecs) {
+  var lastRow = sheet.getLastRow();
+  var lastCol = sheet.getLastColumn();
+  if (lastRow < 3) return; // cần ít nhất 2 dòng dữ liệu mới cần sắp xếp
+  sheet.getRange(2, 1, lastRow - 1, lastCol).sort(sortSpecs);
+}
+
+/** Ghi/ghi đè 1 dòng CSV_DATA cho (ngày, mã công tơ) - dùng chung cho luồng lưu 1 file và lưu hàng loạt. Tự sắp xếp lại theo Ngày rồi Mã công tơ sau khi ghi. */
 function saveCsvRow_(date, meterCode, kwhGiao) {
   var dataSh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CSV_DATA);
   var lastRow = dataSh.getLastRow();
@@ -154,6 +162,7 @@ function saveCsvRow_(date, meterCode, kwhGiao) {
     }
   }
   dataSh.appendRow([date, meterCode].concat(kwhGiao));
+  sortSheetRows_(dataSh, [{ column: 1, ascending: true }, { column: 2, ascending: true }]);
 }
 
 /**
@@ -246,6 +255,7 @@ function appendResultToSheet_(date, unit, periods) {
     return [date, unit, p.chuKy, p.qdd, p.qddV, p.qdc, p.pQdc, p.nguongDuoi, p.nguongTren, p.qmp, p.qdu, p.dauHieu];
   });
   sh.getRange(sh.getLastRow() + 1, 1, rows.length, KET_QUA_HEADERS.length).setValues(rows);
+  sortSheetRows_(sh, [{ column: 1, ascending: true }, { column: 2, ascending: true }, { column: 3, ascending: true }]);
 }
 
 /** Xoá sạch KET_QUA trước khi tính lại (tránh trùng lặp khi chạy lại cùng ngày). */

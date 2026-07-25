@@ -2,7 +2,14 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — Sửa lỗi xuất file + Báo cáo tháng xuất file gộp
+## [Unreleased] — Sửa lỗi xuất Excel, tự sắp xếp theo ngày, dọn CSV_STAGING
+
+- **Sửa lỗi xuất Excel lần 2**: `DriveApp.getFileById().getAs(MimeType.MICROSOFT_EXCEL)` không hỗ trợ chuyển Google Sheets sang .xlsx — đổi sang gọi link xuất trực tiếp của Google (`docs.google.com/.../export?format=...`) qua `UrlFetchApp` + `ScriptApp.getOAuthToken()`.
+- **`CSV_DATA` và `KET_QUA` tự sắp xếp lại theo Ngày** sau mỗi lần lưu/tính (trước đó chỉ nối thêm vào cuối theo thứ tự thao tác, khó kiểm soát khi xem trực tiếp trong Sheet).
+- **Dọn sheet `CSV_STAGING`** — không còn dùng từ khi chuyển sang đọc CSV trực tiếp trong sidebar; "Thiết lập sheet" giờ tự xoá sheet này nếu còn sót lại từ bản cũ.
+- Đã đẩy lên Sheet thật.
+
+## Sửa lỗi xuất file + Báo cáo tháng xuất file gộp
 
 - **Sửa lỗi xuất Excel/PDF**: `setFrozenColumns(1)` xung đột với ô tiêu đề gộp toàn bộ cột ở hàng 1 (Google Sheets báo lỗi "không thể cố định cột chỉ chứa một phần ô hợp nhất") — bỏ cố định cột, chỉ giữ cố định hàng.
 - **Đổi vị trí mục 2/3** trong sidebar: "Tính 1 ngày" lên mục 2 (đi cùng "Lưu CSV" mục 1), "Tải CSV hàng loạt" xuống mục 3 (đi cùng "Tính hàng loạt" mục 4) — nhóm đúng theo luồng dùng đơn lẻ vs hàng loạt.

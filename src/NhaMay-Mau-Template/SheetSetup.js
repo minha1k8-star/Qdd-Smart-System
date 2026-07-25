@@ -96,8 +96,16 @@ function setupAllSheets() {
   ensureSheet_(SHEETS.P0_NGAY, P0_NGAY_HEADERS);
   ensureSheet_(SHEETS.KET_QUA, KET_QUA_HEADERS);
   ensureSheet_(SHEETS.BAO_CAO_THANG, BAO_CAO_THANG_HEADERS);
+  removeLeftoverSheet_('CSV_STAGING'); // sheet cũ từ thiết kế trước, không còn dùng (đọc CSV trực tiếp trong sidebar)
 
   SpreadsheetApp.getUi().alert('Đã tạo đủ các sheet cần thiết. Nhớ điền đúng "Mã công tơ Qdc/Qmp" cho từng tổ máy trong CAI_DAT (khác nhau giữa S1/S2 và giữa các nhà máy). Mở menu "QDD Smart System → Bảng điều khiển" để bắt đầu nhập CSV/tính toán.');
+}
+
+/** Xoá 1 sheet cũ không còn dùng nếu tồn tại (dọn dẹp khi nâng cấp từ bản cũ). */
+function removeLeftoverSheet_(name) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(name);
+  if (sh) ss.deleteSheet(sh);
 }
 
 /** Thêm các dòng nhãn cấu hình còn thiếu vào CAI_DAT đã có sẵn (nâng cấp từ bản cũ). */
