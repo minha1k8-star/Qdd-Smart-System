@@ -18,6 +18,8 @@ Tiến độ chi tiết: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) · [RO
 
 Hai lựa chọn: **copy Sheet mẫu** (~5 phút, không cần cài gì) hoặc **tự dựng từ GitHub** (~20 phút, tự chủ hoàn toàn mã nguồn).
 
+Hồ sơ sáng kiến / phương án kỹ thuật: [docs/17_Thuyet_Minh_Sang_Kien.md](docs/17_Thuyet_Minh_Sang_Kien.md)
+
 ## Bài toán nghiệp vụ
 
 1. Nhà máy nhận **lệnh điều độ** (SO — lệnh đóng máy, MO — lệnh mở/thay đổi công suất), mỗi lệnh có thời điểm bắt đầu thực hiện (BĐTH), công suất ra lệnh, công suất hoàn thành.
@@ -46,6 +48,7 @@ Qdd-Smart-System/
 │   ├── 14_Knowledge_Transfer.md
 │   ├── 15_Accuracy_Validation_2026-07.md  # Đối chiếu với dữ liệu vận hành thật
 │   ├── 16_Huong_Dan_Trien_Khai.md         # Triển khai cho nhà máy mới
+│   ├── 17_Thuyet_Minh_Sang_Kien.md        # Bản thảo hồ sơ sáng kiến
 │   └── PROJECT_STATUS.md
 ├── legacy/
 │   └── ...                 # Bản Excel/VBA v1.3.1 đang chạy chính thức
