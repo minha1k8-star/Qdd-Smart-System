@@ -2,7 +2,20 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — P0 phải là công suất tại 24:00, không phải Qdd chu kỳ 48
+## [Unreleased] — R07: ramp vắt qua nửa đêm đã chạy tiếp sang ngày sau
+
+Hoàn thiện nốt quy tắc **R07 (carry-over)** — trước đó mới chỉ đúng công suất *tại* 24:00, còn phần ramp **chưa hoàn tất** thì ngày hôm sau giữ nguyên công suất đó cho tới khi có lệnh mới, sai so với thực tế (tổ máy vẫn đang tăng/giảm tải nốt).
+
+- `Segments.carryOverOf` phát hiện ramp còn dở dang lúc 24:00 (mục tiêu + thời gian còn lại).
+- `calculateDay` nhận `carryTarget`: chèn một **lệnh nối ảo tại 00:00:00** hướng tới mục tiêu đó. Không cần truyền thời gian còn lại — Ramp Engine tự tính đúng phần còn lại từ (P0, mục tiêu, tốc độ). Cách này khớp với cơ chế `AUTO_CARRY` của bản VBA cũ.
+- `P0_NGAY` thêm cột **`Ramp tiếp đến (MW)`**; sau mỗi lần tính, hệ thống tự ghi cả P0 lẫn mục tiêu ramp cho ngày kế tiếp.
+- Sidebar báo rõ khi một ngày được nối tiếp ramp từ ngày trước.
+
+45/45 test pass (thêm 9 test cho R07). Thư viện lên **version 4**.
+
+> Dữ liệu 07/2026 hiện không có ngày nào ramp vắt qua nửa đêm (gần nhất 18/07 kết thúc 23h52), nên tính năng này chưa kiểm chứng được bằng dữ liệu thật — mới xác nhận qua test.
+
+## P0 phải là công suất tại 24:00, không phải Qdd chu kỳ 48
 
 **Triệu chứng**: ngày 19/07 lệch đều +29,43 MW ở 36 chu kỳ đầu so với bảng tính tay, dù ngày 17 và 18 khớp tuyệt đối.
 

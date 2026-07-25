@@ -42,7 +42,9 @@ var CSV_DATA_HEADERS = ['Ngày', 'Mã công tơ'].concat(
   Array.from({ length: 48 }, function (_, i) { return 'Chu kỳ ' + (i + 1); })
 );
 
-var P0_NGAY_HEADERS = ['Ngày', 'Tổ máy', 'P0 (MW)', 'Ghi chú'];
+// Cột 'Ramp tiếp đến (MW)' phục vụ R07: nếu ramp còn dở dang lúc 24:00 của
+// ngày trước, ghi mục tiêu công suất vào đây để ngày này chạy tiếp cho xong.
+var P0_NGAY_HEADERS = ['Ngày', 'Tổ máy', 'P0 (MW)', 'Ghi chú', 'Ramp tiếp đến (MW)'];
 
 var KET_QUA_HEADERS = [
   'Ngày', 'Tổ máy', 'Chu kỳ', 'Qdd (MW)', 'Qdd_V (MWh)', 'Qdc (MWh)',

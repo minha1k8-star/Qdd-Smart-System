@@ -96,7 +96,7 @@ function sidebar_calcOneDay(dateStr, unit, cleanupSource) {
 
   clearResultsForDate_(date, unit);
   appendResultToSheet_(date, unit, result.periods);
-  saveNextDayP0_(date, unit, result.endPower);
+  saveNextDayP0_(date, unit, result.endPower, result.carry);
 
   var msg = 'Đã tính xong ' + Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd/MM/yyyy') +
     ' - tổ ' + unit + ' (P0 ' + result.p0Source + '). Xem sheet KET_QUA.';
@@ -126,7 +126,7 @@ function sidebar_calcBatch(fromStr, toStr, units, cleanupSource) {
       } else {
         clearResultsForDate_(date, unit);
         appendResultToSheet_(date, unit, result.periods);
-        saveNextDayP0_(date, unit, result.endPower);
+        saveNextDayP0_(date, unit, result.endPower, result.carry);
         okCount++;
         if (result.warnings && result.warnings.length > 0) {
           result.warnings.forEach(function (w) { allWarnings.push(label + ': ' + w); });

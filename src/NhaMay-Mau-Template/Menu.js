@@ -45,9 +45,14 @@ function computeOneDay_(date, unit) {
     var periods = QDDCoreLibrary.calculateDay({
       effectiveCommands: effectiveCommands, p0: p0Info.value, qdc48: qdc48, qmp48: qmp48,
       qddVCoef: config.qddVCoef, tolerance: config.tolerance,
+      carryTarget: p0Info.carryTarget, // R07: ramp còn dở dang từ ngày trước
     });
     var warnings = detectZeroZeroCommands_(allCommands, date, unit);
-    if (effectiveCommands.length === 0) {
+    if (p0Info.carryTarget) {
+      warnings.push('Ngày trước còn ramp dở dang lúc 24:00 -> đã tự chạy tiếp từ ' +
+        p0Info.value + ' MW đến mục tiêu ' + p0Info.carryTarget + ' MW (quy tắc R07).');
+    }
+    if (effectiveCommands.length === 0 && !p0Info.carryTarget) {
       // Ngày không có lệnh nào vẫn tính được (Qdd giữ nguyên P0 cả ngày) và
       // đó có thể là đúng thực tế. Nhưng nếu chỉ vì QUÊN NHẬP LỆNH thì kết
       // quả sai mà trông vẫn "thành công" - lỗi này đã xảy ra thật với ngày
@@ -60,6 +65,7 @@ function computeOneDay_(date, unit) {
       periods: periods,
       p0Source: p0Info.source,
       endPower: periods.endPower,
+      carry: periods.carry,
       warnings: warnings,
     };
   } catch (e) {

@@ -37,7 +37,7 @@ Chọn ngày + tổ máy → **Tính**.
 
 **P0** tự lấy từ chu kỳ cuối ngày liền trước đã tính; chỉ **ngày đầu tiên** dùng hệ thống mới cần điền tay 1 dòng vào `P0_NGAY`.
 
-> P0 này là **xấp xỉ** (lấy Qdd chu kỳ 48 của ngày trước), chưa phải carry-over R07 đầy đủ.
+P0 là **công suất tại đúng 24:00** của ngày trước (không phải Qdd trung bình chu kỳ 48). Nếu lúc 24:00 tổ máy **vẫn đang tăng/giảm tải dở dang**, hệ thống ghi thêm mục tiêu vào cột `Ramp tiếp đến (MW)` và ngày hôm sau **tự chạy tiếp phần còn lại** cho tới khi đạt mục tiêu — đúng quy tắc **R07**, tương đương cơ chế `AUTO_CARRY` của bản VBA cũ.
 
 Tuỳ chọn **"Dọn lệnh + CSV của ngày này sau khi tính xong"** (mặc định bật) — xoá dữ liệu nguồn của đúng (ngày, tổ máy) vừa tính. Tắt đi khi đang dò lỗi để không phải nhập lại.
 
@@ -64,7 +64,6 @@ Dùng khi bàn giao Sheet cho người khác, hoặc khi dữ liệu tích luỹ
 
 ## Chưa làm (so với VBA v1.3.1)
 
-- Carry-over qua nửa đêm (R07) đầy đủ — hiện chỉ xấp xỉ bằng Qdd chu kỳ cuối ngày trước.
 - Kiểm tra cấu trúc/backup tự động (tương đương nút 11, 13 VBA).
 
 ## Cập nhật code sau này

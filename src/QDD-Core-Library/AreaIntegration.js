@@ -31,16 +31,31 @@ QDD.AreaIntegration = (function () {
    * @param {number} p0
    * @returns {number[]} Qdd (MW) của 48 chu kỳ
    */
-  function computeDay(effectiveCommands, p0) {
+  /**
+   * Tính 1 lần, trả về đủ mọi thứ cần cho 1 ngày - tránh dựng lại
+   * ramp/segment nhiều lần.
+   * @returns {{qdd:number[], endPower:number, carry:{target:number, remainingSeconds:number}|null}}
+   */
+  function computeDayFull(effectiveCommands, p0) {
     var rampRows = QDD.RampEngine.buildRows(effectiveCommands, p0);
     var segments = QDD.Segments.build(rampRows, p0);
+
     var qdd = [];
     for (var i = 0; i < QDD.Config.PERIOD_COUNT; i++) {
       var cs = i * QDD.Config.CYCLE_SECONDS;
       var ce = (i + 1) * QDD.Config.CYCLE_SECONDS;
       qdd.push(cycleQdd(segments, cs, ce));
     }
-    return qdd;
+
+    return {
+      qdd: qdd,
+      endPower: QDD.Segments.endPowerOfDay(segments, p0),
+      carry: QDD.Segments.carryOverOf(rampRows),
+    };
+  }
+
+  function computeDay(effectiveCommands, p0) {
+    return computeDayFull(effectiveCommands, p0).qdd;
   }
 
   /**
@@ -48,12 +63,24 @@ QDD.AreaIntegration = (function () {
    * @returns {number}
    */
   function endPowerOfDay(effectiveCommands, p0) {
-    var rampRows = QDD.RampEngine.buildRows(effectiveCommands, p0);
-    var segments = QDD.Segments.build(rampRows, p0);
-    return QDD.Segments.endPowerOfDay(segments, p0);
+    return computeDayFull(effectiveCommands, p0).endPower;
   }
 
-  return { cycleQdd: cycleQdd, computeDay: computeDay, endPowerOfDay: endPowerOfDay };
+  /**
+   * R07 - thông tin ramp còn dở dang lúc 24:00, để ngày sau chạy tiếp.
+   * @returns {{target:number, remainingSeconds:number}|null}
+   */
+  function carryOverOfDay(effectiveCommands, p0) {
+    return computeDayFull(effectiveCommands, p0).carry;
+  }
+
+  return {
+    cycleQdd: cycleQdd,
+    computeDay: computeDay,
+    computeDayFull: computeDayFull,
+    endPowerOfDay: endPowerOfDay,
+    carryOverOfDay: carryOverOfDay,
+  };
 })();
 
 if (typeof module !== 'undefined' && module.exports) { module.exports = QDD; }

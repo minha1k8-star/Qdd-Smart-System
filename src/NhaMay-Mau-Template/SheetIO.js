@@ -242,9 +242,9 @@ function readCsv48_(date, unit, role) {
  * @returns {{value:number, source:string}|null}
  */
 function readOrInferP0_(date, unit) {
-  var manual = readP0_(date, unit);
-  if (manual !== null) return { value: manual, source: 'từ sheet P0_NGAY' };
-  return null;
+  var row = readP0Row_(date, unit);
+  if (row === null) return null;
+  return { value: row.p0, carryTarget: row.carryTarget, source: 'từ sheet P0_NGAY' };
 }
 
 /**
@@ -252,8 +252,9 @@ function readOrInferP0_(date, unit) {
  * Không ghi đè dòng do người dùng tự nhập (chỉ ghi đè dòng có ghi chú bắt
  * đầu bằng "Tự động"), để giá trị nhập tay luôn được tôn trọng.
  */
-function saveNextDayP0_(date, unit, endPower) {
+function saveNextDayP0_(date, unit, endPower, carry) {
   if (typeof endPower !== 'number' || isNaN(endPower)) return;
+  var carryTarget = (carry && typeof carry.target === 'number') ? carry.target : '';
 
   var tz = Session.getScriptTimeZone();
   var nextDate = new Date(date);
@@ -264,28 +265,32 @@ function saveNextDayP0_(date, unit, endPower) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.P0_NGAY);
   var lastRow = sh.getLastRow();
   if (lastRow >= 2) {
-    var rows = sh.getRange(2, 1, lastRow - 1, 4).getValues();
+    var rows = sh.getRange(2, 1, lastRow - 1, P0_NGAY_HEADERS.length).getValues();
     for (var i = 0; i < rows.length; i++) {
       var rowDate = rows[i][0];
       var rowKey = rowDate instanceof Date ? Utilities.formatDate(rowDate, tz, 'yyyy-MM-dd') : String(rowDate);
       if (rowKey === nextKey && String(rows[i][1]).toUpperCase() === unit.toUpperCase()) {
         var existingNote = String(rows[i][3] || '');
         if (existingNote.indexOf('Tự động') !== 0) return; // người dùng nhập tay -> giữ nguyên
-        sh.getRange(i + 2, 3, 1, 2).setValues([[endPower, note]]);
+        sh.getRange(i + 2, 3, 1, 3).setValues([[endPower, note, carryTarget]]);
         return;
       }
     }
   }
-  sh.appendRow([nextDate, unit, endPower, note]);
+  sh.appendRow([nextDate, unit, endPower, note, carryTarget]);
   sortSheetRows_(sh, [{ column: 1, ascending: false }, { column: 2, ascending: true }]);
 }
 
-/** Lấy P0 đã nhập tay cho (ngày, tổ máy) từ sheet P0_NGAY - xem giới hạn ở README (chưa tự động carry-over R07). */
-function readP0_(date, unit) {
+/**
+ * Đọc dòng P0 của (ngày, tổ máy): công suất đầu ngày + mục tiêu ramp còn
+ * dở dang từ ngày trước (R07, cột "Ramp tiếp đến (MW)").
+ * @returns {{p0:number, carryTarget:number|null}|null}
+ */
+function readP0Row_(date, unit) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.P0_NGAY);
   var lastRow = sh.getLastRow();
   if (lastRow < 2) return null;
-  var rows = sh.getRange(2, 1, lastRow - 1, 3).getValues();
+  var rows = sh.getRange(2, 1, lastRow - 1, P0_NGAY_HEADERS.length).getValues();
   var dateStr = Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
   for (var i = 0; i < rows.length; i++) {
     var rowDate = rows[i][0];
@@ -293,7 +298,11 @@ function readP0_(date, unit) {
       ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), 'yyyy-MM-dd')
       : String(rowDate);
     if (rowDateStr === dateStr && String(rows[i][1]).toUpperCase() === unit.toUpperCase()) {
-      return Number(rows[i][2]);
+      var carry = rows[i][4];
+      return {
+        p0: Number(rows[i][2]),
+        carryTarget: (carry === '' || carry === null || isNaN(Number(carry))) ? null : Number(carry),
+      };
     }
   }
   return null;

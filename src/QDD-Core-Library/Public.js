@@ -43,6 +43,14 @@ function getEndOfDayPower(effectiveCommands, p0) {
 }
 
 /**
+ * R07 - thông tin ramp còn dở dang lúc 24:00 để ngày sau chạy tiếp.
+ * @returns {{target:number, remainingSeconds:number}|null}
+ */
+function getCarryOver(effectiveCommands, p0) {
+  return QDD.AreaIntegration.carryOverOfDay(effectiveCommands, p0);
+}
+
+/**
  * Tính nhiều ngày/nhiều tổ máy cùng lúc - xem QDD.BatchCalculator.
  * @param {import('./BatchCalculator').DayInput[]} dayInputs
  */

@@ -61,7 +61,26 @@ QDD.Segments = (function () {
     return segments[segments.length - 1][3];
   }
 
-  return { build: build, endPowerOfDay: endPowerOfDay };
+  /**
+   * R07 - phát hiện ramp CHƯA hoàn tất lúc 24:00 (vắt qua nửa đêm).
+   *
+   * Tổ máy không dừng lại ở nửa đêm: nó tiếp tục tăng/giảm tải sang ngày
+   * hôm sau cho tới khi đạt mục tiêu. Ngày kế tiếp phải chạy tiếp phần
+   * còn lại, nếu không sẽ giữ nguyên công suất lúc 24:00 suốt đến khi có
+   * lệnh mới - sai so với thực tế.
+   *
+   * @param {import('./RampEngine').RampRow[]} rampRows
+   * @returns {{target:number, remainingSeconds:number}|null} null nếu ramp đã xong trong ngày
+   */
+  function carryOverOf(rampRows) {
+    if (!rampRows || rampRows.length === 0) return null;
+    var last = rampRows[rampRows.length - 1];
+    var DAY = QDD.Config.SECONDS_PER_DAY;
+    if (last.I <= DAY + QDD.Config.EPS) return null;
+    return { target: last.D, remainingSeconds: last.I - DAY };
+  }
+
+  return { build: build, endPowerOfDay: endPowerOfDay, carryOverOf: carryOverOf };
 })();
 
 if (typeof module !== 'undefined' && module.exports) { module.exports = QDD; }

@@ -313,5 +313,50 @@ console.log('10) Ramp bi cat + cong suat cuoi ngay');
   check('calculateDay tra kem endPower', res.endPower, 435.7, 1e-9);
 }
 
+// ---------------------------------------------------------------------
+// 11) R07 - ramp vat qua nua dem (carry-over)
+//     23h50 co lenh nang 400 -> 600 MW, toc do 3.5 MW/phut can 3428.57s
+//     -> den 24:00 moi chay duoc 600s, con lai 2828.57s sang ngay hom sau.
+// ---------------------------------------------------------------------
+console.log('11) R07 - ramp vat qua nua dem');
+{
+  const RATE = QDD.Config.RAMP_RATE_MW_PER_MIN;
+  const cmds = [{ seconds: 85800, p: 600 }]; // 23:50
+  const full = QDD.AreaIntegration.computeDayFull(cmds, 400);
+
+  const H = (600 - 400) / RATE * 60;          // 3428.57s tong thoi gian ramp
+  const doneInDay = 86400 - 85800;            // 600s chay trong ngay
+  const pAtMidnight = 400 + (600 - 400) * doneInDay / H;
+
+  check('Cong suat luc 24:00 (ramp con do dang)', full.endPower, pAtMidnight, 1e-6);
+  checkTrue('Phat hien co ramp vat qua nua dem', !!full.carry);
+  check('Muc tieu ramp mang sang ngay sau', full.carry ? full.carry.target : NaN, 600);
+  check('Thoi gian ramp con lai (giay)', full.carry ? full.carry.remainingSeconds : NaN, H - doneInDay, 1e-6);
+
+  // Ngay hom sau: P0 = cong suat luc 24:00, carryTarget = 600, khong co lenh moi.
+  const next = QDD.QddCalculator.calculateDay({
+    effectiveCommands: [], p0: pAtMidnight, carryTarget: 600,
+    qdc48: Array(48).fill(100000), qmp48: Array(48).fill(50000),
+  });
+  checkTrue('Ngay sau: cong suat TANG TIEP chu khong dung yen',
+    next[1].qdd > next[0].qdd);
+  check('Ngay sau: dat dung muc tieu 600 MW cuoi ngay', next.endPower, 600, 1e-9);
+  checkTrue('Ngay sau: khong con carry (ramp da xong)', next.carry === null);
+
+  // Thoi diem dat muc tieu = remainingSeconds sau 00:00 -> chu ky tuong ung
+  const finishAt = H - doneInDay;                       // 2828.57s ~ 47.1 phut
+  const finishCycle = Math.floor(finishAt / 1800);      // chu ky 0-based dang ramp
+  checkTrue('Ngay sau: cac chu ky sau khi dat muc tieu deu = 600 MW',
+    next[finishCycle + 1].qdd === 600);
+
+  // Neu KHONG truyen carryTarget -> giu nguyen P0 ca ngay (loi cu)
+  const wrong = QDD.QddCalculator.calculateDay({
+    effectiveCommands: [], p0: pAtMidnight,
+    qdc48: Array(48).fill(100000), qmp48: Array(48).fill(50000),
+  });
+  checkTrue('Khong co carryTarget thi phang (chung minh carry that su co tac dung)',
+    wrong[0].qdd === wrong[47].qdd);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail > 0 ? 1 : 0);

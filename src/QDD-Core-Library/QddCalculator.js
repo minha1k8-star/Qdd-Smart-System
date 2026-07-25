@@ -25,7 +25,12 @@ QDD.QddCalculator = (function () {
    * @param {number[]} input.qmp48   48 giá trị KwhGiao CSV 6303 (chưa chia 1000)
    * @param {number} [input.qddVCoef]   mặc định QDD.Config.QDD_V_COEF
    * @param {number} [input.tolerance]  mặc định QDD.Config.TOLERANCE
-   * @returns {PeriodResult[]}
+   * @param {number} [input.carryTarget] R07 - mục tiêu công suất của ramp còn
+   *        dở dang từ ngày trước. Nếu có, một "lệnh nối" ảo tại 00:00:00 sẽ
+   *        được chèn vào đầu ngày để ramp chạy tiếp cho tới khi đạt mục tiêu.
+   *        Không cần truyền thời gian còn lại: Ramp Engine tự tính đúng phần
+   *        còn lại từ (p0, mục tiêu, tốc độ ramp).
+   * @returns {PeriodResult[]}  kèm `.endPower` và `.carry` cho ngày kế tiếp
    */
   function calculateDay(input) {
     var qddVCoef = input.qddVCoef || QDD.Config.QDD_V_COEF;
@@ -35,8 +40,17 @@ QDD.QddCalculator = (function () {
       throw new Error('qdc48/qmp48 phải có đúng ' + QDD.Config.PERIOD_COUNT + ' giá trị.');
     }
 
-    var qddArr = QDD.AreaIntegration.computeDay(input.effectiveCommands, input.p0);
-    var endPower = QDD.AreaIntegration.endPowerOfDay(input.effectiveCommands, input.p0);
+    // R07: nối tiếp ramp dở dang từ ngày trước bằng một lệnh ảo tại 00:00:00.
+    // Cách này khớp với bản VBA cũ (chèn dòng AUTO_CARRY vào đầu LENH_GOC).
+    var commands = input.effectiveCommands;
+    if (typeof input.carryTarget === 'number' && !isNaN(input.carryTarget)) {
+      commands = [{ id: 'AUTO_CARRY', seconds: 0, p: input.carryTarget, nguon: 'AUTO_CARRY' }]
+        .concat(commands);
+    }
+
+    var full = QDD.AreaIntegration.computeDayFull(commands, input.p0);
+    var qddArr = full.qdd;
+    var endPower = full.endPower;
     var results = [];
 
     for (var i = 0; i < QDD.Config.PERIOD_COUNT; i++) {
@@ -74,10 +88,11 @@ QDD.QddCalculator = (function () {
       });
     }
 
-    // Gắn công suất cuối ngày vào kết quả để tầng gọi lưu làm P0 ngày sau.
-    // Dùng thuộc tính trên mảng thay vì đổi kiểu trả về, để không phá vỡ
-    // các chỗ đang duyệt kết quả như một mảng 48 phần tử.
+    // Gắn công suất cuối ngày + thông tin ramp dở dang vào kết quả để tầng
+    // gọi lưu lại cho ngày sau. Dùng thuộc tính trên mảng thay vì đổi kiểu
+    // trả về, để không phá vỡ các chỗ đang duyệt kết quả như mảng 48 phần tử.
     results.endPower = endPower;
+    results.carry = full.carry; // {target, remainingSeconds} hoặc null
     return results;
   }
 

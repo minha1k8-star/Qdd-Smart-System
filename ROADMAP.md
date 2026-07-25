@@ -25,9 +25,9 @@ Mục tiêu: hệ thống hoá toàn bộ tri thức nghiệp vụ/kỹ thuật 
 - [x] Triển khai thật lên Apps Script (`clasp login`/`create`/`push`) — đã đăng nhập, đã push (khắc phục lỗi "Premature close" do Node quá mới bằng Node 20 qua Homebrew).
 - [x] Tạo Google Sheets mẫu (template) cho nhà máy đầu tiên (Duyên Hải 1), gắn Library — xem `src/NhaMay-Mau-Template/README.md`.
 - [x] Menu Apps Script cơ bản (6 mục: thiết lập, lưu CSV, tính 1 ngày, tính hàng loạt, báo cáo tháng) — chưa đủ 15 mục như VBA (thiếu backup, kiểm tra hệ thống, xuất file riêng).
-- [ ] Carry-over qua nửa đêm (R07) — hiện phải nhập tay P0 vào sheet P0_NGAY.
-- [ ] Cảnh báo lệnh 0-0 (UAT-34).
-- [ ] Xuất báo cáo ra file Excel/PDF riêng (hiện chỉ ghi vào sheet).
+- [x] Carry-over qua nửa đêm (R07) — P0 tự ghi sau mỗi lần tính; ramp dở dang lúc 24:00 tự chạy tiếp sang ngày sau.
+- [x] Cảnh báo lệnh 0-0 (UAT-34) và cảnh báo ngày không có lệnh nào.
+- [x] Xuất báo cáo ra file Excel/PDF riêng (theo ngày, khoảng ngày, hoặc cả tháng).
 
 ## Giai đoạn 3 — Chuyển thuật toán (chưa bắt đầu)
 
