@@ -1,6 +1,8 @@
 # Thuyết minh sáng kiến — Bản thảo kỹ thuật
 
-Tài liệu này cung cấp **phần nội dung kỹ thuật** để người phụ trách biên soạn "Phương án kỹ thuật" và hồ sơ đề nghị công nhận sáng kiến.
+Tài liệu này cung cấp **phần nội dung kỹ thuật** để người phụ trách biên soạn hồ sơ đề nghị công nhận sáng kiến.
+
+> Phần giải thích **hệ thống tính như thế nào và vì sao kết quả chính xác** (kèm ví dụ tính bằng số thật) nằm ở [18_Phuong_An_Ky_Thuat.md](18_Phuong_An_Ky_Thuat.md) — nên đọc tài liệu đó trước.
 
 > ⚠️ **Lưu ý về số liệu**: các mục đánh dấu **[CẦN ĐIỀN]** là số liệu vận hành/kinh tế mà chỉ đơn vị mới có (thời gian thao tác thực tế, số nhân sự, số nhà máy dự kiến áp dụng…). Tài liệu này **không tự suy đoán** những con số đó — mọi số liệu ghi sẵn bên dưới đều là **kết quả kỹ thuật đã kiểm chứng được**, có thể dẫn chứng lại từ mã nguồn và dữ liệu thật.
 
@@ -166,7 +168,8 @@ Ngoài ra có thể tính đến phần **giảm rủi ro sai số trong đối 
 | Nội dung | Tài liệu |
 |---|---|
 | Quy tắc nghiệp vụ (R01–R14) | [03_Business_Rules.md](03_Business_Rules.md) |
-| Đặc tả thuật toán | [04_Algorithm_Specification.md](04_Algorithm_Specification.md) |
+| **Phương án kỹ thuật** (phương pháp tính, ví dụ số, vì sao chính xác) | [18_Phuong_An_Ky_Thuat.md](18_Phuong_An_Ky_Thuat.md) |
+| Đặc tả thuật toán (cho người lập trình) | [04_Algorithm_Specification.md](04_Algorithm_Specification.md) |
 | Kiến trúc hệ thống và lý do lựa chọn | [05_System_Architecture.md](05_System_Architecture.md) |
 | Kết quả đối chiếu với dữ liệu thật | [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md) |
 | Hướng dẫn triển khai cho nhà máy mới | [16_Huong_Dan_Trien_Khai.md](16_Huong_Dan_Trien_Khai.md) |

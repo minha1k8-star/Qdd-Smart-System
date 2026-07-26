@@ -18,7 +18,9 @@ Tiến độ chi tiết: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) · [RO
 
 Hai lựa chọn: **copy Sheet mẫu** (~5 phút, không cần cài gì) hoặc **tự dựng từ GitHub** (~20 phút, tự chủ hoàn toàn mã nguồn).
 
-Hồ sơ sáng kiến / phương án kỹ thuật: [docs/17_Thuyet_Minh_Sang_Kien.md](docs/17_Thuyet_Minh_Sang_Kien.md)
+**Phương án kỹ thuật** (hệ thống tính thế nào, vì sao chính xác — đọc được không cần biết lập trình): [docs/18_Phuong_An_Ky_Thuat.md](docs/18_Phuong_An_Ky_Thuat.md)
+
+Hồ sơ sáng kiến: [docs/17_Thuyet_Minh_Sang_Kien.md](docs/17_Thuyet_Minh_Sang_Kien.md)
 
 ## Bài toán nghiệp vụ
 
@@ -50,6 +52,7 @@ Qdd-Smart-System/
 │   ├── 15_Accuracy_Validation_2026-07.md  # Đối chiếu với dữ liệu vận hành thật
 │   ├── 16_Huong_Dan_Trien_Khai.md         # Triển khai cho nhà máy mới
 │   ├── 17_Thuyet_Minh_Sang_Kien.md        # Bản thảo hồ sơ sáng kiến
+│   ├── 18_Phuong_An_Ky_Thuat.md           # Phương án kỹ thuật (cho người phụ trách)
 │   └── PROJECT_STATUS.md
 ├── src/
 │   ├── QDD-Core-Library/     # Apps Script Library (toàn bộ thuật toán)

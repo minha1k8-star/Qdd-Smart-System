@@ -2,6 +2,8 @@
 
 Đặc tả kỹ thuật của "trái tim" hệ thống: pipeline tính Qdd/Qdư từ danh sách lệnh điều độ + CSV công tơ.
 
+Bản giải thích cho người **không lập trình** (kèm ví dụ tính bằng số thật) ở [18_Phuong_An_Ky_Thuat.md](18_Phuong_An_Ky_Thuat.md).
+
 Đây là **hợp đồng kỹ thuật** của dự án: mã nguồn trong `src/QDD-Core-Library/` phải khớp với tài liệu này, và mọi thay đổi thuật toán phải sửa cả hai. Nếu tài liệu này mâu thuẫn với [03_Business_Rules.md](03_Business_Rules.md), tài liệu này chi tiết hơn (công thức cụ thể), còn 03 mô tả *vì sao* quy tắc như vậy.
 
 Toàn bộ công thức dưới đây đã được **đối chiếu với bảng tính tay trên dữ liệu vận hành thật** — xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
