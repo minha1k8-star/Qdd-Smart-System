@@ -23,4 +23,4 @@ python3 run_validation.py
 ## Giới hạn hiện tại
 
 - P0 (công suất đầu ngày) được suy ra từ giá trị tham chiếu chu kỳ 1, chỉ an toàn khi lệnh đầu tiên trong ngày bắt đầu sau 00:30. Chưa xử lý carry-over qua nửa đêm (R07) — cần bổ sung khi có dữ liệu phù hợp (UAT-04).
-- Chưa cài đặt phần đọc CSV theo đúng logic phát hiện Mac/Windows của VBA (`ReadCsvWithExcel50`) — chỉ đọc CSV chuẩn 1 dòng/lệnh.
+- Chỉ đọc CSV chuẩn (1 dòng/bản ghi) — đủ dùng cho mục đích đối chiếu.

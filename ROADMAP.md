@@ -1,55 +1,46 @@
 # Roadmap
 
-## Giai đoạn 1 — Documentation Foundation (đang thực hiện)
+## Giai đoạn 1 — Xây dựng hệ thống ✅ hoàn thành (07/2026)
 
-Mục tiêu: hệ thống hoá toàn bộ tri thức nghiệp vụ/kỹ thuật đã tích luỹ qua nhiều tháng phát triển thành tài liệu chuẩn trong repo, độc lập với lịch sử chat hay trí nhớ của AI, **trước khi viết thêm bất kỳ dòng code mới nào**.
+Nền tảng: **Google Sheets + Apps Script gắn liền từng file + thư viện code dùng chung** (`QDD-Core-Library`). Không làm Web App trung tâm — lý do và các phương án đã cân nhắc xem [05_System_Architecture.md](docs/05_System_Architecture.md).
 
-- [x] Khởi tạo repository GitHub.
-- [x] Đưa bản Excel/VBA v1.3.1 chính thức vào `legacy/`.
-- [x] Tài liệu hướng dẫn AI: `CLAUDE.md`, `AGENTS.md`, `docs/AI_CONTEXT.md`.
-- [x] `docs/03_Business_Rules.md` — 14 quy tắc nghiệp vụ (R01-R14).
-- [x] `docs/06_Database_Design.md` — schema các sheet.
-- [x] `docs/09_Test_Cases.md` — 31 test case UAT (chưa thực thi).
-- [ ] `docs/04_Algorithm_Specification.md` — chi tiết thuật toán Ramp Engine, nội suy, tính diện tích.
-- [ ] `docs/14_Knowledge_Transfer.md` — lịch sử quyết định kỹ thuật, lỗi đã gặp.
-- [ ] Thực thi 31 test case UAT trên bản v1.3.1 và ghi nhận kết quả thật (hiện toàn bộ đang "Chưa chạy").
+- [x] `QDD-Core-Library` — toàn bộ thuật toán: chọn công suất hiệu lực (R01-R03), Ramp Engine (R05-R06), dựng đoạn công suất, tích phân diện tích (R08), quy đổi Qdd/Qdd_V/Qdc/Qmp/Qdư (R09-R14), carry-over qua nửa đêm (R07), đọc CSV (R10/R12), báo cáo tháng. Quản lý bằng `clasp` + Git, **45/45 test cục bộ pass**.
+- [x] Sheet mẫu cho nhà máy đầu tiên (Duyên Hải 1), gắn Library — xem [src/NhaMay-Mau-Template/README.md](src/NhaMay-Mau-Template/README.md).
+- [x] Bảng điều khiển 6 mục: Tải CSV · Nhập danh sách lệnh · Tính · Báo cáo tháng · Xuất báo cáo · Dọn dữ liệu cũ.
+- [x] Nhập danh sách lệnh **thẳng từ file Excel** tải lên — không copy tay, tự dò sheet và dòng tiêu đề, gộp theo ID Lệnh.
+- [x] Tải nhiều CSV cùng lúc, tự nhận diện tổ máy/loại dữ liệu theo tên file và tự đọc ngày trong file.
+- [x] Cảnh báo tự động: lệnh 0-0, ngày không có lệnh nào, ngày được nối tiếp ramp từ hôm trước.
+- [x] Xuất báo cáo Excel/PDF theo ngày, khoảng ngày hoặc cả tháng; layout bám mẫu `Kiểm tra Qdu`, tên file mang đúng kỳ báo cáo.
+- [x] Sheet `HUONG_DAN` ngay trong file + [hướng dẫn triển khai cho nhà máy mới](docs/16_Huong_Dan_Trien_Khai.md).
 
-**Điều kiện để chuyển sang Giai đoạn 2**: bộ tài liệu ở trên đầy đủ và được người phụ trách nghiệp vụ xác nhận đúng với hệ thống thực tế; ít nhất các UAT liên quan đến Ramp Engine (UAT-04, 05-08) đã chạy và Đạt trên bản v1.3.1 để có baseline đối chiếu.
+## Giai đoạn 2 — Kiểm chứng độ chính xác ✅ hoàn thành cho tổ S1
 
-## Giai đoạn 2 — Khởi tạo ứng dụng mới ✅ hoàn thành
+- [x] Đối chiếu 1:1 với bảng tính tay độc lập trên dữ liệu vận hành thật — **2 đợt, 16 tổ hợp (ngày, tổ máy)**, xem [15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md).
+- [x] Kiểm chứng tình huống khó nhất: **ramp vắt qua nửa đêm (R07)** bằng dữ liệu thật ngày 23→24/07/2026.
+- [x] Truy nguyên 3 ô lệch ~1 MW — xác định là **bảng tính tay sai**, hệ thống đúng (có tính tay độc lập từng chu kỳ để chứng minh).
+- [ ] **Kiểm chứng tổ S2** — mới chỉ chạy S1 (TC-29 trong [09_Test_Cases.md](docs/09_Test_Cases.md)).
+- [ ] Kiểm thử việc giữ nguyên P0 do người dùng nhập tay (TC-30).
+- [ ] Kiểm chứng tình huống khởi động lại sau sự cố — chờ dữ liệu đúng mẫu (TC-31).
 
-**Xác nhận ngày 2026-07-24**: chuyển sang **Google Sheets + Apps Script gắn liền từng file + Thư viện code dùng chung (Apps Script Library)**. **Không làm Web App trung tâm** — lý do và phương án đã cân nhắc xem [05_System_Architecture.md](docs/05_System_Architecture.md). Quyết định này xuất phát từ mục tiêu dự án: được xây dựng để đề xuất công nhận **sáng kiến kỹ thuật**, dự kiến nhân rộng cho nhiều nhà máy khác — cần vừa nhân rộng dễ dàng vừa giữ được khả năng audit công thức bằng mắt.
+## Giai đoạn 3 — Nhân rộng (đang làm)
 
-- [x] Thiết lập khung `QDD-Core-Library` (`src/QDD-Core-Library/`, quản lý bằng `clasp` + Git) — đã port CommandFilter (R01-R03), RampEngine (R06), Segments, AreaIntegration (R08), QddCalculator (R09-R14), CsvParser (R10/R12), có test cục bộ (17/17 pass, không cần dữ liệu thật). Xem `src/QDD-Core-Library/README.md`.
-- [x] Port nốt: carry-over qua nửa đêm (R07), báo cáo tháng, cảnh báo lệnh 0-0 (UAT-34). Thư viện hiện ở **version 4**, 45/45 test cục bộ pass.
-- [x] Triển khai thật lên Apps Script (`clasp login`/`create`/`push`) — đã đăng nhập, đã push (khắc phục lỗi "Premature close" do Node quá mới bằng Node 20 qua Homebrew).
-- [x] Tạo Google Sheets mẫu (template) cho nhà máy đầu tiên (Duyên Hải 1), gắn Library — xem `src/NhaMay-Mau-Template/README.md`.
-- [x] Bảng điều khiển (sidebar) 6 mục: Tải CSV · Nhập danh sách lệnh · Tính · Báo cáo tháng · Xuất báo cáo · Dọn dữ liệu cũ. Không làm backup/kiểm tra hệ thống như bản VBA — **đã thống nhất bỏ**: Google Sheets có sẵn lịch sử phiên bản, còn "kiểm tra hệ thống" sinh ra chỉ để dò lỗi riêng của Excel/VBA.
-- [x] Nhập danh sách lệnh **thẳng từ file Excel** tải lên (không copy tay, không sheet trung gian).
-- [x] Tải CSV nhiều file cùng lúc, tự nhận diện tổ máy/loại dữ liệu theo tên file và tự đọc ngày trong file.
-- [x] Carry-over qua nửa đêm (R07) — P0 tự ghi sau mỗi lần tính; ramp dở dang lúc 24:00 tự chạy tiếp sang ngày sau. **Đã kiểm chứng bằng dữ liệu thật** (23→24/07/2026), xem [15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md).
-- [x] Cảnh báo lệnh 0-0 (UAT-34) và cảnh báo ngày không có lệnh nào.
-- [x] Xuất báo cáo ra file Excel/PDF riêng (theo ngày, khoảng ngày, hoặc cả tháng), tên file mang đúng kỳ báo cáo.
+- [x] Tài liệu triển khai từ đầu trên tài khoản Google khác, gồm cả xử lý sự cố thường gặp và cấu hình múi giờ.
+- [x] Hồ sơ sáng kiến kỹ thuật: [17_Thuyet_Minh_Sang_Kien.md](docs/17_Thuyet_Minh_Sang_Kien.md) — còn các mục **[CẦN ĐIỀN]** là số liệu vận hành/kinh tế chỉ đơn vị mới có.
+- [ ] Triển khai cho nhà máy thứ hai và **kiểm chứng lại quy trình triển khai** bằng một người chưa từng dựng hệ thống.
+- [ ] Quy trình cập nhật phiên bản thư viện khi có nhiều nhà máy cùng dùng.
 
-## Giai đoạn 3 — Chuyển thuật toán ✅ hoàn thành phần tính toán
+## Giai đoạn 4 — Mở rộng (chưa bắt đầu)
 
-- [x] Chuyển toàn bộ logic Qdd/Qdư từ VBA sang `QDD-Core-Library` (Apps Script), bám sát `docs/04_Algorithm_Specification.md`.
-- [x] **Cảnh báo lệnh "0-0" (UAT-34)** — chỉ cảnh báo, không tự ý sửa số. Xem [14_Knowledge_Transfer.md](docs/14_Knowledge_Transfer.md#giới-hạn-vận-hành-lệnh-0-0-không-được-tự-động-phát-hiện-072026-uat-32).
-- [x] Kiểm thử với dữ liệu vận hành thật, đối chiếu 1:1 với bảng tính tay — **2 đợt, 16 tổ hợp (ngày, tổ máy)**, xem [15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md). Đợt 2 chạy trực tiếp trên bản Google Sheets, gồm cả tình huống ramp vắt qua nửa đêm.
-- [x] Đối chiếu bộ 31 UAT (viết cho bản VBA) với bản Google Sheets — xem [09_Test_Cases.md](docs/09_Test_Cases.md): **11 case đã kiểm chứng/triển khai**, **15 case không còn áp dụng** (đặc thù Excel/VBA hoặc chức năng đã bỏ có chủ đích), còn **3 case** phải kiểm.
-- [ ] UAT-15: kiểm chứng **tổ S2** trên bản Google Sheets (mới chỉ chạy S1).
-- [ ] UAT-02: kiểm thử thật việc **giữ nguyên dòng P0 người dùng nhập tay** (code đã xử lý, chưa chạy thử trên Sheet).
-- [ ] UAT-33: kiểm chứng **khởi động lại sau sự cố** — chờ có dữ liệu đúng mẫu "CS ra lệnh = CS hoàn thành = tải thật".
+- [ ] Dashboard tổng quan.
+- [ ] Nhật ký thao tác (ai tính ngày nào, lúc nào).
+- [ ] Cập nhật quy trình nhập liệu vận hành: ghi đủ CS hoàn thành khi khởi động lại tổ máy, để dữ liệu đủ điều kiện tính tự động (xem [15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md)).
 
-## Giai đoạn 4 — Hoàn thiện (đang dở)
+## Nguyên tắc xuyên suốt
 
-- [x] Báo cáo tháng (tổng hợp vào `BAO_CAO_THANG` + xuất file gộp cả tháng).
-- [x] Tài liệu người dùng: sheet `HUONG_DAN` ngay trong file + [16_Huong_Dan_Trien_Khai.md](docs/16_Huong_Dan_Trien_Khai.md).
-- [x] Hồ sơ sáng kiến: [17_Thuyet_Minh_Sang_Kien.md](docs/17_Thuyet_Minh_Sang_Kien.md) (còn các mục **[CẦN ĐIỀN]** là số liệu vận hành/kinh tế chỉ đơn vị mới có).
-- [ ] Dashboard.
-- [ ] Nhật ký thao tác.
-- [ ] Đóng gói phát hành cho nhà máy thứ hai (kiểm chứng lại quy trình trong `16_Huong_Dan_Trien_Khai.md` bằng một người chưa từng dựng hệ thống).
+**Độ chính xác số liệu quan trọng hơn tính năng.** Đây là công cụ tính toán chuyên biệt cho một quy trình nghiệp vụ hẹp, không phải phần mềm quản lý. Mọi tính năng mới đều phải trả lời được câu hỏi: nó có làm tăng rủi ro sai số liệu không?
 
-## Vì sao tách thành 2 giai đoạn tài liệu và code
-
-Xem [docs/AI_CONTEXT.md](docs/AI_CONTEXT.md): hệ thống Excel/VBA hiện tại đã được kiểm chứng bằng dữ liệu vận hành thực tế qua nhiều tháng, chứa nhiều quy tắc nghiệp vụ tinh vi (ví dụ: chọn công suất hiệu lực theo loại lệnh, ngắt ramp, chuyển tiếp qua nửa đêm) mà nếu viết lại vội vàng sang nền tảng khác sẽ dễ mất chính xác. Tài liệu hoá trước giúp bất kỳ ai (người hoặc AI) viết lại hệ thống sau này có một "hợp đồng" rõ ràng để đối chiếu, thay vì phải suy đoán lại từ đầu.
+Hệ quả cụ thể trong thiết kế:
+- Mỗi việc chỉ có **một luồng code duy nhất** cần kiểm chứng (không có "tính 1 ngày" song song với "tính hàng loạt").
+- Mọi thao tác không hoàn tác được đều **mặc định tắt**.
+- Kết quả làm tròn ở **hiển thị**, không làm tròn giá trị thật.
+- Tình huống mà máy không phân biệt được đúng/sai thì **cảnh báo cho người vận hành**, không tự ý sửa số.

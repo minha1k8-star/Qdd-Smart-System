@@ -1,6 +1,6 @@
 # Kiểm tra độ chính xác — dữ liệu thực tế tháng 7/2026
 
-Đợt kiểm tra đầu tiên dùng dữ liệu vận hành thật (nhà máy Duyên Hải 1), đối chiếu thuật toán đã tài liệu hoá ở [04_Algorithm_Specification.md](04_Algorithm_Specification.md) với **kết quả tính tay độc lập** (không phải xuất từ công cụ VBA) trong file `test-data/Kiểm tra Qdu ngày 200726.xlsx`.
+Đợt kiểm tra đầu tiên dùng dữ liệu vận hành thật (nhà máy Duyên Hải 1), đối chiếu thuật toán đã tài liệu hoá ở [04_Algorithm_Specification.md](04_Algorithm_Specification.md) với **kết quả tính tay độc lập** trong file `test-data/Kiểm tra Qdu ngày 200726.xlsx`.
 
 ## Phương pháp
 
@@ -38,7 +38,7 @@ Ban đầu mình nghi ngờ đây là lỗ hổng thật và đã thử vá côn
 
 > "Trip tổ máy vẫn tính bình thường. Khi nào có lệnh 0-0 (cả CS ra lệnh và CS hoàn thành đều = 0) thì không tính. Còn khi khởi động tổ máy thì khi CS ra lệnh và CS hoàn thành đều hoàn thành ở cùng một tải (ví dụ 435,7-435,7) thì mới tính là đã hoàn thành và bắt đầu tính Qdu."
 
-Nói cách khác: **công thức gốc `>0` (loại bỏ lệnh 0-0) là đúng** — bản vá đã được **hoàn tác**, không đưa vào `legacy/`.
+Nói cách khác: **quy tắc `>0` (loại bỏ lệnh 0-0) là đúng** — bản vá thử nghiệm đã được **hoàn tác**.
 
 ### Vì sao bảng tính tay vẫn cho ra Qdd=0 trong giai đoạn sự cố
 

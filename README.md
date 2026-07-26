@@ -10,8 +10,6 @@ Bản **Google Sheets + Apps Script** đã **được đơn vị đưa vào sử
 
 Đã kiểm chứng bằng dữ liệu vận hành thật qua **2 đợt, 16 tổ hợp (ngày, tổ máy)** — đối chiếu từng chu kỳ với bảng tính tay độc lập, sai lệch nằm trong mức làm tròn; riêng **3 ô lệch ~1 MW đã truy ra là bảng tính tay sai, không phải hệ thống**. Tình huống khó nhất — **ramp vắt qua nửa đêm (R07)** — đã được xác nhận bằng dữ liệu thật ngày 23→24/07/2026. Xem [docs/15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md).
 
-Bản **Excel + VBA v1.3.1** (trong [`legacy/`](legacy/)) là hệ thống gốc đã dùng nhiều tháng, giữ lại làm chuẩn đối chiếu.
-
 Tiến độ chi tiết: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) · [ROADMAP.md](ROADMAP.md) · [CHANGELOG.md](CHANGELOG.md)
 
 ## Triển khai cho nhà máy của bạn
@@ -53,11 +51,9 @@ Qdd-Smart-System/
 │   ├── 16_Huong_Dan_Trien_Khai.md         # Triển khai cho nhà máy mới
 │   ├── 17_Thuyet_Minh_Sang_Kien.md        # Bản thảo hồ sơ sáng kiến
 │   └── PROJECT_STATUS.md
-├── legacy/
-│   └── ...                 # Bản Excel/VBA v1.3.1 đang chạy chính thức
 ├── src/
-│   ├── QDD-Core-Library/     # Apps Script Library (Giai đoạn 2/3) - xem src/QDD-Core-Library/README.md
-│   └── NhaMay-Mau-Template/  # Sheet mẫu nhà máy đầu tiên, gắn Library - xem src/NhaMay-Mau-Template/README.md
+│   ├── QDD-Core-Library/     # Apps Script Library (toàn bộ thuật toán)
+│   └── NhaMay-Mau-Template/  # Sheet mẫu cho từng nhà máy, gắn Library
 ├── tools/
 │   └── reference_engine/   # Bản tái hiện thuật toán bằng Python để kiểm tra/đối chiếu
 └── test-data/
@@ -67,7 +63,6 @@ Qdd-Smart-System/
 ## Công nghệ
 
 - **Đang dùng**: Google Sheets + Apps Script, với **thư viện dùng chung** `QDD-Core-Library` chứa toàn bộ thuật toán — sửa một lần, mọi nhà máy cập nhật được. Lý do chọn kiến trúc này (thay vì Web App tập trung): [docs/05_System_Architecture.md](docs/05_System_Architecture.md).
-- **Bản gốc**: Microsoft Excel + VBA (1 module ~4000 dòng), công thức Excel kiểm toán được — giữ trong `legacy/` làm chuẩn đối chiếu.
 - **Kiểm thử**: bộ test chạy bằng Node (`src/QDD-Core-Library/tests/run_tests.js`), không cần Google và không cần dữ liệu thật.
 
 ## Đóng góp

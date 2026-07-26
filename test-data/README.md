@@ -2,7 +2,7 @@
 
 Nơi chứa bộ dữ liệu thực tế (danh sách lệnh điều độ + CSV công tơ 6001/6303) dùng để:
 
-1. **Kiểm tra độ chính xác** của bản Excel/VBA v1.3.1 hiện tại trước khi tách bản chính thức khỏi công cụ kiểm thử.
+1. **Kiểm tra độ chính xác** của hệ thống bằng cách đối chiếu với bảng tính tay độc lập.
 2. Làm **baseline đối chiếu 1:1** khi sau này chuyển thuật toán sang `QDD-Core-Library` (Apps Script) — xem [ROADMAP.md](../ROADMAP.md) Giai đoạn 3.
 3. Chạy lại 31 test case UAT ở [docs/09_Test_Cases.md](../docs/09_Test_Cases.md) với dữ liệu thật thay vì dữ liệu mẫu.
 

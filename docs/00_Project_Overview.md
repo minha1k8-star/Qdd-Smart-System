@@ -17,7 +17,7 @@ Việc tính Qdd/Qdư ban đầu thực hiện **thủ công**: đối chiếu d
 ## Mục tiêu
 
 - Tự động hoá toàn bộ pipeline: Danh sách lệnh + CSV → Ramp Engine → 48 chu kỳ Qdd/Qdư → Báo cáo.
-- Giữ **công thức Excel kiểm toán được** thay vì giấu toàn bộ logic trong code — người dùng nghiệp vụ có thể tự kiểm tra từng phép tính.
+- **Không hộp đen**: dữ liệu vào, kết quả ra và các bước trung gian đều hiển thị trên Sheet để người dùng nghiệp vụ tự kiểm tra.
 - Có bộ quy tắc nghiệp vụ (Business Rules) và test case (UAT) tường minh, để bất kỳ thay đổi thuật toán nào trong tương lai đều có cơ sở đối chiếu.
 
 ## Lợi ích
@@ -35,24 +35,24 @@ Việc tính Qdd/Qdư ban đầu thực hiện **thủ công**: đối chiếu d
 
 ```
 Danh sách lệnh (LENH_GOC)  ─┐
-CSV 6001 (Qdc)              ├─→  VBA (điều phối nhập liệu, kiểm tra)
-CSV 6303 (Qmp)              ─┘        │
+CSV Qdc (công tơ 6001)      ├─→  Sheet của nhà máy (Google Sheets)
+CSV Qmp (công tơ 6303)      ─┘        │
                                        ▼
-                    LENH_DIEU_DO (lọc lệnh hợp lệ, chọn P hiệu lực)
+                    Lọc lệnh hiệu lực, chọn P hiệu lực (R01-R03)
                                        │
                                        ▼
-                    DOAN_CONG_SUAT (Ramp Engine dựng đường cong P(t))
+                    Ramp Engine dựng đường cong P(t) (R05-R06)
                                        │
                                        ▼
-                    DIEN_TICH (tích phân diện tích theo 48 chu kỳ)
+                    Tích phân diện tích theo 48 chu kỳ (R08)
                                        │
                                        ▼
-                    TINH_TOAN (Qdd, Qdd_V, Qdc, Qmp, Qdư mỗi chu kỳ)
+                    KET_QUA (Qdd, Qdd_V, Qdc, Qmp, Qdư mỗi chu kỳ)
                                        │
                                        ▼
-                    BAO_CAO_QDU (báo cáo ngày) → LICH_SU_THANG (snapshot tháng)
+                    File báo cáo Excel/PDF  +  BAO_CAO_THANG
 ```
 
-VBA chỉ đóng vai trò điều phối: tạo nút bấm, nhập/kiểm tra CSV, kiểm tra cấu trúc workbook, quản lý trạng thái chuyển ngày (`TRANG_THAI_CONG_SUAT`) và xuất báo cáo — **không thực hiện phép tính Qdd/Qdư bằng code ẩn**; các phép tính cốt lõi nằm ở công thức trong các sheet `DOAN_CONG_SUAT`, `DIEN_TICH`, `TINH_TOAN` để người dùng nghiệp vụ có thể tự kiểm tra.
+Toàn bộ phép tính nằm trong thư viện dùng chung `QDD-Core-Library`, có bộ test khoá lại từng quy tắc. Dữ liệu đầu vào và kết quả đều nằm ở các sheet nhìn thấy được, nên người dùng nghiệp vụ tự đối chiếu được từng bước — xem [05_System_Architecture.md](05_System_Architecture.md).
 
 Xem chi tiết từng bước thuật toán ở [04_Algorithm_Specification.md](04_Algorithm_Specification.md) và schema đầy đủ ở [06_Database_Design.md](06_Database_Design.md).

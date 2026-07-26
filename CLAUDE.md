@@ -10,16 +10,18 @@ Hướng dẫn dành cho Claude Code khi làm việc trong repo này.
 
 ## Tóm tắt dự án
 
-QDD Smart System tính công suất điều độ (**Qdd**) và công suất dư (**Qdu**) cho tổ máy nhiệt điện, từ danh sách lệnh điều độ và 2 file CSV công tơ (6001, 6303). Hiện trạng: công cụ **Excel + VBA** (bản chính thức v1.3.1, single-module, xem `legacy/`). Định hướng đã xác nhận (chưa triển khai code): **Google Sheets + Apps Script gắn liền từng file + Thư viện code dùng chung** (không làm Web App trung tâm) — dự án hướng tới nhân rộng cho nhiều nhà máy như một sáng kiến kỹ thuật. Xem [docs/05_System_Architecture.md](docs/05_System_Architecture.md) và [ROADMAP.md](ROADMAP.md).
+QDD Smart System tính công suất điều độ (**Qdd**) và công suất dư (**Qdu**) cho tổ máy nhiệt điện, từ danh sách lệnh điều độ và 2 file CSV công tơ (6001, 6303).
 
-Thuật toán đã được kiểm chứng bằng dữ liệu thực tế vận hành. Đây không phải phần mềm ERP — phạm vi hẹp, độ chính xác số liệu quan trọng hơn tính năng.
+**Hiện trạng**: bản **Google Sheets + Apps Script** (`src/QDD-Core-Library` + `src/NhaMay-Mau-Template`) **đã đưa vào sử dụng thật**. Kiến trúc: thư viện code dùng chung, không làm Web App trung tâm — xem [docs/05_System_Architecture.md](docs/05_System_Architecture.md).
+
+Độ chính xác được chứng minh bằng đối chiếu với **bảng tính tay** trên dữ liệu thật — xem [docs/15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md). Đây không phải phần mềm ERP — phạm vi hẹp, độ chính xác số liệu quan trọng hơn tính năng.
 
 ## Gợi ý Skills khi làm việc với repo này
 
-- **xlsx** — dùng khi đọc/sửa `legacy/*.xlsm`, `legacy/*.xlsx` (sheet `QUY_TAC_NGHIEP_VU`, `KIEM_THU_UAT`, `CAI_DAT`, `TINH_TOAN`... là nguồn sự thật cho business rule, không phải chỉ có trong docs Markdown). Không dùng skill này để sửa code VBA — file `.bas` là text thuần, sửa bằng Read/Edit như code bình thường.
+- **xlsx** — dùng khi cần đọc file Excel của người dùng để đối chiếu (danh sách lệnh gốc, bảng tính tay `Kiểm tra Qdu`). Không dùng để sửa code.
 - **docx / pdf** — chỉ dùng nếu được yêu cầu xuất tài liệu bàn giao dạng Word/PDF cho khách hàng; mặc định tài liệu kỹ thuật nằm ở Markdown trong `docs/`.
-- Không có skill VBA chuyên biệt — coi `.bas` như mã nguồn text, đối chiếu với sheet `KIEM_THU_UAT` (danh sách UAT) trước khi sửa logic tính toán.
+- Mã nguồn hệ thống là Apps Script (`.js` + `.html`) trong `src/` — sửa bằng Read/Edit như code bình thường, rồi `clasp push`.
 
 ## Quy ước ngôn ngữ
 
-Toàn bộ thuật ngữ nghiệp vụ giữ nguyên tiếng Việt và viết tắt gốc trong code/sheet: `Qdd`, `Qdu` (Qdư), `Qdc`, `Qmp`, `Qdd_V`, `BĐTH`, `SO`, `MO`, `AUTO_CARRY`, `S1`/`S2`. Không dịch sang tiếng Anh trong tài liệu kỹ thuật vì phải khớp với tên cột/sheet thật trong workbook.
+Toàn bộ thuật ngữ nghiệp vụ giữ nguyên tiếng Việt và viết tắt gốc trong code/sheet: `Qdd`, `Qdu` (Qdư), `Qdc`, `Qmp`, `Qdd_V`, `BĐTH`, `SO`, `MO`, `AUTO_CARRY`, `S1`/`S2`. Không dịch sang tiếng Anh trong tài liệu kỹ thuật vì phải khớp với tên cột/sheet thật trong Sheet nghiệp vụ.

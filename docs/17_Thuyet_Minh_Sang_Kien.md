@@ -27,17 +27,15 @@ Hạn chế:
 - Không thống nhất giữa những người thực hiện khác nhau.
 - Khó truy vết: khi số liệu lệch, không biết sai ở khâu nhập liệu hay khâu tính.
 
-**3.2. Giai đoạn công cụ Excel + VBA**
+**3.2. Vì sao chưa có công cụ tự động nào được đưa vào sử dụng**
 
-Đã xây dựng công cụ Excel + VBA (bản chính thức v1.3.1) tự động hoá phần lớn quy trình. Tuy vậy còn các hạn chế mang tính nền tảng:
+Bài toán này khó tự động hoá bằng bảng tính thông thường vì ba lý do:
 
-| Hạn chế | Nguyên nhân |
-|---|---|
-| Mỗi lần chỉ tính được **1 ngày** | Toàn bộ workbook gắn với một ô cấu hình "ngày tính" duy nhất; muốn tính ngày khác phải ghi đè dữ liệu ngày cũ |
-| Phải "đóng băng" kết quả từng ngày vào sheet ẩn để làm báo cáo tháng | Hệ quả trực tiếp của hạn chế trên |
-| Lỗi khác nhau giữa macOS và Windows | Hành vi VBA/Excel khác nhau giữa hai hệ điều hành (đọc CSV, ô gộp, gọi macro) — đã phải xử lý nhiều lần qua các phiên bản |
-| Khó nhân rộng | Mỗi nhà máy giữ một bản sao riêng; sửa lỗi thuật toán phải cập nhật thủ công từng bản |
-| Phụ thuộc máy trạm | Cần cài Excel, bật macro; dữ liệu nằm rời rạc trên từng máy |
+- **Phụ thuộc chuỗi ngày**: công suất đầu ngày phải lấy từ công suất tại đúng 24:00 của ngày trước, và nếu tổ máy còn đang tăng/giảm tải dở dang lúc nửa đêm thì phần dở dang phải chạy tiếp sang ngày sau. Một bảng tính gắn với "ngày đang tính" không xử lý được chuỗi liên tục này.
+- **Nội suy khi lệnh mới ngắt ngang**: khi lệnh mới đến giữa lúc tổ máy đang tăng/giảm tải, phải nội suy công suất tại đúng điểm cắt rồi mới ramp tiếp — không phải phép tính viết được bằng một công thức đơn giản.
+- **Khối lượng**: 48 chu kỳ × 2 tổ máy × 30 ngày cho mỗi tháng báo cáo.
+
+Kết quả là công việc vẫn phải làm tay, với các hạn chế ở mục 3.1.
 
 ## 4. Nội dung giải pháp
 
@@ -63,7 +61,7 @@ Lý do chọn kiến trúc này thay vì một website tập trung: xem [05_Syst
 
 ### 4.2. Các chức năng chính
 
-1. Nhập danh sách lệnh điều độ (dán trực tiếp file gốc, không cần cắt sửa cột).
+1. Nhập danh sách lệnh điều độ **thẳng từ file Excel gốc** — không cần mở file, không cần cắt sửa cột; hệ thống tự tìm bảng dữ liệu trong file và nhận diện cột theo tên tiêu đề.
 2. Nhập dữ liệu công tơ từ file CSV — **một lần chọn được nhiều file**, hệ thống tự nhận diện tổ máy/loại dữ liệu theo tên file và tự đọc ngày trong file.
 3. Tính Qdd/Qdư cho **một ngày hoặc nhiều ngày liên tiếp, nhiều tổ máy cùng lúc**.
 4. Tự động chuyển tiếp công suất sang ngày kế tiếp, kể cả khi tổ máy **đang tăng/giảm tải dở dang lúc 24:00**.
@@ -83,12 +81,12 @@ Nhờ thiết kế lại: mỗi lần tính là một lời gọi độc lập n
 Hệ thống phát hiện và cảnh báo rõ các tình huống mà công cụ cũ âm thầm cho ra kết quả trông "bình thường" nhưng sai:
 - Ngày có **lệnh 0-0** (ngừng tổ máy do sự cố) — theo quy tắc nghiệp vụ lệnh này không được tính, nhưng nếu tổ máy thực sự đã ngừng thì Qdd đang cao hơn thực tế.
 - Ngày **không có lệnh nào** — có thể do quên nhập, kết quả sẽ phẳng theo công suất đầu ngày.
-- File CSV chọn **không khớp với công tơ đã chọn** — chặn lại trước khi lưu nhầm.
+- File CSV **không nhận diện được** tổ máy/loại dữ liệu theo tên file — báo riêng theo tên file thay vì lưu nhầm.
 
 Nguyên tắc: hệ thống **chỉ cảnh báo, không tự sửa số liệu** — quyền quyết định thuộc về người vận hành.
 
 **d) Có bộ kiểm thử tự động bảo vệ thuật toán**
-Toàn bộ quy tắc nghiệp vụ được khoá lại bằng **45 trường hợp kiểm thử tự động**, chạy được trên máy cá nhân mà không cần dữ liệu vận hành thật. Mỗi lỗi phát hiện trong quá trình triển khai đều được bổ sung một trường hợp kiểm thử tương ứng để không tái diễn. Đây là điểm mà công cụ VBA trước đây không có.
+Toàn bộ quy tắc nghiệp vụ được khoá lại bằng **45 trường hợp kiểm thử tự động**, chạy được trên máy cá nhân mà không cần dữ liệu vận hành thật. Mỗi lỗi phát hiện trong quá trình triển khai đều được bổ sung một trường hợp kiểm thử tương ứng để không tái diễn. Nhờ đó mỗi lỗi chỉ xảy ra đúng một lần.
 
 **e) Toàn bộ tri thức được tài liệu hoá công khai**
 Quy tắc nghiệp vụ, đặc tả thuật toán, lịch sử lỗi và lý do của từng quyết định thiết kế đều được ghi lại trong kho mã nguồn — để người tiếp nhận sau này (hoặc nhà máy khác) hiểu được hệ thống mà không phụ thuộc vào trí nhớ của người xây dựng.
@@ -99,12 +97,20 @@ Quy tắc nghiệp vụ, đặc tả thuật toán, lịch sử lỗi và lý do
 
 Dùng dữ liệu vận hành thật của Nhà máy Duyên Hải 1 (tháng 7/2026), đối chiếu kết quả hệ thống với bảng tính tay:
 
-| Ngày | Tổ máy | Sai lệch lớn nhất | Số chu kỳ đối chiếu |
+| Ngày | Tổ máy | Sai lệch Qdd lớn nhất | Ghi chú |
 |---|---|---|---|
-| 17/07/2026 | S1 | **0,0000 MW** | 42/48 |
-| 18/07/2026 | S1 | **0,0000 MW** | 43/48 |
+| 17/07/2026 | S1 | 0,0075 MW | mức làm tròn |
+| 18/07/2026 | S1 | 0,0538 MW | mức làm tròn |
+| 19/07/2026 | S1 | 0,0293 MW | mức làm tròn |
+| 23/07/2026 | S1 | 0,0359 MW | mức làm tròn |
+| 24/07/2026 | S1 | 0,1171 MW | ngày nhận chuyển tiếp qua nửa đêm |
+| 25/07/2026 | S1 | **0,0000 MW** | ngày không có lệnh nào |
 
-Ngoài ra, bản tái hiện thuật toán độc lập bằng Python (dùng để kiểm tra chéo đặc tả) đã đối chiếu **10 ngày × 2 tổ máy**, trong đó **18/19 tổ hợp khớp gần tuyệt đối** (sai lệch < 0,02 MW — nằm trong sai số làm tròn của bảng tính tay). Chi tiết: [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
+**Qdư — con số dùng để đối soát — khớp tuyệt đối** ở toàn bộ 48 chu kỳ của cả 6 ngày.
+
+Quá trình đối chiếu còn **phát hiện 3 ô sai trong chính bảng tính tay** (ngày 17/07 chu kỳ 40, ngày 19/07 chu kỳ 42, lệch ~1 MW). Đã tính tay độc lập lại từng chu kỳ đó để xác định kết quả hệ thống là đúng — cho thấy hệ thống không chỉ nhanh hơn mà còn phát hiện được sai sót của cách làm thủ công.
+
+Ngoài ra, một bản tái hiện thuật toán độc lập bằng Python (dùng để kiểm tra chéo đặc tả) đã đối chiếu **10 ngày × 2 tổ máy**. Chi tiết toàn bộ: [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
 
 **5.2. Phát hiện được khoảng trống trong quy trình hiện hành**
 
@@ -118,8 +124,9 @@ Trong quá trình đối chiếu, hệ thống phát hiện trường hợp **ng
 
 ### 6.1. Hiệu quả kỹ thuật (đã kiểm chứng)
 
-- Độ chính xác đạt mức **khớp tuyệt đối** với cách tính thủ công trên dữ liệu thật.
-- Loại bỏ hoàn toàn nhóm lỗi do khác biệt hệ điều hành (macOS/Windows) của công cụ cũ.
+- Độ chính xác: **Qdư khớp tuyệt đối** với cách tính thủ công trên dữ liệu thật; sai lệch Qdd nằm trong mức làm tròn (≤ 0,12 MW).
+- Phát hiện được sai sót của chính bảng tính tay (3 ô lệch ~1 MW) — tăng độ tin cậy của số liệu đối soát.
+- Không phụ thuộc hệ điều hành hay phần mềm cài trên máy trạm.
 - Tính được nhiều ngày, nhiều tổ máy trong một thao tác; báo cáo tháng lập trực tiếp từ dữ liệu gốc.
 - Có cảnh báo chủ động cho các tình huống dễ sai sót.
 - Có bộ kiểm thử tự động và tài liệu đầy đủ, giảm rủi ro khi bàn giao/nhân sự thay đổi.
@@ -151,7 +158,7 @@ Ngoài ra có thể tính đến phần **giảm rủi ro sai số trong đối 
 Để hồ sơ trung thực, nên nêu cả những điểm chưa hoàn thiện:
 
 - Quy tắc **lệnh 0-0** (ngừng do sự cố) hiện được xử lý bằng **cảnh báo**, chưa tự động đưa công suất về 0 — do đây là quy tắc nghiệp vụ cần cấp có thẩm quyền quyết định, không phải vấn đề kỹ thuật.
-- Chức năng **chuyển tiếp công suất qua nửa đêm** đã cài đặt và kiểm thử tự động đầy đủ, nhưng **chưa gặp trường hợp thực tế** trong bộ dữ liệu đối chiếu (15 ngày của tháng 7/2026 không có ngày nào tổ máy còn tăng/giảm tải dở dang lúc 24:00) — cần tiếp tục theo dõi khi vận hành.
+- Kết quả đối chiếu với bảng tính tay hiện mới thực hiện cho **tổ máy S1**; tổ S2 cần đối chiếu bổ sung khi có bảng tính tay tương ứng.
 - Hệ thống phụ thuộc nền tảng Google; cần tài khoản và kết nối mạng.
 
 ## 8. Tài liệu kèm theo

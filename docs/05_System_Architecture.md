@@ -10,7 +10,7 @@
 
 Dự án đang được xây dựng để **đề xuất công nhận sáng kiến kỹ thuật**, với kỳ vọng nếu được công nhận sẽ **áp dụng cho nhiều nhà máy khác** ngoài nhà máy hiện tại. Điều này đặt ra 2 yêu cầu tưởng như mâu thuẫn:
 
-1. Phải **nhân rộng được** dễ dàng, không lặp lại vấn đề cũ (mỗi nơi một bản VBA riêng, sửa lỗi ở đâu chỉ có tác dụng ở đó).
+1. Phải **nhân rộng được** dễ dàng: sửa lỗi thuật toán một lần, mọi nhà máy cập nhật được — thay vì mỗi nơi giữ một bản sao riêng.
 2. Phải **giữ được khả năng kiểm tra công thức bằng mắt** (xem [00_Project_Overview.md](00_Project_Overview.md), [14_Knowledge_Transfer.md](14_Knowledge_Transfer.md)) — đây là lý do dự án từng từ chối hướng "website tự tính" ngay từ vòng trao đổi đầu tiên.
 
 ### Các phương án đã cân nhắc
@@ -23,10 +23,10 @@ Dự án đang được xây dựng để **đề xuất công nhận sáng ki�
 
 ### Lý do chọn phương án C
 
-- Giữ trọn triết lý đã được xác nhận qua thực tế nhiều tháng: **công thức nhìn thấy được, không hộp đen**.
+- Giữ trọn triết lý của dự án: **công thức nhìn thấy được, không hộp đen** — người dùng nghiệp vụ tự kiểm tra được từng bước tính trên chính Sheet họ đang dùng.
 - Việc "sửa một chỗ, áp dụng nhiều nơi" — yếu tố quan trọng cho hồ sơ sáng kiến — đạt được qua **Apps Script Library** (thư viện code dùng chung, có version), không bắt buộc phải qua kiến trúc Web App tập trung.
 - Không cần vai trò "quản trị viên trung tâm" theo dõi một hệ thống chạy cho mọi nhà máy — giảm gánh nặng vận hành dài hạn cho người phụ trách.
-- Loại bỏ hoàn toàn nhóm lỗi tốn công sức nhất trong lịch sử dự án (khác biệt hành vi VBA giữa Mac/Windows), vì Apps Script chạy trên nền tảng thống nhất (trình duyệt + cloud của Google), không phụ thuộc hệ điều hành máy người dùng.
+- Không phụ thuộc hệ điều hành hay phần mềm cài trên máy người dùng: Apps Script chạy trên nền tảng thống nhất (trình duyệt + cloud của Google).
 
 ### Đánh đổi cần lưu ý
 
@@ -75,9 +75,9 @@ Mỗi nhà máy: dữ liệu, cấu hình (`CAI_DAT` — tốc độ ramp, hệ 
 3. Người phụ trách nhà máy mới điền `CAI_DAT` theo thông số thực tế của nhà máy đó.
 4. Khi thư viện có bản vá lỗi, thông báo cho các nhà máy đang dùng để họ tự cập nhật số phiên bản Library trong Apps Script Editor (không cần thay đổi gì khác).
 
-## Nhiều ngày, nhiều tổ máy cùng lúc (khác biệt kiến trúc lớn so với VBA)
+## Nhiều ngày, nhiều tổ máy cùng lúc
 
-Bản Excel/VBA chỉ tính được **1 ngày tại một thời điểm** — không phải giới hạn thuật toán, mà do `CAI_DAT!B4` là một ô cấu hình toàn cục duy nhất mà mọi sheet downstream (`LENH_GOC`, `LENH_DIEU_DO`, `XU_LY_LENH`...) đều gắn theo, nên tính ngày khác phải ghi đè ngày cũ. Đây là lý do VBA cần cơ chế "snapshot" (`LICH_SU_THANG`, sheet ẩn `LS_...`) để không mất dữ liệu khi ghi đè.
+Mỗi lần tính là **một lời gọi độc lập nhận (ngày, tổ máy) làm tham số**, không phụ thuộc một ô cấu hình dùng chung nào. Nhờ đó tính được nhiều ngày × nhiều tổ máy trong cùng một lần chạy, và dữ liệu của mọi ngày cùng tồn tại song song trong `KET_QUA`.
 
 `QDD-Core-Library` không có giới hạn này: hàm tính toán nhận **ngày + tổ máy làm tham số** (`QDD.QddCalculator.calculateDay`, `QDD.BatchCalculator.calculateMultiple`), không có "ô cấu hình toàn cục" nào bị ghi đè giữa các lần gọi — có thể tính hàng chục ngày × nhiều tổ máy trong cùng một lần chạy.
 
@@ -85,7 +85,7 @@ Bản Excel/VBA chỉ tính được **1 ngày tại một thời điểm** — 
 1. Nhập từng ngày như thói quen cũ — nhưng thay vì ghi đè, dữ liệu được **tích luỹ thêm** vào một sheet lệnh dùng chung có cột ngày (tương tự cấu trúc `LENH_GOC` nhưng trải nhiều ngày), và một sheet CSV tích luỹ tương tự theo (ngày, mã công tơ).
 2. Upload hàng loạt nhiều ngày cùng lúc (nhiều file CSV + danh sách lệnh) — hệ thống tự nhận diện ngày của từng file rồi tính hàng loạt bằng `QDD.BatchCalculator`.
 
-**Báo cáo tháng**: vì mỗi ngày độc lập ngay từ khi tính (không sheet nào bị ghi đè), báo cáo tháng (`QDD.MonthlyReport.aggregate`) tính **trực tiếp từ dữ liệu gốc** bất cứ lúc nào, không cần bước "chốt" dữ liệu như VBA.
+**Báo cáo tháng**: vì mỗi ngày độc lập ngay từ khi tính (không sheet nào bị ghi đè), báo cáo tháng (`QDD.MonthlyReport.aggregate`) tính **trực tiếp từ dữ liệu đã có** bất cứ lúc nào, không cần bước "chốt"/đóng băng kết quả từng ngày.
 
 **Xuất báo cáo từng ngày**: mỗi phần tử kết quả của `calculateDay`/`calculateMultiple` đã là báo cáo ngày đầy đủ (48 chu kỳ), có thể xuất độc lập bất cứ lúc nào — không phải tính năng riêng cần xây thêm ở tầng engine.
 

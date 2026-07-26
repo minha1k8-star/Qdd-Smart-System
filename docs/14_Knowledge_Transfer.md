@@ -1,66 +1,105 @@
 # Knowledge Transfer
 
-Tài liệu này ghi lại kinh nghiệm thực tế trong quá trình phát triển công cụ Qdd/Qdư, tổng hợp từ lịch sử trao đổi phát triển (nhiều tháng làm việc, hàng chục vòng lặp sửa lỗi) và các file ghi chú đi kèm bản v1.3.1. Mục đích: để người/AI tiếp nhận dự án sau này không lặp lại các lỗi đã từng gặp.
+Ghi lại các lỗi và quyết định kỹ thuật đã thực sự gặp trong quá trình phát triển, để người/AI tiếp nhận dự án sau này không lặp lại.
 
-## Vì sao chọn Excel/VBA thay vì Web App ngay từ đầu
+Đây là tài liệu **kinh nghiệm**, không phải đặc tả. Đặc tả thuật toán ở [04_Algorithm_Specification.md](04_Algorithm_Specification.md), quy tắc nghiệp vụ ở [03_Business_Rules.md](03_Business_Rules.md).
 
-Hướng đi ban đầu là xây dựng website nhận CSV rồi tự tính Qdd, nhưng bị đổi hướng giữa chừng: người phụ trách nghiệp vụ muốn một **file Excel tổng hợp** các sheet CSV + danh sách lệnh để tự tính ra kết quả, thay vì phụ thuộc vào một hệ thống web riêng. Lý do thực tế (suy ra từ bối cảnh): người dùng nghiệp vụ cần **kiểm tra/audit được từng phép tính bằng mắt thường** ngay trên file họ quen dùng, không muốn phụ thuộc vào một "hộp đen". Đây là lý do kiến trúc hiện tại ưu tiên công thức Excel hiển thị được, VBA chỉ điều phối (xem [00_Project_Overview.md](00_Project_Overview.md)).
+---
 
-## Lỗi CSV trên macOS
+## Lỗi âm thầm — nhóm nguy hiểm nhất
 
-Khi mở CSV bằng Excel trên **macOS**, đôi khi toàn bộ một dòng dữ liệu bị dán vào **một ô duy nhất** (cột A) thay vì tự tách thành 50 cột như trên Windows. Công cụ phải tự phát hiện tình huống này và tách chuỗi thành 50 trường trước khi xử lý — nếu không, việc nhập CSV báo lỗi hoặc đọc sai dữ liệu dù bước "kiểm tra đọc thử CSV" trước đó báo thành công (từng có trường hợp kiểm tra đọc thành công nhưng bước nhập CSV chính thức vẫn báo lỗi, cho thấy hai đường code sai lệch nhau — cần đối chiếu kỹ khi sửa `Qdu_KiemTraDocCSV` so với luồng nhập CSV chính thức).
+Đặc điểm chung: **kết quả sai nhưng không có lỗi nào hiện ra**. Người dùng tin vào con số sai. Cả ba lỗi dưới đây đều thuộc nhóm này và đều đã xảy ra thật.
 
-Xem quy tắc liên quan: UAT-09 (CSV Mac một cột), UAT-10 (CSV Windows 50 cột) ở [09_Test_Cases.md](09_Test_Cases.md).
+### `instanceof` không dùng được qua ranh giới Apps Script Library
 
-## Lệch số liệu lớn khung giờ 19h30–20h00 (kiểm thử ngày 17)
+**Triệu chứng**: mọi ngày tính ra Qdd phẳng đúng bằng P0 suốt 48 chu kỳ, không lệnh nào được áp dụng, không báo lỗi gì.
 
-Khi kiểm thử, ngày 18 tính đúng nhưng **ngày 17 bị lệch lớn** ở khung 19h30–20h00. Nguyên nhân gốc liên quan đến việc dùng sai cột làm mốc bắt đầu ramp — phải dùng **cột G (Thời điểm BĐTH)**, không phải cột H (thời điểm hoàn thành). Đây là lý do R04 trong [03_Business_Rules.md](03_Business_Rules.md) nhấn mạnh rõ ràng "không dùng H làm điểm bắt đầu". Bài học: khi thấy lệch số liệu tập trung ở một khung giờ cụ thể (không phải lệch toàn bộ ngày), nhiều khả năng là lỗi chọn sai mốc thời gian của một lệnh cụ thể, không phải lỗi công thức tổng thể.
+**Nguyên nhân**: `CommandFilter.selectEffective` kiểm tra `c.bdth instanceof Date`. Khi Sheet gọi sang `QDD-Core-Library`, **mỗi scope có constructor `Date` riêng**, nên Date tạo ở script gọi KHÔNG thoả `instanceof Date` bên trong thư viện → toàn bộ lệnh bị loại âm thầm.
 
-## Lỗi báo cáo tháng hiểu sai định dạng tháng
+**Quy tắc rút ra**: không dùng `instanceof` cho bất kỳ dữ liệu nào truyền qua ranh giới Library (`Date`, `Array`, `Error`…). Dùng duck typing: `typeof v.getTime === 'function'`.
 
-Nhập xong ngày 17 thì lưu tháng bình thường, nhưng nhập xong ngày 18 thì hệ thống báo nhầm là đã "sang tháng tiếp theo". Nguyên nhân: cách xác định tháng hiện tại (`M_MONTH_KEY_CELL`, ô `N2`) từng bị hiểu sai định dạng ngày/tháng. Bài học: logic xác định tháng cho `LICH_SU_THANG` phải test riêng với dữ liệu nhiều ngày liên tiếp trong cùng tháng, không chỉ test với 1 ngày đơn lẻ.
+### Múi giờ khi chuyển đổi file Excel qua Drive
 
-## Báo cáo tháng cần xuất cả S1 và S2 trong cùng một báo cáo
+**Triệu chứng**: nhập danh sách lệnh từ file Excel xong, mọi lệnh lệch **đúng +14 giờ** — lệnh buổi tối nhảy sang ngày hôm sau, ngày 17/07 chỉ còn 2 lệnh thay vì 4.
 
-Yêu cầu nghiệp vụ: báo cáo tháng phải có cả hai tổ máy S1 và S2 trong cùng một báo cáo theo đúng file mẫu gốc; nếu một tổ không có dữ liệu nhập thì để trống thay vì báo lỗi hoặc bỏ qua toàn bộ báo cáo.
+**Nguyên nhân**: ngày-giờ trong `.xlsx` là giá trị "trần", không kèm múi giờ. Bản Google Sheets tạm do Drive tạo ra khi chuyển đổi lấy **múi giờ mặc định của tài khoản Google** (`America/Los_Angeles`, −07 giờ hè), trong khi Sheet đích dùng `Asia/Ho_Chi_Minh` (+07) → chênh đúng 14 giờ.
 
-## Âm/dương của Qdư
+**Khắc phục**: `alignTimeZoneWithTargetSheet_` đặt lại múi giờ file tạm trước khi đọc. **Chặn tái diễn**: sau mỗi lần nhập, sidebar hiện khoảng BĐTH thực tế đã ghi vào `LENH` để đối chiếu bằng mắt với file gốc.
 
-Trong báo cáo, cột "Qdư âm/dương" chỉ nên ghi **âm, dương, hoặc để trống** (khi Qdư = 0, tức nằm trong dải dung sai) — không hiển thị số 0 hay ký hiệu gây nhầm lẫn.
+### P0 lấy nhầm Qdd chu kỳ 48
 
-## Lỗi xuất báo cáo tháng khác nhau giữa macOS và Windows
+**Triệu chứng**: ngày 19/07 lệch đều +29,43 MW ở 36 chu kỳ đầu, dù ngày 17 và 18 khớp.
 
-Đây là nhóm lỗi tốn nhiều công sức nhất trong lịch sử dự án, vì hành vi VBA/Excel khác nhau giữa hai hệ điều hành:
+**Nguyên nhân**: P0 của ngày sau lấy **Qdd chu kỳ 48** của ngày trước — đó là công suất *trung bình* khoảng 23:30–24:00, không phải công suất *tại* 24:00. Ngày 18/07 lúc đó đang giảm tải 533,1 → 435,7 nên trung bình là 465,131 còn giá trị cuối mới là 435,7.
 
-- **macOS**: từng không xuất được báo cáo tháng; nguyên nhân liên quan đến việc file mẫu có **ô gộp (merged cell)** khiến việc ghi dữ liệu vào vùng bị gộp gây lỗi — đã vá ở v1.2.6. Có giai đoạn còn phải tự lưu báo cáo cạnh workbook thay vì dùng hộp thoại lưu file chuẩn do khác biệt hành vi dialog trên Mac (xem UAT-31).
-- **Windows**: từng gặp lỗi "Cannot run the macro" khi xuất báo cáo tháng ở bản v1.2.6 — nguyên nhân là gọi macro báo cáo tháng bằng `Application.Run` (macro ở module khác/tên không khớp runtime). Đã loại bỏ hoàn toàn cách gọi này ở v1.3.0, hợp nhất mọi logic vào **một module duy nhất** để tránh phụ thuộc giữa các module khi biên dịch/chạy trên các máy khác nhau.
+**Quy tắc rút ra**: P0 luôn là công suất **tại đúng thời điểm 24:00**, tính từ đoạn công suất cuối ngày. Không suy từ bất kỳ giá trị trung bình nào.
 
-**Bài học quan trọng nhất**: kiến trúc nhiều module VBA gọi lẫn nhau qua `Application.Run` rất dễ vỡ khi triển khai trên các máy/hệ điều hành khác nhau. Quyết định chuyển sang **một module all-in-one** (v1.3.0 trở đi) là để loại bỏ hẳn nhóm lỗi này, đánh đổi bằng việc module lớn hơn (~4000 dòng) khó đọc hơn.
+---
 
-## Lỗi compile v1.3.0 → v1.3.1
+## Bài học về thuật toán
 
-Khi hợp nhất mọi thứ vào một module, 13 hằng số `Private Const M_...` dùng cho phần báo cáo tháng bị đặt **sau** `End Sub` của một thủ tục nào đó. VBA bắt buộc mọi khai báo cấp module (`Const`, `Dim` module-level) phải nằm **trước thủ tục đầu tiên** trong module — nếu không sẽ lỗi compile toàn bộ. Đã sửa bằng cách gom tất cả khai báo `Const` lên đầu module. **Bài học**: khi copy/paste code giữa các module VBA để hợp nhất, luôn kiểm tra lại vị trí các khai báo cấp module trước khi compile, không chỉ kiểm tra logic bên trong từng Sub/Function.
+### Mốc bắt đầu ramp là BĐTH, không phải thời điểm hoàn thành
 
-## P đầu ngày (P0) tự động
+Kiểm thử từng cho kết quả ngày 18 đúng nhưng ngày 17 lệch lớn ở khung 19h30–20h00. Nguyên nhân: dùng sai cột làm mốc bắt đầu ramp — phải là **Thời điểm BĐTH**, không phải Thời điểm hoàn thành. Đây là lý do R04 nhấn mạnh điểm này.
 
-Từng có thắc mắc: "tại sao các bản trước khi có P0 tự động lại nhập được, còn bản có P0 tự động thì không?" — cho thấy tính năng tự động lấy P0 từ ngày liền trước (R07, `Qdu_TuTinhP0`, nút 9) có thể xung đột với luồng nhập liệu thủ công nếu không kiểm tra kỹ thứ tự thực hiện (nhập lệnh trước hay tính P0 trước). Xem UAT-02, UAT-03 — cần đảm bảo P0 nhập tay không bị ghi đè ngoài ý muốn khi bật tính năng tự động.
+**Cách chẩn đoán**: lệch tập trung ở **một khung giờ cụ thể** (không phải lệch cả ngày) thường là lỗi chọn sai mốc thời gian của một lệnh, không phải lỗi công thức tổng thể. Ngược lại, lệch **đều cả ngày** thường là sai P0.
 
-## "Chạy chính thức" không cần Qdd gốc
+### Ramp bị cắt giữa chừng phải lấy giá trị nội suy
 
-Yêu cầu nghiệp vụ thay đổi qua thời gian: ban đầu quy trình "chạy chính thức" yêu cầu nhập Qdd gốc để đối chiếu, sau đó được điều chỉnh để **không bắt buộc** — Qdd gốc chỉ còn dùng cho mục đích đối chiếu thủ công (nút 4), nếu thiếu dữ liệu thì bỏ qua thay vì chặn tính toán (xem R lists, UAT-25).
+Khi một đoạn ramp bị cắt (lệnh mới đến, hoặc hết ngày), công suất cuối đoạn phải là **giá trị nội suy tại điểm cắt**, không phải công suất mục tiêu. Ghi sai chỗ này làm sai độ dốc đoạn → sai diện tích → sai Qdd. Lỗi này từng tồn tại song song với lỗi P0 ở trên và bị che khuất bởi nó.
 
-## Vì sao báo cáo tháng đọc Snapshot, không đọc dữ liệu hiện tại
+### Ranh giới trách nhiệm giữa Ramp Engine và tầng dựng đoạn
 
-(Suy ra từ kiến trúc `LICH_SU_THANG`/`LS_...` và quy tắc "không được xoá" trong AGENTS.md) — nếu báo cáo tháng đọc trực tiếp từ `TINH_TOAN` (dữ liệu ngày đang mở), báo cáo sẽ thay đổi mỗi khi người dùng mở lại workbook và tính một ngày khác. Snapshot đảm bảo báo cáo tháng phản ánh đúng kết quả **đã chốt tại thời điểm tính**, không bị ghi đè bởi thao tác sau đó.
+Ramp Engine tính "nếu không bị gì cản thì bao giờ ramp xong" — **không giới hạn trong phạm vi một ngày**. Việc cắt theo ranh giới 24:00 và mang phần dở dang sang ngày sau (R07) là trách nhiệm của tầng dựng đoạn + carry-over. Trộn lẫn hai việc này là nguồn của nhiều lỗi tinh vi.
 
-## Giới hạn vận hành: lệnh "0-0" không được tự động phát hiện (07/2026, UAT-32)
+---
 
-Khi tổ máy dừng do sự cố (trip) và được ghi nhận bằng một lệnh có cả CS ra lệnh và CS hoàn thành đều bằng 0 ("lệnh 0-0"), hệ thống **chủ động loại bỏ** lệnh này khỏi tính toán — đây là quy tắc nghiệp vụ có chủ đích (xác nhận với người phụ trách nghiệp vụ), không phải lỗi. Tương tự, khi khởi động lại sau sự cố, lệnh chỉ được coi là "đã hoàn thành" và bắt đầu tính lại khi **CS ra lệnh và CS hoàn thành cùng bằng một giá trị tải thật** (ví dụ 435,7-435,7).
+## Bài học nghiệp vụ
 
-Hệ quả thực tế: nếu dữ liệu vận hành chỉ có đúng lệnh 0-0 (không có gì khác báo hiệu dừng máy), **công cụ sẽ âm thầm giữ nguyên công suất trước đó cho hết ngày** thay vì đưa về 0 — không có cảnh báo nào hiện ra để người vận hành biết mà can thiệp tay. Đây chính là nguyên nhân bảng tính tay ngày 07/07/2026 (tổ S2) cho kết quả khác công cụ: người tính tay biết sự cố đã xảy ra trong thực tế và tự điền tay, không phải công cụ tự suy ra được.
+### Lệnh "0-0" không được tính — và hệ quả vận hành
 
-**Định hướng xử lý (kế hoạch, chưa triển khai)**: thay vì lặng lẽ giữ nguyên công suất sai, hệ thống nên **cảnh báo rõ ràng** khi phát hiện một lệnh 0-0 trong ngày đang tính — để người vận hành biết mà xử lý thủ công, thay vì báo cáo âm thầm sai số. Xem hạng mục tương ứng ở [ROADMAP.md](../ROADMAP.md) (Giai đoạn 2/3) và [UAT-34](09_Test_Cases.md).
+Khi tổ máy dừng do sự cố (trip) và được ghi bằng một lệnh có cả CS ra lệnh và CS hoàn thành đều bằng 0, hệ thống **chủ động loại bỏ** lệnh này. Đây là quy tắc nghiệp vụ có chủ đích, đã xác nhận với người phụ trách — không phải lỗi. Tương tự, khi khởi động lại sau sự cố, lệnh chỉ được coi là hoàn thành khi **CS ra lệnh và CS hoàn thành cùng bằng một giá trị tải thật** (ví dụ 435,7-435,7).
 
-## Việc còn tồn đọng (theo lịch sử trao đổi, cần xác nhận lại trên bản v1.3.1)
+**Hệ quả**: nếu dữ liệu chỉ có đúng lệnh 0-0, hệ thống sẽ giữ nguyên công suất trước đó cho hết ngày thay vì đưa về 0. Vì vậy hệ thống **cảnh báo rõ ràng** khi phát hiện lệnh 0-0 trong ngày đang tính, để người vận hành biết mà xử lý tay — cảnh báo, không tự ý sửa số.
 
-- Chưa rõ toàn bộ các lỗi trên đã được xác nhận hết trên bản v1.3.1 hay chỉ một phần — vì bộ UAT hiện tại (31 case) toàn bộ đang ở trạng thái "Chưa chạy" (xem [09_Test_Cases.md](09_Test_Cases.md)). Cần thực thi UAT-04 (ramp qua 00:00), UAT-08 (ngắt ramp), UAT-24/UAT-30/UAT-31 (xuất báo cáo tháng Mac/Windows) trước tiên vì đây là các nhóm lỗi lịch sử nặng nhất.
+**Việc cần làm ở khâu vận hành**: ghi đủ CS hoàn thành khi khởi động lại tổ máy, để dữ liệu tương lai đủ điều kiện tính tự động.
+
+### Lệnh bị dừng dùng CS hoàn thành
+
+Người phụ trách nghiệp vụ xác nhận: *"Ở cột lý do dừng/hủy có ghi chú thì cột công suất ra lệnh bằng CS hoàn thành."* Đây chính là R03 (và R01 cho lệnh SO).
+
+### Ngày không có lệnh nào là hợp lệ
+
+Qdd giữ nguyên P0 suốt 48 chu kỳ. Nhưng tình huống này **nhìn giống hệt** trường hợp quên nhập lệnh, mà máy không phân biệt được — nên phải cảnh báo để người vận hành tự xác nhận.
+
+### Âm/dương của Qdư
+
+Cột "Qdư âm/dương" chỉ ghi **âm**, **dương**, hoặc để dấu `-` khi Qdư = 0 (nằm trong dải dung sai) — không hiển thị số 0 gây nhầm lẫn.
+
+### Báo cáo phải có cả S1 và S2
+
+Báo cáo phải có cả hai tổ máy cạnh nhau theo đúng mẫu gốc; tổ nào chưa có dữ liệu thì **để bảng trống**, không bỏ hẳn bảng và không báo lỗi.
+
+---
+
+## Bài học về vận hành hệ thống
+
+### Sửa thư viện phải tạo version mới
+
+Sửa code trong `QDD-Core-Library` mà quên `npx clasp version` thì Sheet vẫn chạy code cũ, không có dấu hiệu gì. Sau khi tạo version phải cập nhật số version trong `src/NhaMay-Mau-Template/appsscript.json` rồi push lại.
+
+### Mặc định an toàn cho thao tác không hoàn tác được
+
+Tuỳ chọn "dọn lệnh + CSV sau khi tính" ban đầu **mặc định bật**, làm dữ liệu nguồn bị xoá ngay sau mỗi lần tính nếu người dùng không để ý. Đã đổi thành mặc định tắt: xoá là không hoàn tác được, trong khi nhu cầu tính lại/đối chiếu là thường xuyên.
+
+### Hiển thị làm tròn, giá trị giữ nguyên
+
+Kết quả hiển thị 2 số thập phân bằng **định dạng ô**, không làm tròn giá trị thật. P0 ngày kế tiếp và hàng Tổng ngày đọc lại chính các ô này — làm tròn hẳn số gốc sẽ cộng dồn sai số qua chuỗi ngày liên tiếp.
+
+### Chỉ giữ một luồng cho mỗi việc
+
+Sidebar từng có "Lưu CSV 1 file" song song với "Tải CSV hàng loạt", và "Tính 1 ngày" song song với "Tính hàng loạt". Hai luồng làm cùng một việc nghĩa là hai đường code phải kiểm chứng, và đường ít dùng hơn sẽ là đường có lỗi. Đã gộp còn một luồng duy nhất cho mỗi việc.
+
+### Đọc dữ liệu sheet theo TÊN cột, không theo vị trí
+
+Từng có lần sheet `LENH` còn cấu trúc cột cũ trong khi code đọc theo vị trí cột mới → lệch cột → **mọi lệnh bị loại**, Qdd phẳng bằng P0. Mọi chỗ đọc dữ liệu hiện đều dò theo tên tiêu đề.

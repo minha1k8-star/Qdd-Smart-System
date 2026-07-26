@@ -4,7 +4,7 @@ Google Sheets đầu tiên gắn `QDD-Core-Library`, dùng làm **bản mẫu đ
 
 - **Sheet thật**: https://docs.google.com/spreadsheets/d/1cJmYefz09ch2DMwJ8Mwgl8XnXH_9-M6kD0ApSB3mDQQ/edit
 - **Apps Script đính kèm**: https://script.google.com/d/10wCqQ4Xf4QUcbBum4DqVMKuw4IL4A4M5iw3nMbdBPKLXq15CJ89uYA3Y/edit
-- **Gắn thư viện**: `QDD-Core-Library` (Script ID `10_vjTSgVjZodA7xTkJ_qJaGom3JDx_tnYE0YgWA_cphh1Q7g_lTKMLUO`, version 1) — khai báo trong `appsscript.json`.
+- **Gắn thư viện**: `QDD-Core-Library` (Script ID `10_vjTSgVjZodA7xTkJ_qJaGom3JDx_tnYE0YgWA_cphh1Q7g_lTKMLUO`, version 4) — khai báo trong `appsscript.json`.
 
 ## Bắt đầu dùng
 
@@ -27,8 +27,6 @@ Chọn **một hoặc nhiều file CSV cùng lúc** — hệ thống tự nhận
 
 Không còn đường "lưu từng file có chọn tay tổ máy/loại dữ liệu": việc chọn tay vừa mất công vừa từng gây lưu nhầm Qmp vào ô Qdc, trong khi nhận diện theo tên file không sai được.
 
-> Bản VBA cũ chủ động bỏ qua ngày trong CSV vì Excel đọc sai định dạng theo Regional Settings từng máy (xem [docs/14_Knowledge_Transfer.md](../../docs/14_Knowledge_Transfer.md)). Apps Script không có giới hạn đó nên tính năng này được khôi phục.
-
 ### 2. Nhập danh sách lệnh
 **Chọn thẳng file Excel** (`.xlsx`/`.xlsm`/`.xls`) danh sách lệnh rồi bấm nút — không mở file, không copy tay.
 
@@ -45,7 +43,7 @@ Ngày nào thiếu CSV hoặc thiếu P0 sẽ được báo riêng, không chặ
 
 **P0** tự lấy từ chu kỳ cuối ngày liền trước đã tính; chỉ **ngày đầu tiên** dùng hệ thống mới cần điền tay 1 dòng vào `P0_NGAY`.
 
-P0 là **công suất tại đúng 24:00** của ngày trước (không phải Qdd trung bình chu kỳ 48). Nếu lúc 24:00 tổ máy **vẫn đang tăng/giảm tải dở dang**, hệ thống ghi thêm mục tiêu vào cột `Ramp tiếp đến (MW)` và ngày hôm sau **tự chạy tiếp phần còn lại** cho tới khi đạt mục tiêu — đúng quy tắc **R07**, tương đương cơ chế `AUTO_CARRY` của bản VBA cũ.
+P0 là **công suất tại đúng 24:00** của ngày trước (không phải Qdd trung bình chu kỳ 48). Nếu lúc 24:00 tổ máy **vẫn đang tăng/giảm tải dở dang**, hệ thống ghi thêm mục tiêu vào cột `Ramp tiếp đến (MW)` và ngày hôm sau **tự chạy tiếp phần còn lại** cho tới khi đạt mục tiêu — đúng quy tắc **R07**.
 
 Tuỳ chọn **"Dọn lệnh + CSV của các ngày đã tính xong"** (**mặc định tắt**) — khi tự tick thì xoá dữ liệu nguồn của đúng (ngày, tổ máy) vừa tính. Để nguyên (không tick) nếu còn cần đối chiếu hoặc tính lại.
 
@@ -66,11 +64,7 @@ Dùng khi bàn giao Sheet cho người khác, hoặc khi dữ liệu tích luỹ
 
 ## Cảnh báo tự động
 
-**Lệnh "0-0"** (CS ra lệnh = CS hoàn thành = 0, thường là trip/ngừng sự cố): theo quy tắc nghiệp vụ đã xác nhận, loại lệnh này **không được tính** — nhưng hệ thống sẽ **cảnh báo rõ** để người vận hành biết Qdd giai đoạn đó có thể cao hơn thực tế và tự xử lý. Hệ thống chỉ cảnh báo, không tự sửa số (UAT-34, xem [docs/09_Test_Cases.md](../../docs/09_Test_Cases.md)).
-
-## Chưa làm (so với VBA v1.3.1)
-
-- Kiểm tra cấu trúc/backup tự động (tương đương nút 11, 13 VBA).
+**Lệnh "0-0"** (CS ra lệnh = CS hoàn thành = 0, thường là trip/ngừng sự cố): theo quy tắc nghiệp vụ đã xác nhận, loại lệnh này **không được tính** — nhưng hệ thống sẽ **cảnh báo rõ** để người vận hành biết Qdd giai đoạn đó có thể cao hơn thực tế và tự xử lý. Hệ thống chỉ cảnh báo, không tự sửa số (xem [docs/09_Test_Cases.md](../../docs/09_Test_Cases.md)).
 
 ## Cập nhật code sau này
 

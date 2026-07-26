@@ -1,8 +1,12 @@
 # Changelog
 
-Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
+Mỗi mục ghi thay đổi và **lý do** của thay đổi đó, không chỉ mô tả đã sửa gì. Mới nhất ở trên.
 
-## [Unreleased] — Tên file xuất đọc là biết ngay kỳ báo cáo
+## v1.0 — Bản chính thức đầu tiên (26/07/2026)
+
+Bản Google Sheets + Apps Script được đưa vào sử dụng thật tại nhà máy Duyên Hải 1. Các mục dưới đây là nhật ký thay đổi trong quá trình xây dựng, mới nhất ở trên.
+
+### Tên file xuất đọc là biết ngay kỳ báo cáo
 
 Tên file xuất trước đây là `BaoCao_QDD_<timestamp>.xlsx` — nhìn không biết của ngày/tháng nào, tải về vài file là lẫn. Nay đặt theo đúng kỳ báo cáo và tổ máy:
 
@@ -15,15 +19,15 @@ Tên file xuất trước đây là `BaoCao_QDD_<timestamp>.xlsx` — nhìn khô
 - Nhãn tháng lấy theo **tháng người dùng chọn**, không suy từ danh sách ngày có dữ liệu — tháng thiếu vài ngày vẫn phải mang tên tháng đó.
 - Xuất lại cùng một kỳ thì thêm hậu tố ` (2)`, ` (3)`… thay vì để nhiều file trùng tên hệt nhau trên Drive.
 
-## Kết quả hiển thị 2 số thập phân
+### Kết quả hiển thị 2 số thập phân
 
 Mọi con số kết quả giờ hiển thị **đúng 2 số thập phân** thay vì chuỗi dài kiểu `590.1833333333333`: sheet `KET_QUA` (Qdd → Qdư), `P0_NGAY` (P0 và Ramp tiếp đến), `BAO_CAO_THANG`, **file Excel/PDF xuất ra** (cả 48 dòng lẫn hàng Tổng ngày), và các thông báo/cảnh báo trên sidebar.
 
-**Chỉ đổi ĐỊNH DẠNG HIỂN THỊ, không làm tròn giá trị thật trong ô.** Lý do: P0 của ngày kế tiếp và hàng Tổng ngày đều đọc lại từ các ô này — nếu làm tròn hẳn số gốc thì mỗi ngày lệch một ít ở P0 và **cộng dồn dần qua chuỗi ngày liên tiếp**, đúng loại sai số mà bản v1.3.1 phải mất nhiều đợt mới truy ra. Hàng Tổng ngày vì vậy là tổng của số đầy đủ, có thể chênh vài phần trăm đơn vị so với việc cộng tay các số đã làm tròn hiển thị.
+**Chỉ đổi ĐỊNH DẠNG HIỂN THỊ, không làm tròn giá trị thật trong ô.** Lý do: P0 của ngày kế tiếp và hàng Tổng ngày đều đọc lại từ các ô này — nếu làm tròn hẳn số gốc thì mỗi ngày lệch một ít ở P0 và **cộng dồn dần qua chuỗi ngày liên tiếp**, Hàng Tổng ngày vì vậy là tổng của số đầy đủ, có thể chênh vài phần trăm đơn vị so với việc cộng tay các số đã làm tròn hiển thị.
 
 > Sheet `KET_QUA` được áp lại định dạng cho **toàn bộ** các dòng mỗi lần tính, nên chỉ cần tính lại một lần bất kỳ là dữ liệu cũ cũng hiển thị theo định dạng mới.
 
-## Gộp sidebar còn 6 mục: bỏ "Lưu CSV 1 file" và "Tính 1 ngày"
+### Gộp sidebar còn 6 mục: bỏ "Lưu CSV 1 file" và "Tính 1 ngày"
 
 Sidebar có 8 mục, trong đó 2 cặp làm cùng một việc: *Lưu CSV công tơ* (1 file, chọn tay tổ máy/loại dữ liệu) trùng với *Tải CSV hàng loạt*, và *Tính 1 ngày* trùng với *Tính hàng loạt*. Bản hàng loạt làm được cả trường hợp 1 file/1 ngày, nên bỏ hẳn hai mục kia:
 
@@ -34,7 +38,7 @@ Sidebar có 8 mục, trong đó 2 cặp làm cùng một việc: *Lưu CSV công
 
 **Đánh đổi đã cân nhắc**: mục "Lưu CSV 1 file" từng là đường thoát khi tên file bị đổi khác chuẩn (nhận diện theo tên thất bại). Nay trường hợp đó phải **đổi lại tên file cho đúng chuẩn** `<ngày><tháng><mã công tơ>.CSV` rồi tải lại — thông báo lỗi đã ghi rõ điều này.
 
-## Sửa lệch +14 giờ khi nhập file Excel (nghiêm trọng, sai âm thầm)
+### Sửa lệch +14 giờ khi nhập file Excel (nghiêm trọng, sai âm thầm)
 
 **Triệu chứng**: nhập danh sách lệnh từ file Excel xong, mọi lệnh trong `LENH` lệch **đúng +14 giờ** so với file gốc → lệnh buổi tối nhảy sang ngày hôm sau, ngày 17/07 chỉ còn 2 lệnh thay vì 4, kết quả tính sai dây chuyền. Không có lỗi nào được báo.
 
@@ -46,7 +50,7 @@ Sidebar có 8 mục, trong đó 2 cặp làm cùng một việc: *Lưu CSV công
 
 > Cách dán tay vào `LENH` không dính lỗi này (dữ liệu vào thẳng Sheet đúng múi giờ) — chỉ đường nhập qua file Excel mới bị.
 
-## Nhập danh sách lệnh thẳng từ file Excel, bỏ LENH_STAGING
+### Nhập danh sách lệnh thẳng từ file Excel, bỏ LENH_STAGING
 
 Trước đây muốn nhập lệnh phải **mở file gốc, copy toàn bộ, dán vào sheet** (`LENH` hoặc `LENH_STAGING`) rồi mới bấm nhập. Nay sidebar mục 2 **chọn thẳng file Excel** (`.xlsx`/`.xlsm`/`.xls`) là xong.
 
@@ -59,31 +63,31 @@ Cách làm: file được tải lên Drive kèm yêu cầu chuyển sang Google 
 
 Thư viện `QDD-Core-Library` **không đổi** (đây là thay đổi ở lớp nhập liệu của Sheet mẫu), vẫn version 4.
 
-## Không tự tick "dọn lệnh + CSV" sau khi tính
+### Không tự tick "dọn lệnh + CSV" sau khi tính
 
-Hai ô **"Dọn lệnh + CSV sau khi tính xong"** (mục 3 tính 1 ngày và mục 5 tính hàng loạt) trước đây **mặc định được tick sẵn**, nên dữ liệu nguồn bị xoá ngay sau mỗi lần tính nếu người dùng không để ý bỏ tick. Nay **mặc định KHÔNG tick** — muốn dọn thì tự tick.
+Hai ô **"Dọn lệnh + CSV sau khi tính xong"** trước đây **mặc định được tick sẵn**, nên dữ liệu nguồn bị xoá ngay sau mỗi lần tính nếu người dùng không để ý bỏ tick. Nay **mặc định KHÔNG tick** — muốn dọn thì tự tick.
 
 Lý do: xoá lệnh + CSV là thao tác **không hoàn tác được**, trong khi nhu cầu tính lại/đối chiếu một ngày là thường xuyên. Mặc định an toàn phải là giữ dữ liệu.
 
 Cập nhật kèm: sheet `HUONG_DAN` (mục G1) và `src/NhaMay-Mau-Template/README.md`.
 
-## Sheet HUONG_DAN ngay trong file
+### Sheet HUONG_DAN ngay trong file
 
-Thêm sheet **`HUONG_DAN`** (luôn nằm ngoài cùng bên trái) chứa hướng dẫn sử dụng đầy đủ ngay trong Google Sheets — tương đương sheet `HUONG_DAN` của bản VBA cũ, để người dùng mới hoặc người tiếp nhận sau này đọc là làm được mà không cần mở tài liệu bên ngoài. Nội dung gồm: chuẩn bị lần đầu, quy trình hàng ngày, làm nhiều ngày cùng lúc, xuất báo cáo, **ý nghĩa từng cảnh báo tự động**, vai trò từng sheet, và các lưu ý quan trọng (tắt "dọn dữ liệu" khi đang đối chiếu, quyền Chỉnh sửa mới thấy menu...).
+Thêm sheet **`HUONG_DAN`** (luôn nằm ngoài cùng bên trái) chứa hướng dẫn sử dụng đầy đủ ngay trong Google Sheets — để người dùng mới hoặc người tiếp nhận sau này đọc là làm được mà không cần mở tài liệu bên ngoài. Nội dung gồm: chuẩn bị lần đầu, quy trình hàng ngày, làm nhiều ngày cùng lúc, xuất báo cáo, **ý nghĩa từng cảnh báo tự động**, vai trò từng sheet, và các lưu ý quan trọng (tắt "dọn dữ liệu" khi đang đối chiếu, quyền Chỉnh sửa mới thấy menu...).
 
 Sheet này do hệ thống ghi lại mỗi lần chạy "Thiết lập sheet".
 
-## File xuất bám sát bản "Kiểm tra Qdu" gốc
+### File xuất bám sát bản "Kiểm tra Qdu" gốc
 
 - **Tổ máy chưa có dữ liệu vẫn giữ nguyên bảng** trong file xuất (để trống, bỏ hàng tổng) thay vì biến mất — đúng như bản gốc luôn có cả S1 và S2 cạnh nhau, bên nào chưa nhập thì bỏ trống. Ngày mà không tổ máy nào có dữ liệu thì vẫn bỏ qua, không tạo tab rỗng.
 - Cột **Qdư âm/dương** trong file xuất: chỉ ghi `âm`/`dương`, khi Qdư = 0 thì để dấu **`-`** đúng như bản gốc (không ghi "trong ±3%" — chữ đó giữ lại cho sheet `KET_QUA` nội bộ vì dễ đọc hơn khi làm việc).
 
-## R07: ramp vắt qua nửa đêm đã chạy tiếp sang ngày sau
+### R07: ramp vắt qua nửa đêm đã chạy tiếp sang ngày sau
 
 Hoàn thiện nốt quy tắc **R07 (carry-over)** — trước đó mới chỉ đúng công suất *tại* 24:00, còn phần ramp **chưa hoàn tất** thì ngày hôm sau giữ nguyên công suất đó cho tới khi có lệnh mới, sai so với thực tế (tổ máy vẫn đang tăng/giảm tải nốt).
 
 - `Segments.carryOverOf` phát hiện ramp còn dở dang lúc 24:00 (mục tiêu + thời gian còn lại).
-- `calculateDay` nhận `carryTarget`: chèn một **lệnh nối ảo tại 00:00:00** hướng tới mục tiêu đó. Không cần truyền thời gian còn lại — Ramp Engine tự tính đúng phần còn lại từ (P0, mục tiêu, tốc độ). Cách này khớp với cơ chế `AUTO_CARRY` của bản VBA cũ.
+- `calculateDay` nhận `carryTarget`: chèn một **lệnh nối ảo tại 00:00:00** hướng tới mục tiêu đó. Không cần truyền thời gian còn lại — Ramp Engine tự tính đúng phần còn lại từ (P0, mục tiêu, tốc độ). 
 - `P0_NGAY` thêm cột **`Ramp tiếp đến (MW)`**; sau mỗi lần tính, hệ thống tự ghi cả P0 lẫn mục tiêu ramp cho ngày kế tiếp.
 - Sidebar báo rõ khi một ngày được nối tiếp ramp từ ngày trước.
 
@@ -91,7 +95,7 @@ Hoàn thiện nốt quy tắc **R07 (carry-over)** — trước đó mới chỉ
 
 > Dữ liệu 07/2026 hiện không có ngày nào ramp vắt qua nửa đêm (gần nhất 18/07 kết thúc 23h52), nên tính năng này chưa kiểm chứng được bằng dữ liệu thật — mới xác nhận qua test.
 
-## P0 phải là công suất tại 24:00, không phải Qdd chu kỳ 48
+### P0 phải là công suất tại 24:00, không phải Qdd chu kỳ 48
 
 **Triệu chứng**: ngày 19/07 lệch đều +29,43 MW ở 36 chu kỳ đầu so với bảng tính tay, dù ngày 17 và 18 khớp tuyệt đối.
 
@@ -107,7 +111,7 @@ Hoàn thiện nốt quy tắc **R07 (carry-over)** — trước đó mới chỉ
 
 Thư viện lên **version 3**. 36/36 test pass (thêm 5 test khoá riêng 2 lỗi này).
 
-## Sửa lỗi `instanceof Date` qua Library boundary (nghiêm trọng)
+### Sửa lỗi `instanceof Date` qua Library boundary (nghiêm trọng)
 
 **Triệu chứng**: mọi ngày tính ra Qdd phẳng đúng bằng P0 suốt 48 chu kỳ, không lệnh nào được áp dụng — không báo lỗi gì.
 
@@ -119,7 +123,7 @@ Thư viện lên **version 3**. 36/36 test pass (thêm 5 test khoá riêng 2 l�
 
 > Bài học ghi lại cho người/AI tiếp nhận: **không dùng `instanceof` cho dữ liệu truyền qua ranh giới Apps Script Library** (Date, Array, Error...). Dùng duck typing.
 
-## LENH giống file gốc, cảnh báo lệnh 0-0, dọn dữ liệu
+### LENH giống file gốc, cảnh báo lệnh 0-0, dọn dữ liệu
 
 **Sự cố đã xử lý (dữ liệu thật)**: kết quả tính ra sai toàn bộ 20 tổ hợp (Qdd phẳng = P0, không lệnh nào được nhận). Hai nguyên nhân độc lập:
 1. Sheet `LENH` còn cấu trúc 9 cột cũ trong khi code đọc theo vị trí cột của cấu trúc mới → lệch cột → mọi lệnh bị loại. **Khắc phục**: `readAllCommands_` và `importCommandsFromStaging_` giờ dò cột theo **TÊN tiêu đề**, không theo vị trí; `LENH` được dựng lại đúng 25 cột giống hệt file gốc (Nhà máy ở cột B) và tự ánh xạ dữ liệu cũ sang đúng cột.
@@ -133,80 +137,55 @@ Thư viện lên **version 3**. 36/36 test pass (thêm 5 test khoá riêng 2 l�
 
 **Khác**: `KET_QUA` gộp chu kỳ + khung giờ vào 1 ô (`01 [00:00-00:30]`) giống file gốc; file xuất báo cáo bám layout `Kiểm tra Qdu` (đơn vị MWh, nhãn tổ máy S1DH1/S2DH1 cấu hình được, thứ tự cột Qdd→Qdd_V→Qdc→Qmp→Qdư→âm/dương, hàng Tổng ngày); kết quả sắp xếp ngày mới nhất lên đầu; thao tác xoá dòng chuyển sang đọc-lọc-ghi-lại (nhanh hơn nhiều với vài nghìn dòng); mã công tơ S2 mặc định 6002/6301.
 
-## Sửa lỗi xuất Excel, tự sắp xếp theo ngày, dọn CSV_STAGING
+### Sửa lỗi xuất Excel, tự sắp xếp theo ngày, dọn CSV_STAGING
 
 - **Sửa lỗi xuất Excel lần 2**: `DriveApp.getFileById().getAs(MimeType.MICROSOFT_EXCEL)` không hỗ trợ chuyển Google Sheets sang .xlsx — đổi sang gọi link xuất trực tiếp của Google (`docs.google.com/.../export?format=...`) qua `UrlFetchApp` + `ScriptApp.getOAuthToken()`.
 - **`CSV_DATA` và `KET_QUA` tự sắp xếp lại theo Ngày** sau mỗi lần lưu/tính (trước đó chỉ nối thêm vào cuối theo thứ tự thao tác, khó kiểm soát khi xem trực tiếp trong Sheet).
 - **Dọn sheet `CSV_STAGING`** — không còn dùng từ khi chuyển sang đọc CSV trực tiếp trong sidebar; "Thiết lập sheet" giờ tự xoá sheet này nếu còn sót lại từ bản cũ.
 - Đã đẩy lên Sheet thật.
 
-## Sửa lỗi xuất file + Báo cáo tháng xuất file gộp
+### Sửa lỗi xuất file + Báo cáo tháng xuất file gộp
 
 - **Sửa lỗi xuất Excel/PDF**: `setFrozenColumns(1)` xung đột với ô tiêu đề gộp toàn bộ cột ở hàng 1 (Google Sheets báo lỗi "không thể cố định cột chỉ chứa một phần ô hợp nhất") — bỏ cố định cột, chỉ giữ cố định hàng.
 - **Đổi vị trí mục 2/3** trong sidebar: "Tính 1 ngày" lên mục 2 (đi cùng "Lưu CSV" mục 1), "Tải CSV hàng loạt" xuống mục 3 (đi cùng "Tính hàng loạt" mục 4) — nhóm đúng theo luồng dùng đơn lẻ vs hàng loạt.
 - **"Báo cáo tháng" giờ xuất file thật**: ngoài cập nhật `BAO_CAO_THANG`, giờ xuất luôn 1 file gộp toàn bộ các ngày đã tính trong tháng (mỗi ngày 1 tab, tổ máy cạnh nhau), dùng chung cơ chế với mục "Xuất báo cáo" — thêm lựa chọn tổ máy + định dạng vào form.
 - Đã đẩy lên Sheet thật.
 
-## Xuất báo cáo ngày/khoảng ngày ra file riêng
+### Xuất báo cáo ngày/khoảng ngày ra file riêng
 
 - Thêm `ExportReport.js` + mục "6. Xuất báo cáo" trong sidebar: chọn khoảng ngày + tổ máy + định dạng (Excel/PDF), xuất từ dữ liệu đã có trong `KET_QUA` (không tính lại) thành 1 file lưu vào Google Drive, sidebar hiện link tải.
 - Layout xuất: **mỗi ngày 1 tab**, các tổ máy đã chọn nằm **cạnh nhau trong cùng tab** — khớp layout file báo cáo gốc (S1/S2 cạnh nhau), không phải mỗi tổ máy 1 tab riêng.
 - Đã đẩy lên Sheet thật.
 
-## Tải CSV hàng loạt
+### Tải CSV hàng loạt
 
-- **Tải CSV hàng loạt** (mục mới trong sidebar): chọn nhiều file CSV cùng lúc, tự nhận diện tổ máy/loại dữ liệu bằng cách so tên file với mã công tơ đã cấu hình (tận dụng quy ước đặt tên thật `<ngày><tháng><mã công tơ>.CSV`), tự đọc ngày từng file — phục vụ tính hàng loạt nhiều ngày mà không phải upload từng file một. File không tự nhận diện được báo riêng theo tên, xử lý tay bằng mục "Lưu CSV" (1 file).
-- Quyết định: **danh sách lệnh vẫn nhập/dán tay vào sheet LENH**, không làm import file — nguồn là .xlsx nhị phân, không đọc trực tiếp bằng JS phía trình duyệt như CSV (text thuần) được; người dùng xác nhận copy tay là đủ đơn giản, không cần đầu tư thêm.
+- **Tải CSV hàng loạt** (mục mới trong sidebar): chọn nhiều file CSV cùng lúc, tự nhận diện tổ máy/loại dữ liệu bằng cách so tên file với mã công tơ đã cấu hình (tận dụng quy ước đặt tên thật `<ngày><tháng><mã công tơ>.CSV`), tự đọc ngày từng file — phục vụ tính hàng loạt nhiều ngày mà không phải upload từng file một. File không tự nhận diện được báo riêng theo tên.
 
-## Sidebar UI thay cho hộp thoại prompt
+### Sidebar UI thay cho hộp thoại prompt
 
-Phản hồi người dùng: thao tác qua `prompt()` gõ tay ngày tháng + phải tự điền P0 + CSV qua 2 bước cảm giác rời rạc, khó dùng hơn "1 nút bấm" của VBA cũ. Đã làm lại:
+Phản hồi người dùng: thao tác qua `prompt()` gõ tay ngày tháng + phải tự điền P0 + CSV qua 2 bước cảm giác rời rạc, rời rạc và khó dùng. Đã làm lại:
 
 - **`Sidebar.html` + `Controller.js`** thay toàn bộ menu prompt-based: 1 bảng điều khiển duy nhất, có lịch chọn ngày (`<input type=date>`), upload file CSV trực tiếp (đọc bằng FileReader phía trình duyệt, gửi thẳng lên server - bỏ hẳn bước Import vào CSV_STAGING).
 - **Tự động suy ra P0** từ chu kỳ cuối ngày liền trước đã tính (`readOrInferP0_`) — chỉ còn cần nhập tay P0_NGAY cho đúng 1 lần (ngày đầu tiên dùng hệ thống). Đây là xấp xỉ, chưa phải carry-over R07 đầy đủ.
 - Bỏ sheet `CSV_STAGING`, menu rút gọn còn 2 mục (Bảng điều khiển, Thiết lập sheet).
 - Đã đẩy lên Sheet thật (Duyên Hải 1).
 
-## Giai đoạn 2: triển khai thật + Sheet mẫu
+### Giai đoạn 2: triển khai thật + Sheet mẫu
 
 - **Triển khai thật QDD-Core-Library lên Google Apps Script** (đăng nhập, tạo project, push code). Khắc phục lỗi "Premature close" của `clasp login` (do Node.js v24 quá mới) bằng cách cài thêm Node 20 LTS qua Homebrew chỉ để chạy đăng nhập. Publish version 1 làm Library, Script ID `10_vjTSgVjZodA7xTkJ_qJaGom3JDx_tnYE0YgWA_cphh1Q7g_lTKMLUO`.
 - Thêm `.claspignore` (loại file test Node ra khỏi bản đẩy Apps Script - nếu không sẽ lỗi toàn bộ thư viện vì `require`/`fs` không tồn tại trong môi trường Apps Script).
 - **Tạo Sheet mẫu nhà máy đầu tiên** (`src/NhaMay-Mau-Template/`, Duyên Hải 1) — Google Sheets thật, gắn `QDD-Core-Library`, có menu 6 chức năng: thiết lập sheet, lưu CSV (tận dụng File > Import có sẵn của Sheets), tính 1 ngày, tính hàng loạt nhiều ngày/nhiều tổ máy, tổng hợp báo cáo tháng trực tiếp từ kết quả đã có. Giới hạn: chưa có carry-over R07 (P0 phải nhập tay vào sheet `P0_NGAY`).
 
-## Giai đoạn 2: khởi tạo QDD-Core-Library
+### Giai đoạn 2: khởi tạo QDD-Core-Library
 
 - Khởi tạo `src/QDD-Core-Library/` (Apps Script Library, quản lý bằng `clasp`). Port CommandFilter (R01-R03, giữ đúng quy tắc UAT-32), RampEngine (R06, nội suy ngắt ramp), Segments, AreaIntegration (R08, tích phân hình thang), QddCalculator (R09-R14), CsvParser (R10/R12) — trực tiếp từ `tools/reference_engine/qdd_engine.py` đã kiểm chứng bằng dữ liệu thật.
 - Thêm bộ test cục bộ chạy bằng Node (`tests/run_tests.js`, 17/17 pass), không cần deploy Apps Script, không cần dữ liệu thật — mã hoá quy tắc UAT-32 thành test tự động để tránh sửa nhầm lại.
-- Thêm `BatchCalculator.js` (tính nhiều ngày/nhiều tổ máy cùng lúc — khác biệt kiến trúc lớn so với VBA vốn chỉ tính được 1 ngày) và `MonthlyReport.js` (tổng hợp báo cáo tháng trực tiếp từ dữ liệu gốc, không cần snapshot như VBA). Cập nhật `docs/05_System_Architecture.md` với thiết kế luồng nhập dữ liệu (vừa từng ngày vừa upload hàng loạt). Tổng 29/29 test pass.
-- Chưa port: carry-over qua nửa đêm (R07), báo cáo tháng/snapshot phía Sheet (định dạng/xuất), cảnh báo lệnh 0-0 (UAT-34), thiết kế sheet lưu trữ nhiều ngày. Chưa triển khai thật lên Apps Script (cần người dùng tự `clasp login`).
+- Thêm `BatchCalculator.js` (tính nhiều ngày/nhiều tổ máy cùng lúc) và `MonthlyReport.js` (tổng hợp báo cáo tháng trực tiếp từ dữ liệu gốc). Cập nhật `docs/05_System_Architecture.md` với thiết kế luồng nhập dữ liệu (vừa từng ngày vừa upload hàng loạt). Tổng 29/29 test pass.
 
-## Documentation Foundation
+### Khởi tạo dự án
 
 - Khởi tạo repo GitHub `Qdd-Smart-System`.
-- Thêm `CLAUDE.md`, `AGENTS.md`, `docs/AI_CONTEXT.md` — hướng dẫn làm việc cho AI agent.
-- Thêm `README.md`, `docs/00_Project_Overview.md`, `docs/03_Business_Rules.md`, `docs/06_Database_Design.md`, `docs/09_Test_Cases.md`, `docs/14_Knowledge_Transfer.md`, `docs/PROJECT_STATUS.md`, `ROADMAP.md` — dựa trên nội dung thật của workbook v1.3.0/v1.3.1 và lịch sử trao đổi phát triển.
-- Đưa bản Excel/VBA v1.3.1 (bản chính thức đang chạy) vào `legacy/`.
-- Xác nhận hướng kiến trúc Giai đoạn 2: **Google Sheets + Apps Script Library dùng chung**, không làm Web App trung tâm — ghi lại quyết định và lý do ở `docs/05_System_Architecture.md`.
-- Thêm `docs/04_Algorithm_Specification.md` — trích xuất trực tiếp từ công thức Excel thật (`XU_LY_LENH`, `DOAN_CONG_SUAT`, `DIEN_TICH`, `TINH_TOAN`) và code VBA, phát hiện quan trọng: toàn bộ Ramp Engine/nội suy/tích phân diện tích nằm ở công thức Excel, không nằm trong VBA; đồng thời phát hiện nghi vấn UAT-11 (CSV sai ngày có thể không còn bị từ chối trong v1.3.1).
-- Kiểm tra độ chính xác bằng dữ liệu vận hành thật (10 ngày, 07/2026, nhà máy Duyên Hải 1): 18/19 tổ hợp ngày+tổ máy khớp gần tuyệt đối với kết quả tính tay. 1 trường hợp lệch (07/07, tổ S2, sự cố/trip) — điều tra ban đầu nghi là lỗ hổng công thức (thử vá `O>0`→`O>=0`), sau khi xác nhận trực tiếp với người phụ trách nghiệp vụ thì **kết luận hành vi gốc đúng theo thiết kế** (lệnh 0-0 chủ đích không tính; khởi động lại cần CS ra lệnh=CS hoàn thành cùng giá trị) — đã hoàn tác bản vá thử nghiệm, không sửa `legacy/`. Thêm UAT-32 (đã đóng), UAT-33, và UAT-34 (đề xuất cảnh báo khi phát hiện lệnh 0-0, kế hoạch Giai đoạn 2/3 — không tự sửa số). Xem `docs/15_Accuracy_Validation_2026-07.md`, `docs/14_Knowledge_Transfer.md`, `ROADMAP.md`.
-
-## v1.3.1 — Sửa lỗi compile All-in-One
-
-- Nguyên nhân: 13 hằng số `Private Const M_...` của phần báo cáo tháng bị khai báo sau `End Sub`. VBA yêu cầu mọi khai báo cấp module phải nằm trước thủ tục đầu tiên.
-- Đã chuyển toàn bộ các hằng số này lên đầu module, trước `Auto_Open`.
-- Kết quả kiểm tra cấu trúc module: Sub/End Sub 42/42, Function/End Function 74/74, khai báo cấp module sau thủ tục: 0, tên thủ tục trùng: 0, `Application.Run` thực thi: 0.
-
-## v1.3.0 — Hợp nhất module
-
-- Core tính toán và báo cáo tháng được hợp nhất vào một module VBA duy nhất (`modQdu_v1_3_0_AllInOne`).
-- Loại bỏ hoàn toàn việc gọi macro báo cáo tháng bằng `Application.Run` (nguồn gây lỗi "Cannot run the macro" trên Windows ở các bản trước).
-- "Chạy chính thức" (nút 7) không còn yêu cầu nhập Qdd gốc; không tự tạo backup tự động (dùng nút 11 để sao lưu thủ công).
-
-## v1.2.7 / v1.2.6 và trước đó
-
-- v1.2.6: sửa lỗi xuất báo cáo tháng trên macOS khi file mẫu chứa ô gộp (merged cell), gây lỗi khi ghi dữ liệu vào vùng bị gộp.
-- Trước v1.2.6: từng gặp các lỗi được ghi nhận trong quá trình phát triển — xem [docs/14_Knowledge_Transfer.md](docs/14_Knowledge_Transfer.md) để biết chi tiết bối cảnh và cách khắc phục từng lỗi.
-
-## Ghi chú
-
-Lịch sử phiên bản trước v1.2.6 chưa được ghi lại đầy đủ dưới dạng changelog có ngày tháng cụ thể — chỉ có trong lịch sử trao đổi phát triển (ChatGPT). Nếu tìm thấy các bản `.bas`/`.xlsm` cũ hơn, nên bổ sung lại các mốc còn thiếu vào changelog này.
+- `CLAUDE.md`, `AGENTS.md`, `docs/AI_CONTEXT.md` — hướng dẫn làm việc cho AI agent tiếp nhận dự án.
+- Tài liệu nền: `README.md`, `docs/00_Project_Overview.md`, `docs/03_Business_Rules.md` (14 quy tắc R01-R14), `docs/04_Algorithm_Specification.md` (đặc tả thuật toán), `docs/06_Database_Design.md`, `docs/09_Test_Cases.md`, `docs/14_Knowledge_Transfer.md`, `docs/PROJECT_STATUS.md`, `ROADMAP.md`.
+- Chốt kiến trúc: **Google Sheets + Apps Script Library dùng chung**, không làm Web App trung tâm — lý do và các phương án đã cân nhắc ghi ở `docs/05_System_Architecture.md`.
+- Kiểm chứng thuật toán bằng dữ liệu vận hành thật (10 ngày, 07/2026) qua bản tái hiện Python (`tools/reference_engine/`), đối chiếu với bảng tính tay độc lập. Kết quả và phần điều tra quy tắc lệnh 0-0: `docs/15_Accuracy_Validation_2026-07.md`.

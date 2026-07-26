@@ -1,6 +1,8 @@
 # Business Rules — QDD Smart System
 
-Nguồn gốc: sheet `QUY_TAC_NGHIEP_VU` và `HUONG_DAN` trong workbook chính thức (`legacy/CongCu_Tinh_Qdd_Qdu_v1_3_0_AllInOne.xlsm`). Đây là **nguồn sự thật gốc** — nếu tài liệu này và workbook lệch nhau, workbook thắng, phải cập nhật lại tài liệu.
+14 quy tắc nghiệp vụ cốt lõi của hệ thống. Đây là **nguồn sự thật** về *vì sao* thuật toán làm như vậy; công thức chi tiết ở [04_Algorithm_Specification.md](04_Algorithm_Specification.md).
+
+Không thay đổi bất kỳ quy tắc nào ở đây nếu chưa có test case tương ứng trong [09_Test_Cases.md](09_Test_Cases.md) — xem [AGENTS.md](../AGENTS.md).
 
 > Không thay đổi bất kỳ quy tắc nào dưới đây nếu chưa có Test Case tương ứng trong [09_Test_Cases.md](09_Test_Cases.md). Xem quy trình bắt buộc ở [AGENTS.md](../AGENTS.md).
 
@@ -67,4 +69,4 @@ Toàn bộ quy tắc trên áp dụng được cho **cả tổ máy S1 và S2**,
 
 ## Ghi chú
 
-Sheet `HUONG_DAN` trong workbook có thêm một số mục tiêu đề (SO, MO thường, Ramp, P đầu ngày, Qdd, Qdd_V, Dải kiểm tra...) chưa được điền mô tả chi tiết trong bản v1.3.0 — nội dung tương ứng đã có đầy đủ trong bảng R01–R14 ở trên và không bị mất thông tin.
+

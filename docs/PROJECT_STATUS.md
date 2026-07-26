@@ -2,50 +2,37 @@
 
 Cập nhật lần cuối: 2026-07-26.
 
-> **Trạng thái tổng quát**: bản Google Sheets + Apps Script đã **được đơn vị triển khai dùng thật** trên Sheet mẫu Duyên Hải 1. Bản Excel/VBA v1.3.1 trong `legacy/` giữ làm chuẩn đối chiếu.
+> **Trạng thái tổng quát**: hệ thống đã **được đơn vị đưa vào sử dụng thật** trên Sheet của nhà máy Duyên Hải 1. Thư viện `QDD-Core-Library` ở **version 4**, 45/45 test cục bộ pass.
 
-## Sprint 0 — Documentation Foundation
+## Đã xong
 
 | Hạng mục | Trạng thái |
 |---|---|
-| Repository & cấu trúc thư mục | ✅ |
-| `CLAUDE.md` / `AGENTS.md` / `docs/AI_CONTEXT.md` | ✅ |
-| `README.md` | ✅ |
-| `docs/03_Business_Rules.md` | ✅ |
-| `docs/06_Database_Design.md` | ✅ |
-| `docs/09_Test_Cases.md` | ✅ (nội dung có, nhưng toàn bộ 31 case đang "Chưa chạy") |
-| `legacy/` — bản Excel/VBA v1.3.1 | ✅ |
-| `docs/00_Project_Overview.md` | ✅ |
-| `docs/05_System_Architecture.md` (quyết định kiến trúc Giai đoạn 2) | ✅ |
-| `docs/14_Knowledge_Transfer.md` | ✅ |
-| `docs/04_Algorithm_Specification.md` | ✅ (trích xuất từ công thức Excel thật, không phải suy diễn) |
-| PRD, SRS đầy đủ (dạng chi tiết 30-40 trang như đề xuất ban đầu) | ⬜ chưa bắt đầu — có thể không cần thiết nếu các doc hiện tại đã đủ, cần xác nhận |
-| Thực thi 31 UAT trên bản v1.3.1 | ⬜ chưa bắt đầu — ưu tiên UAT-11 (nghi vấn hành vi CSV sai ngày, xem 09_Test_Cases.md) |
-| Kiểm tra độ chính xác bằng dữ liệu thực (10 ngày, 07/2026) | ✅ — 18/19 tổ hợp khớp; 1 trường hợp lệch (07/07 S2, sự cố) đã điều tra và xác nhận là hành vi đúng (UAT-32), không phải lỗi. Xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md) |
+| `QDD-Core-Library` — toàn bộ thuật toán R01-R14 + R07 | ✅ version 4, 45/45 test pass |
+| Sheet mẫu nhà máy đầu tiên, gắn Library | ✅ đang dùng thật |
+| Bảng điều khiển 6 mục | ✅ |
+| Nhập danh sách lệnh từ file Excel | ✅ |
+| Tải nhiều CSV cùng lúc, tự nhận diện | ✅ |
+| Cảnh báo tự động (lệnh 0-0, ngày không lệnh, nối tiếp ramp) | ✅ |
+| Xuất báo cáo Excel/PDF + báo cáo tháng | ✅ |
+| Kiểm chứng độ chính xác tổ **S1** bằng dữ liệu thật | ✅ 2 đợt, 16 tổ hợp — xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md) |
+| Kiểm chứng **R07** (ramp qua nửa đêm) bằng dữ liệu thật | ✅ ngày 23→24/07/2026 |
+| Tài liệu: quy tắc nghiệp vụ, thuật toán, schema, triển khai, hướng dẫn trong file | ✅ |
+| Hồ sơ sáng kiến kỹ thuật | ✅ bản thảo — còn các mục [CẦN ĐIỀN] là số liệu của đơn vị |
 
-## Sprint 1 — QDD-Core-Library + Google Sheets Template
+## Đang nợ
 
-🟢 **Đã đưa vào sử dụng thật.** `QDD-Core-Library` publish **version 4**, Sheet mẫu (Duyên Hải 1) gắn Library và đang được đơn vị dùng để tính số liệu vận hành. 45/45 test cục bộ pass.
+| Hạng mục | Ghi chú |
+|---|---|
+| **Kiểm chứng tổ S2** (TC-29) | Ưu tiên cao nhất. Toàn bộ đối chiếu đến nay mới chạy S1; mã công tơ, P0 và chuỗi ngày của S2 độc lập nên không suy ra được từ S1 |
+| Kiểm thử giữ P0 nhập tay (TC-30) | Code đã xử lý, chưa chạy thử thật trên Sheet |
+| Khởi động lại sau sự cố (TC-31) | Chờ dữ liệu vận hành đúng mẫu "CS ra lệnh = CS hoàn thành = tải thật" |
+| Triển khai nhà máy thứ hai | Đồng thời là phép thử cho tài liệu [16_Huong_Dan_Trien_Khai.md](16_Huong_Dan_Trien_Khai.md) |
+| Dashboard, nhật ký thao tác | Chưa bắt đầu |
 
-Bảng điều khiển 6 mục: Tải CSV · Nhập danh sách lệnh (từ file Excel) · Tính · Báo cáo tháng · Xuất báo cáo · Dọn dữ liệu cũ.
+## Rủi ro / việc cần theo dõi
 
-## Sprint 2 — Algorithm (migrate)
-
-🟢 **Xong phần tính toán.** Toàn bộ R01-R14 + R07 (carry-over qua nửa đêm) đã chạy trên Apps Script, đối chiếu 1:1 với bảng tính tay qua 2 đợt kiểm chứng — xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
-
-Bộ 31 UAT trong [09_Test_Cases.md](09_Test_Cases.md) là backlog nghiệm thu **của bản Excel/VBA**, đã đối chiếu sang bản mới: 11 case đã kiểm chứng/triển khai, 15 case không còn áp dụng, **còn 3 case phải kiểm** — UAT-15 (tổ S2), UAT-02 (giữ P0 nhập tay), UAT-33 (khởi động lại sau sự cố, chờ dữ liệu).
-
-## Sprint 3 — Report
-
-🟢 Báo cáo tháng + xuất file Excel/PDF theo ngày/khoảng ngày/cả tháng, layout bám file `Kiểm tra Qdu` gốc, tên file mang đúng kỳ báo cáo.
-
-## Sprint 4 — Dashboard
-
-⬜ Chưa bắt đầu (cùng với nhật ký thao tác).
-
-## Rủi ro / việc cần quyết định
-
-- ~~UAT-32: nghi vấn lệnh dừng máy CS=0 bị loại sai~~ — **đã đóng, xác nhận hành vi gốc đúng nghiệp vụ** (lệnh 0-0 chủ đích không tính; khởi động lại cần CS ra lệnh=CS hoàn thành cùng giá trị). Việc còn lại: cập nhật quy trình nhập liệu vận hành để ghi đủ CS hoàn thành khi khởi động lại. Xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
-- Bộ UAT có khoảng trống mã số UAT-20 đến UAT-23 (xem [09_Test_Cases.md](09_Test_Cases.md)) — cần xác nhận với người phụ trách nghiệp vụ.
-- ~~Chưa có quyết định chính thức về việc có tiếp tục migrate sang Apps Script hay không~~ — **đã xác nhận 2026-07-24**: hướng Google Sheets + Apps Script Library (không Web App trung tâm), xem [05_System_Architecture.md](05_System_Architecture.md). Việc còn lại: bắt đầu Giai đoạn 2 sau khi hoàn tất `04_Algorithm_Specification.md` và chạy xong 31 UAT baseline.
-- Lịch sử phiên bản trước v1.2.6 chưa đầy đủ (xem [CHANGELOG.md](../CHANGELOG.md)).
+- **Chỉ mới kiểm chứng một tổ máy.** Kết quả S1 khớp không bảo đảm S2 khớp — cấu hình mã công tơ khác, chuỗi P0 khác. Cần đối chiếu vài ngày S2 trước khi tin số liệu S2.
+- **Quy trình nhập liệu vận hành** cần ghi đủ CS hoàn thành khi khởi động lại tổ máy sau sự cố. Thiếu trường này thì hệ thống không tự suy ra được tổ máy đã ngừng (xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md), UAT lệnh 0-0).
+- **Bảng tính tay đối chiếu có 3 ô sai** đã phát hiện (ngày 17/07 chu kỳ 40, ngày 19/07 chu kỳ 42). Nên báo lại người phụ trách bảng tính tay để sửa bản gốc, tránh lần sau đối chiếu lại nghi ngờ nhầm hệ thống.
+- **Cập nhật thư viện không tự động.** Khi có nhiều nhà máy dùng chung Library, mỗi nhà máy phải tự đổi sang version mới — đúng theo kiến trúc đã chọn, nhưng cần quy trình thông báo.
