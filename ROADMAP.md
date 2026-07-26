@@ -36,8 +36,10 @@ Mục tiêu: hệ thống hoá toàn bộ tri thức nghiệp vụ/kỹ thuật 
 - [x] Chuyển toàn bộ logic Qdd/Qdư từ VBA sang `QDD-Core-Library` (Apps Script), bám sát `docs/04_Algorithm_Specification.md`.
 - [x] **Cảnh báo lệnh "0-0" (UAT-34)** — chỉ cảnh báo, không tự ý sửa số. Xem [14_Knowledge_Transfer.md](docs/14_Knowledge_Transfer.md#giới-hạn-vận-hành-lệnh-0-0-không-được-tự-động-phát-hiện-072026-uat-32).
 - [x] Kiểm thử với dữ liệu vận hành thật, đối chiếu 1:1 với bảng tính tay — **2 đợt, 16 tổ hợp (ngày, tổ máy)**, xem [15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md). Đợt 2 chạy trực tiếp trên bản Google Sheets, gồm cả tình huống ramp vắt qua nửa đêm.
-- [ ] Viết test tự động dựa trên 31 UAT case ở `docs/09_Test_Cases.md` — hiện có 45 test cục bộ nhưng **chưa ánh xạ 1-1 với mã UAT**; toàn bộ 31 case vẫn ở trạng thái "Chưa chạy" trong tài liệu.
-- [ ] Kiểm chứng **tổ S2** trên bản Google Sheets (mới chỉ chạy S1).
+- [x] Đối chiếu bộ 31 UAT (viết cho bản VBA) với bản Google Sheets — xem [09_Test_Cases.md](docs/09_Test_Cases.md): **11 case đã kiểm chứng/triển khai**, **15 case không còn áp dụng** (đặc thù Excel/VBA hoặc chức năng đã bỏ có chủ đích), còn **3 case** phải kiểm.
+- [ ] UAT-15: kiểm chứng **tổ S2** trên bản Google Sheets (mới chỉ chạy S1).
+- [ ] UAT-02: kiểm thử thật việc **giữ nguyên dòng P0 người dùng nhập tay** (code đã xử lý, chưa chạy thử trên Sheet).
+- [ ] UAT-33: kiểm chứng **khởi động lại sau sự cố** — chờ có dữ liệu đúng mẫu "CS ra lệnh = CS hoàn thành = tải thật".
 
 ## Giai đoạn 4 — Hoàn thiện (đang dở)
 

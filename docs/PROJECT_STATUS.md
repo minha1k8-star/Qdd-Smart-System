@@ -33,7 +33,7 @@ Bảng điều khiển 6 mục: Tải CSV · Nhập danh sách lệnh (từ file
 
 🟢 **Xong phần tính toán.** Toàn bộ R01-R14 + R07 (carry-over qua nửa đêm) đã chạy trên Apps Script, đối chiếu 1:1 với bảng tính tay qua 2 đợt kiểm chứng — xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
 
-Còn nợ: ánh xạ 45 test hiện có sang đúng mã UAT trong [09_Test_Cases.md](09_Test_Cases.md); kiểm chứng tổ **S2** trên bản Google Sheets (mới chỉ chạy S1).
+Bộ 31 UAT trong [09_Test_Cases.md](09_Test_Cases.md) là backlog nghiệm thu **của bản Excel/VBA**, đã đối chiếu sang bản mới: 11 case đã kiểm chứng/triển khai, 15 case không còn áp dụng, **còn 3 case phải kiểm** — UAT-15 (tổ S2), UAT-02 (giữ P0 nhập tay), UAT-33 (khởi động lại sau sự cố, chờ dữ liệu).
 
 ## Sprint 3 — Report
 

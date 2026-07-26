@@ -1,8 +1,62 @@
 # Test Cases (UAT) — QDD Smart System
 
-Nguồn gốc: sheet `KIEM_THU_UAT` trong workbook chính thức (`legacy/CongCu_Tinh_Qdd_Qdu_v1_3_0_AllInOne.xlsm`). Cột "Trạng thái" phản ánh đúng tình trạng trong workbook tại thời điểm viết tài liệu này (**"Chưa chạy"** cho toàn bộ 31 case) — đây là backlog kiểm thử nghiệm thu chưa được thực thi/ghi nhận kết quả, không phải test đã pass.
+Nguồn gốc: sheet `KIEM_THU_UAT` trong workbook chính thức (`legacy/CongCu_Tinh_Qdd_Qdu_v1_3_0_AllInOne.xlsm`) — bộ case này viết cho **bản Excel/VBA**.
 
 > Theo [AGENTS.md](../AGENTS.md): bất kỳ thay đổi nào ở [03_Business_Rules.md](03_Business_Rules.md) hoặc [04_Algorithm_Specification.md](04_Algorithm_Specification.md) đều phải có Test Case tương ứng ở đây (hoặc case mới nếu chưa có).
+
+## Đối chiếu với bản Google Sheets (cập nhật 2026-07-26)
+
+Bộ 31 case trên viết cho bản VBA, nên **không áp dụng nguyên vẹn** cho bản Google Sheets. Phân loại lại:
+
+| Nhóm | Số case | Case |
+|---|---|---|
+| ✅ **Đã kiểm chứng** trên bản Google Sheets bằng dữ liệu vận hành thật | 10 | UAT-01, 03, 04, 05, 06, 07, 08, 12, 14, 32 |
+| ✅ **Đã triển khai** (case vốn ghi "chưa triển khai") | 1 | UAT-34 |
+| ⬜ **Không còn áp dụng** — đặc thù Excel/VBA hoặc chức năng đã bỏ có chủ đích | 15 | UAT-09, 10, 11, 13, 16, 17, 18, 19, 24, 25, 26, 27, 28, 29, 30, 31 |
+| 🟡 **Còn phải kiểm** trên bản Google Sheets | 3 | UAT-02, 15, 33 |
+
+**Chi tiết nhóm "đã kiểm chứng"** — bằng chứng ở [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md), đợt 2:
+
+| Case | Kiểm chứng bằng |
+|---|---|
+| UAT-01 lọc đúng ngày/tổ | File lệnh tổng hợp 63 lệnh nhiều ngày, mỗi ngày lọc ra đúng lệnh của mình |
+| UAT-03 P0 tự động | Chuỗi 17→18→19/07 và 23→24→25/07, P0 tự ghi sau mỗi lần tính |
+| UAT-04 ramp qua 00:00 | **23→24/07/2026** — lệnh 23:50:46, lúc 24:00 còn 590,18 MW, ngày sau chạy tiếp tới 534 MW |
+| UAT-05 SO hợp lệ | Lệnh SO bị dừng ngày 19/07 (3002, 3005, 2998) → dùng CS hoàn thành |
+| UAT-06 MO bình thường | Phần lớn lệnh trong 6 ngày đã đối chiếu |
+| UAT-07 MO dừng sớm | Lệnh 2983 (17/07), 3035 và 3037 (23/07) |
+| UAT-08 lệnh ngắt ramp | Các chu kỳ ramp bị lệnh mới cắt ngang, khớp bảng tính tay trong mức làm tròn |
+| UAT-12 đủ Qdc/Qmp | 12 file CSV của 6 ngày, đủ 48 giá trị mỗi file |
+| UAT-14 ngày không có lệnh | **25/07** — Qdd phẳng 435,7 suốt 48 chu kỳ, khớp tuyệt đối bảng tính tay |
+| UAT-32 lệnh 0-0 không tính | Đã đóng từ đợt 1, xác nhận nghiệp vụ |
+
+**Vì sao 15 case không còn áp dụng:**
+
+| Case | Lý do |
+|---|---|
+| UAT-09, 10 (CSV Mac 1 cột / Windows 50 cột) | Lỗi của Excel khi mở CSV theo Regional Settings từng máy. Apps Script đọc CSV bằng `Utilities.parseCsv`, không phụ thuộc hệ điều hành |
+| UAT-11 (CSV sai ngày) | Bản mới **đọc ngày từ chính nội dung file** thay vì bắt người dùng chọn rồi so sánh — khái niệm "CSV sai ngày" không còn |
+| UAT-13, 25 (đối chiếu "Qdd file gốc", nút 4) | Chức năng đối chiếu thủ công của bản VBA, không phải một phần thuật toán ([04_Algorithm_Specification.md](04_Algorithm_Specification.md) mục 7). Bản mới không có |
+| UAT-16, 26, 27 (backup, nút 11) | Bỏ có chủ đích: Google Sheets có sẵn lịch sử phiên bản (`Tệp → Lịch sử phiên bản`), làm backup thủ công là thừa |
+| UAT-17, 18, 19 (31 / 45 / 60 lệnh) | Giới hạn 60 lệnh của bản VBA sinh ra từ lưới công thức 121 đoạn cố định. Bản mới **không có giới hạn này** — đã chạy thử 31/45/60/80/**120** lệnh/ngày, đều ra đủ 48 chu kỳ hợp lệ, dưới 5 ms |
+| UAT-24, 30, 31 (xuất báo cáo tháng lỗi Mac/Windows) | Lỗi `merged cell 1004` và `Cannot run the macro` là lỗi riêng của Excel/VBA. Bản mới xuất file qua Google, không có macro |
+| UAT-28, 29 (compile module, kiểm tra module tháng) | Khái niệm "module VBA" không tồn tại ở Apps Script |
+
+**Ba case còn phải kiểm** (đây là phần nợ thật sự, không phải thủ tục giấy tờ):
+
+| Case | Vì sao còn nợ |
+|---|---|
+| **UAT-15 — tổ S2** | Toàn bộ kiểm chứng đến nay mới chạy **S1**. Mã công tơ, P0 và lịch sử của S2 độc lập với S1, chưa có ngày nào đối chiếu |
+| **UAT-02 — giữ P0 nhập tay** | Code có xử lý (dòng P0 do người dùng nhập tay không bị ghi đè — xem `saveNextDayP0_`), nhưng **chưa kiểm thử thật** trên Sheet |
+| **UAT-33 — khởi động lại sau sự cố** | Chưa có dữ liệu vận hành đúng mẫu "CS ra lệnh = CS hoàn thành = tải thật" để kiểm chứng |
+
+> Ngoài ra, bản Google Sheets có các tình huống **bản VBA không có** nên chưa có mã UAT: nhập lệnh từ file Excel (lệch múi giờ, dò sheet/dòng tiêu đề), tải nhiều CSV cùng lúc, tính hàng loạt nhiều ngày, đặt tên file xuất. Hiện được bao bởi 45 test cục bộ và kiểm chứng dữ liệu thật; nếu cần đánh mã UAT thì bắt đầu từ **UAT-35** (tránh khoảng trống UAT-20…23 chưa rõ nguồn gốc).
+
+---
+
+## Bảng gốc (bản Excel/VBA)
+
+Cột "Trạng thái" dưới đây phản ánh tình trạng trong workbook VBA, **không phải** tình trạng của bản Google Sheets — xem phần đối chiếu ở trên.
 
 | ID | Tình huống | Tiền điều kiện | Thao tác | Kết quả mong đợi | Trạng thái |
 |----|-----------|-----------------|----------|-------------------|-----------|
