@@ -119,9 +119,8 @@ function matchMeterFromFilename_(filename) {
 
 /**
  * Đọc thử ngày ở cột A của dòng dữ liệu đầu tiên trong CSV (dd-mm-yy(yy)
- * hoặc dd/mm/yy(yy) hoặc yyyy-mm-dd). Dùng cho luồng tải hàng loạt phía
- * server (luồng tải 1 file dùng bản JS phía client trong Sidebar.html để
- * điền trực tiếp lên form, xem parseCsvDateGuess ở đó).
+ * hoặc dd/mm/yy(yy) hoặc yyyy-mm-dd). Đây là đường DUY NHẤT xác định ngày
+ * của một file CSV - không còn chỗ nào cho người dùng chọn ngày bằng tay.
  * @param {string} csvText
  * @returns {Date|null}
  */
@@ -273,12 +272,22 @@ function saveNextDayP0_(date, unit, endPower, carry) {
         var existingNote = String(rows[i][3] || '');
         if (existingNote.indexOf('Tự động') !== 0) return; // người dùng nhập tay -> giữ nguyên
         sh.getRange(i + 2, 3, 1, 3).setValues([[endPower, note, carryTarget]]);
+        applyP0NumberFormat_(sh);
         return;
       }
     }
   }
   sh.appendRow([nextDate, unit, endPower, note, carryTarget]);
   sortSheetRows_(sh, [{ column: 1, ascending: false }, { column: 2, ascending: true }]);
+  applyP0NumberFormat_(sh);
+}
+
+/** P0 và mục tiêu ramp hiển thị 2 số thập phân (giá trị thật giữ nguyên - xem applyResultNumberFormat_). */
+function applyP0NumberFormat_(sh) {
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) return;
+  sh.getRange(2, 3, lastRow - 1, 1).setNumberFormat('0.00'); // P0 (MW)
+  sh.getRange(2, 5, lastRow - 1, 1).setNumberFormat('0.00'); // Ramp tiếp đến (MW)
 }
 
 /**
@@ -315,9 +324,26 @@ function appendResultToSheet_(date, unit, periods) {
     return [date, unit, periodLabel_(p.chuKy), p.qdd, p.qddV, p.qdc, p.pQdc, p.nguongDuoi, p.nguongTren, p.qmp, p.qdu, p.dauHieu];
   });
   sh.getRange(sh.getLastRow() + 1, 1, rows.length, KET_QUA_HEADERS.length).setValues(rows);
+  applyResultNumberFormat_(sh);
   // Ngày MỚI NHẤT lên đầu (người dùng thường xem kết quả gần nhất trước),
   // nhưng trong cùng 1 ngày thì tổ máy/chu kỳ vẫn tăng dần cho dễ đọc.
   sortSheetRows_(sh, [{ column: 1, ascending: false }, { column: 2, ascending: true }, { column: 3, ascending: true }]);
+}
+
+/**
+ * Hiển thị mọi cột số của KET_QUA với ĐÚNG 2 SỐ THẬP PHÂN.
+ *
+ * Chỉ đổi ĐỊNH DẠNG HIỂN THỊ, KHÔNG làm tròn giá trị thật trong ô - báo
+ * cáo tháng và P0 ngày kế tiếp vẫn đọc giá trị đầy đủ, nên sai số không
+ * bị tích luỹ qua từng ngày. Nếu làm tròn hẳn số gốc, mỗi ngày sẽ nhích
+ * đi một ít ở P0 và cộng dồn dần qua chuỗi ngày liên tiếp.
+ */
+function applyResultNumberFormat_(sh) {
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) return;
+  var FIRST_NUMERIC_COL = 4;  // Qdd (MW)
+  var NUMERIC_COL_COUNT = 8;  // Qdd -> Qdư (cột "Dấu hiệu" là chữ, không tính)
+  sh.getRange(2, FIRST_NUMERIC_COL, lastRow - 1, NUMERIC_COL_COUNT).setNumberFormat('0.00');
 }
 
 /** Xoá sạch KET_QUA trước khi tính lại (tránh trùng lặp khi chạy lại cùng ngày). */

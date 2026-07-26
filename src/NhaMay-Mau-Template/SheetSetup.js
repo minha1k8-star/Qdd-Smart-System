@@ -14,7 +14,6 @@ var SHEETS = {
   HUONG_DAN: 'HUONG_DAN',
   CAI_DAT: 'CAI_DAT',
   LENH: 'LENH',
-  LENH_STAGING: 'LENH_STAGING',
   CSV_DATA: 'CSV_DATA',
   P0_NGAY: 'P0_NGAY',
   KET_QUA: 'KET_QUA',
@@ -147,12 +146,12 @@ function setupAllSheets() {
 
   ensureSheet_(SHEETS.LENH, LENH_HEADERS);
   migrateLenhSheet_(); // chèn cột "Nhà máy" nếu LENH còn dùng cấu trúc 9 cột cũ
-  ensureSheet_(SHEETS.LENH_STAGING);
   ensureSheet_(SHEETS.CSV_DATA, CSV_DATA_HEADERS);
   ensureSheet_(SHEETS.P0_NGAY, P0_NGAY_HEADERS);
   ensureSheet_(SHEETS.KET_QUA, KET_QUA_HEADERS);
   ensureSheet_(SHEETS.BAO_CAO_THANG, BAO_CAO_THANG_HEADERS);
   removeLeftoverSheet_('CSV_STAGING'); // sheet cũ từ thiết kế trước, không còn dùng (đọc CSV trực tiếp trong sidebar)
+  removeLeftoverSheet_('LENH_STAGING'); // không còn dùng: lệnh nhập thẳng từ file Excel tải lên ở sidebar mục 2
   buildHuongDanSheet_(); // ghi lại sheet hướng dẫn, đặt ngoài cùng bên trái
 
   SpreadsheetApp.getUi().alert('Đã tạo đủ các sheet cần thiết. Xem sheet HUONG_DAN (ngoài cùng bên trái) để biết cách dùng. Nhớ điền đúng "Mã công tơ Qdc/Qmp" cho từng tổ máy trong CAI_DAT trước khi tính.');

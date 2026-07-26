@@ -1,9 +1,9 @@
 /**
- * Nhập danh sách lệnh từ sheet LENH_STAGING vào LENH - nhận diện cột theo
- * TÊN TIÊU ĐỀ (không theo vị trí cột), để người dùng có thể dán NGUYÊN
- * file gốc (25 cột, bất kỳ thứ tự nào miễn còn dòng tiêu đề) mà không
- * cần tự cắt/sắp xếp lại đúng 9 cột của LENH - tránh lỗi lệch cột đã gặp
- * trong thực tế (xem docs/14_Knowledge_Transfer.md).
+ * Gộp danh sách lệnh (đọc từ file Excel người dùng tải lên) vào sheet LENH
+ * - nhận diện cột theo TÊN TIÊU ĐỀ (không theo vị trí cột), để nhận NGUYÊN
+ * bảng của file gốc (25 cột, bất kỳ thứ tự nào miễn còn dòng tiêu đề) mà
+ * không cần cắt/sắp xếp lại đúng 9 cột của LENH - tránh lỗi lệch cột đã
+ * gặp trong thực tế (xem docs/14_Knowledge_Transfer.md).
  */
 
 var COMMAND_REQUIRED_FIELD_LABELS = {
@@ -26,6 +26,33 @@ var COMMAND_OPTIONAL_FIELD_LABELS = {
 /** Bỏ hậu tố dạng " (MW)"/" (1/0)"/" (TRUE/FALSE)" ở cuối tiêu đề trước khi so khớp, để chấp nhận cả tiêu đề gốc lẫn tiêu đề của LENH (có/không có hậu tố). */
 function normalizeHeader_(h) {
   return String(h || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+}
+
+/**
+ * Đọc ô BĐTH thành Date. Nhận cả ô đã là ngày-giờ thật (trường hợp thường
+ * gặp sau khi Google chuyển đổi file Excel) lẫn ô dạng CHỮ "dd/MM/yyyy HH:mm"
+ * - một số file gốc lưu cột này dưới dạng text nên nếu chỉ kiểm tra kiểu Date
+ * thì toàn bộ lệnh bị loại mà người dùng không hiểu vì sao.
+ *
+ * Không dùng `instanceof Date` (xem AGENTS.md) mà kiểm tra theo đặc điểm.
+ *
+ * @returns {Date|null} null nếu không đọc được
+ */
+function coerceBdth_(value) {
+  if (value && typeof value.getTime === 'function' && !isNaN(value.getTime())) {
+    return value;
+  }
+  var s = String(value || '').trim();
+  if (!s) return null;
+
+  // dd/MM/yyyy hoặc dd-MM-yyyy, kèm giờ tuỳ chọn HH:mm[:ss]
+  var m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:[\sT]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (!m) return null;
+  var d = new Date(
+    Number(m[3]), Number(m[2]) - 1, Number(m[1]),
+    Number(m[4] || 0), Number(m[5] || 0), Number(m[6] || 0)
+  );
+  return isNaN(d.getTime()) ? null : d;
 }
 
 /**
@@ -53,25 +80,27 @@ function findCommandColumnIndices_(headerRow) {
 }
 
 /**
+ * Gộp một bảng lệnh đã đọc được (dòng đầu là tiêu đề) vào sheet LENH.
+ *
+ * @param {Array[]} table  dòng 0 là tiêu đề, các dòng sau là dữ liệu
+ * @param {number} [firstDataRowNumber]  số dòng thật của dòng dữ liệu đầu
+ *   tiên trong file nguồn, chỉ dùng để báo lỗi cho đúng dòng người dùng thấy
  * @returns {{imported:number, updated:number, skipped:Array<{row:number, reason:string}>}}
  */
-function importCommandsFromStaging_() {
+function importCommandTable_(table, firstDataRowNumber) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var stagingSh = ss.getSheetByName('LENH_STAGING');
-  if (!stagingSh || stagingSh.getLastRow() < 2) {
-    throw new Error('LENH_STAGING đang trống. Dán dữ liệu (kèm dòng tiêu đề) vào sheet này trước.');
+  if (!table || table.length < 2) {
+    throw new Error('Bảng lệnh trống (chỉ có dòng tiêu đề, không có dòng dữ liệu nào).');
   }
+  var baseRowNumber = firstDataRowNumber || 2;
 
-  var lastRow = stagingSh.getLastRow();
-  var lastCol = stagingSh.getLastColumn();
-  var allValues = stagingSh.getRange(1, 1, lastRow, lastCol).getValues();
-  var headerRow = allValues[0];
-  var dataRows = allValues.slice(1);
+  var headerRow = table[0];
+  var dataRows = table.slice(1);
 
   var found = findCommandColumnIndices_(headerRow);
   if (found.missing.length > 0) {
     throw new Error('Không tìm thấy cột: ' + found.missing.join(', ') +
-      '. Kiểm tra lại dòng tiêu đề trong LENH_STAGING có đúng tên như file gốc không.');
+      '. Kiểm tra lại dòng tiêu đề trong file nguồn có đúng tên như file gốc không.');
   }
   var idx = found.indices;
 
@@ -93,32 +122,32 @@ function importCommandsFromStaging_() {
   }
   var lenhIdx = lenhFound.indices;
 
-  // Bản đồ tên cột (đã chuẩn hoá) của LENH_STAGING, để copy cả các cột phụ
+  // Bản đồ tên cột (đã chuẩn hoá) của bảng nguồn, để copy cả các cột phụ
   // (Người ra lệnh, Lý do lệnh...) khi LENH có sẵn cột cùng tên.
-  var stagingByName = {};
+  var sourceByName = {};
   headerRow.forEach(function (h, i) {
     var key = normalizeHeader_(h);
-    if (key && stagingByName[key] === undefined) stagingByName[key] = i;
+    if (key && sourceByName[key] === undefined) sourceByName[key] = i;
   });
 
   var skipped = [];
   var parsed = [];
   dataRows.forEach(function (r, i) {
-    var rowNum = i + 2; // số dòng thật trong LENH_STAGING
+    var rowNum = i + baseRowNumber; // số dòng thật trong file nguồn
     var id = r[idx.id];
     if (id === '' || id === null) return; // dòng trống, bỏ qua âm thầm
 
-    var bdth = r[idx.bdth];
-    if (!(bdth instanceof Date)) {
-      skipped.push({ row: rowNum, reason: 'Thời điểm BĐTH không phải kiểu ngày-giờ hợp lệ (dán "Paste values only"/"Giá trị" có thể làm mất định dạng ngày - thử dán bình thường Ctrl+V lại).' });
+    var bdth = coerceBdth_(r[idx.bdth]);
+    if (!bdth) {
+      skipped.push({ row: rowNum, reason: 'Thời điểm BĐTH không đọc được thành ngày-giờ (giá trị: "' + r[idx.bdth] + '"). Trong file gốc, ô này phải là ngày-giờ hoặc dạng chữ dd/MM/yyyy HH:mm.' });
       return;
     }
 
     // Dựng dòng theo đúng số cột của LENH: cột nào trùng tên với staging thì lấy nguyên giá trị.
     var row = new Array(lenhLastCol).fill('');
     lenhNormalized.forEach(function (name, col) {
-      if (name && stagingByName[name] !== undefined) {
-        row[col] = r[stagingByName[name]];
+      if (name && sourceByName[name] !== undefined) {
+        row[col] = r[sourceByName[name]];
       }
     });
 
@@ -173,7 +202,15 @@ function importCommandsFromStaging_() {
 
   sortSheetRows_(lenhSh, [{ column: lenhIdx.bdth + 1, ascending: true }]);
 
-  stagingSh.getRange(2, 1, lastRow - 1, lastCol).clearContent();
+  // Khoảng ngày BĐTH thực sự đã ghi vào LENH - để người vận hành đối chiếu
+  // ngay với file gốc. Lệch ngày do múi giờ từng xảy ra và sai âm thầm
+  // (xem alignTimeZoneWithTargetSheet_), nên luôn hiện con số này ra.
+  var times = parsed.map(function (row) { return row[lenhIdx.bdth].getTime(); });
+  var tz = Session.getScriptTimeZone();
+  var range = {
+    from: Utilities.formatDate(new Date(Math.min.apply(null, times)), tz, 'dd/MM/yyyy HH:mm'),
+    to: Utilities.formatDate(new Date(Math.max.apply(null, times)), tz, 'dd/MM/yyyy HH:mm'),
+  };
 
-  return { imported: imported, updated: updated, skipped: skipped };
+  return { imported: imported, updated: updated, skipped: skipped, range: range };
 }

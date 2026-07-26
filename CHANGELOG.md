@@ -2,7 +2,72 @@
 
 Định dạng: mỗi mục ghi ngày (nếu biết), thay đổi, và lý do khi có thể xác định từ tài liệu gốc.
 
-## [Unreleased] — Sheet HUONG_DAN ngay trong file
+## [Unreleased] — Tên file xuất đọc là biết ngay kỳ báo cáo
+
+Tên file xuất trước đây là `BaoCao_QDD_<timestamp>.xlsx` — nhìn không biết của ngày/tháng nào, tải về vài file là lẫn. Nay đặt theo đúng kỳ báo cáo và tổ máy:
+
+| Trường hợp | Tên file |
+|---|---|
+| Báo cáo tháng 7/2026, cả 2 tổ | `BaoCao_Qdd_Qdu_Thang-07-2026_S1-S2.xlsx` |
+| Đúng 1 ngày | `BaoCao_Qdd_Qdu_23-07-2026_S1.xlsx` |
+| Khoảng ngày | `BaoCao_Qdd_Qdu_23-07-2026_den_25-07-2026_S1-S2.xlsx` |
+
+- Nhãn tháng lấy theo **tháng người dùng chọn**, không suy từ danh sách ngày có dữ liệu — tháng thiếu vài ngày vẫn phải mang tên tháng đó.
+- Xuất lại cùng một kỳ thì thêm hậu tố ` (2)`, ` (3)`… thay vì để nhiều file trùng tên hệt nhau trên Drive.
+
+## Kết quả hiển thị 2 số thập phân
+
+Mọi con số kết quả giờ hiển thị **đúng 2 số thập phân** thay vì chuỗi dài kiểu `590.1833333333333`: sheet `KET_QUA` (Qdd → Qdư), `P0_NGAY` (P0 và Ramp tiếp đến), `BAO_CAO_THANG`, **file Excel/PDF xuất ra** (cả 48 dòng lẫn hàng Tổng ngày), và các thông báo/cảnh báo trên sidebar.
+
+**Chỉ đổi ĐỊNH DẠNG HIỂN THỊ, không làm tròn giá trị thật trong ô.** Lý do: P0 của ngày kế tiếp và hàng Tổng ngày đều đọc lại từ các ô này — nếu làm tròn hẳn số gốc thì mỗi ngày lệch một ít ở P0 và **cộng dồn dần qua chuỗi ngày liên tiếp**, đúng loại sai số mà bản v1.3.1 phải mất nhiều đợt mới truy ra. Hàng Tổng ngày vì vậy là tổng của số đầy đủ, có thể chênh vài phần trăm đơn vị so với việc cộng tay các số đã làm tròn hiển thị.
+
+> Sheet `KET_QUA` được áp lại định dạng cho **toàn bộ** các dòng mỗi lần tính, nên chỉ cần tính lại một lần bất kỳ là dữ liệu cũ cũng hiển thị theo định dạng mới.
+
+## Gộp sidebar còn 6 mục: bỏ "Lưu CSV 1 file" và "Tính 1 ngày"
+
+Sidebar có 8 mục, trong đó 2 cặp làm cùng một việc: *Lưu CSV công tơ* (1 file, chọn tay tổ máy/loại dữ liệu) trùng với *Tải CSV hàng loạt*, và *Tính 1 ngày* trùng với *Tính hàng loạt*. Bản hàng loạt làm được cả trường hợp 1 file/1 ngày, nên bỏ hẳn hai mục kia:
+
+- **Mục 1 "Tải CSV công tơ"** — chọn 1 hoặc nhiều file đều được, luôn tự nhận diện tổ máy/loại dữ liệu theo TÊN file và tự đọc ngày từ nội dung. Bỏ hẳn việc chọn tay: vừa mất công vừa từng gây lưu nhầm Qmp vào ô Qdc (rủi ro mà mục cũ phải có riêng một lớp kiểm tra để chặn).
+- **Mục 3 "Tính"** — nhận Từ ngày/Đến ngày; tính 1 ngày là trường hợp Từ ngày = Đến ngày, và chọn Từ ngày xong hệ thống **tự điền Đến ngày** giống hệt nên vẫn chỉ 1 thao tác. Giờ chỉ còn **một luồng tính duy nhất** cần kiểm chứng thay vì hai.
+- Đánh số lại còn 6 mục: Tải CSV · Nhập danh sách lệnh · Tính · Báo cáo tháng · Xuất báo cáo · Dọn dữ liệu cũ. Cập nhật theo: sheet `HUONG_DAN`, `README.md` của template.
+- Xoá `sidebar_saveCsv`, `sidebar_calcOneDay` và phần JS client chỉ phục vụ hai mục đã bỏ (`onCsvFileSelected`, `parseCsvDateGuess`...).
+
+**Đánh đổi đã cân nhắc**: mục "Lưu CSV 1 file" từng là đường thoát khi tên file bị đổi khác chuẩn (nhận diện theo tên thất bại). Nay trường hợp đó phải **đổi lại tên file cho đúng chuẩn** `<ngày><tháng><mã công tơ>.CSV` rồi tải lại — thông báo lỗi đã ghi rõ điều này.
+
+## Sửa lệch +14 giờ khi nhập file Excel (nghiêm trọng, sai âm thầm)
+
+**Triệu chứng**: nhập danh sách lệnh từ file Excel xong, mọi lệnh trong `LENH` lệch **đúng +14 giờ** so với file gốc → lệnh buổi tối nhảy sang ngày hôm sau, ngày 17/07 chỉ còn 2 lệnh thay vì 4, kết quả tính sai dây chuyền. Không có lỗi nào được báo.
+
+**Nguyên nhân**: ngày-giờ trong `.xlsx` là giá trị "trần", không kèm múi giờ. Bản Google Sheets tạm do Drive tạo ra khi chuyển đổi lấy **múi giờ mặc định của tài khoản Google** (`America/Los_Angeles`, −07 giờ hè), trong khi Sheet đích dùng `Asia/Ho_Chi_Minh` (+07). Apps Script đọc ô `18:36` thành 18:36 giờ Los Angeles rồi ghi sang Sheet đích thành `08:36` hôm sau — chênh lệch đúng 14 giờ.
+
+**Khắc phục**: `alignTimeZoneWithTargetSheet_` đặt múi giờ file tạm bằng múi giờ Sheet đích trước khi đọc (`setSpreadsheetTimeZone` chỉ đổi cách diễn giải, không sửa số liệu gốc).
+
+**Chặn tái diễn**: sau mỗi lần nhập, sidebar hiện rõ **khoảng BĐTH thực sự đã ghi vào `LENH`** kèm nhắc đối chiếu với file gốc — lệch ngày/giờ lộ ra ngay thay vì phải phát hiện qua kết quả tính sai. Ghi thêm vào mục "cạm bẫy kỹ thuật" trong `AGENTS.md`.
+
+> Cách dán tay vào `LENH` không dính lỗi này (dữ liệu vào thẳng Sheet đúng múi giờ) — chỉ đường nhập qua file Excel mới bị.
+
+## Nhập danh sách lệnh thẳng từ file Excel, bỏ LENH_STAGING
+
+Trước đây muốn nhập lệnh phải **mở file gốc, copy toàn bộ, dán vào sheet** (`LENH` hoặc `LENH_STAGING`) rồi mới bấm nhập. Nay sidebar mục 2 **chọn thẳng file Excel** (`.xlsx`/`.xlsm`/`.xls`) là xong.
+
+Cách làm: file được tải lên Drive kèm yêu cầu chuyển sang Google Sheets (Drive API qua `UrlFetchApp`, không cần bật Advanced Service nào — nhà máy khác chỉ cần `clasp push` là chạy), đọc xong **xoá file tạm ngay**, kể cả khi nhập lỗi. Google chuyển đổi giữ nguyên ô ngày-giờ thành `Date` thật nên không dính lỗi BĐTH thành chữ như khi dán tay.
+
+- **Tự dò bảng lệnh**: quét tất cả các sheet trong file, 25 dòng đầu mỗi sheet, tìm dòng tiêu đề có đủ 9 cột bắt buộc. File gốc có dòng logo/tiêu đề phía trên bảng, hay bảng nằm ở sheet thứ hai, đều nhận được. Không tìm thấy thì báo rõ từng sheet thiếu cột nào.
+- **Bỏ hẳn sheet `LENH_STAGING`** — không còn bước trung gian nên không còn chỗ để dữ liệu cũ nằm lại gây nhầm. Sheet này bị xoá tự động khi chạy "Thiết lập sheet" (như đã làm với `CSV_STAGING` trước đây). `importCommandsFromStaging_()` đổi thành `importCommandTable_(table, firstDataRowNumber)` nhận thẳng bảng dữ liệu; toàn bộ luật dò cột theo TÊN tiêu đề, gộp theo ID Lệnh, sắp xếp theo BĐTH giữ nguyên.
+- **BĐTH dạng chữ cũng đọc được**: thêm `coerceBdth_` nhận cả ô ngày-giờ thật lẫn chuỗi `dd/MM/yyyy HH:mm[:ss]` (và biến thể dấu `-`). Trước đây ô BĐTH lưu dạng text làm cả dòng bị loại, báo lỗi khó hiểu. Hàm này kiểm tra theo đặc điểm (`typeof v.getTime === 'function'`) chứ không dùng `instanceof Date` — theo đúng cạm bẫy đã ghi trong AGENTS.md.
+- Báo cáo sau khi nhập ghi rõ đọc từ **sheet nào, tiêu đề ở dòng nào, bao nhiêu dòng dữ liệu**, và dòng lỗi được đánh số **theo đúng số dòng trong file gốc** để dễ tra.
+
+Thư viện `QDD-Core-Library` **không đổi** (đây là thay đổi ở lớp nhập liệu của Sheet mẫu), vẫn version 4.
+
+## Không tự tick "dọn lệnh + CSV" sau khi tính
+
+Hai ô **"Dọn lệnh + CSV sau khi tính xong"** (mục 3 tính 1 ngày và mục 5 tính hàng loạt) trước đây **mặc định được tick sẵn**, nên dữ liệu nguồn bị xoá ngay sau mỗi lần tính nếu người dùng không để ý bỏ tick. Nay **mặc định KHÔNG tick** — muốn dọn thì tự tick.
+
+Lý do: xoá lệnh + CSV là thao tác **không hoàn tác được**, trong khi nhu cầu tính lại/đối chiếu một ngày là thường xuyên. Mặc định an toàn phải là giữ dữ liệu.
+
+Cập nhật kèm: sheet `HUONG_DAN` (mục G1) và `src/NhaMay-Mau-Template/README.md`.
+
+## Sheet HUONG_DAN ngay trong file
 
 Thêm sheet **`HUONG_DAN`** (luôn nằm ngoài cùng bên trái) chứa hướng dẫn sử dụng đầy đủ ngay trong Google Sheets — tương đương sheet `HUONG_DAN` của bản VBA cũ, để người dùng mới hoặc người tiếp nhận sau này đọc là làm được mà không cần mở tài liệu bên ngoài. Nội dung gồm: chuẩn bị lần đầu, quy trình hàng ngày, làm nhiều ngày cùng lúc, xuất báo cáo, **ý nghĩa từng cảnh báo tự động**, vai trò từng sheet, và các lưu ý quan trọng (tắt "dọn dữ liệu" khi đang đối chiếu, quyền Chỉnh sửa mới thấy menu...).
 

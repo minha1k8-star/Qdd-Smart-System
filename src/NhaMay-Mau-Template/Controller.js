@@ -4,50 +4,31 @@
  * lỗi (withFailureHandler bên client bắt lại).
  */
 
-function sidebar_importCommands() {
-  var result = importCommandsFromStaging_();
-  var msg = 'Đã nhập ' + result.imported + ' lệnh mới, cập nhật ' + result.updated + ' lệnh đã có (trùng ID Lệnh).';
+/**
+ * Nhập danh sách lệnh từ file Excel người dùng chọn trong sidebar.
+ * @param {string} base64  nội dung file (đã bỏ tiền tố data:...;base64,)
+ * @param {string} filename
+ */
+function sidebar_importCommandsFromXlsx(base64, filename) {
+  var result = importCommandsFromXlsx_(base64, filename);
+  var msg = 'Đã đọc file "' + filename + '" (sheet "' + result.sheetName +
+    '", tiêu đề ở dòng ' + result.headerRowIndex + ', ' + result.totalRows + ' dòng dữ liệu).\n' +
+    'Nhập ' + result.imported + ' lệnh mới, cập nhật ' + result.updated + ' lệnh đã có (trùng ID Lệnh).\n' +
+    'BĐTH từ ' + result.range.from + ' đến ' + result.range.to +
+    ' — ĐỐI CHIẾU với file gốc, lệch ngày/giờ là dấu hiệu sai múi giờ.';
   if (result.skipped.length > 0) {
-    msg += ' Bỏ qua ' + result.skipped.length + ' dòng lỗi:\n' +
+    msg += '\n\nBỏ qua ' + result.skipped.length + ' dòng lỗi:\n' +
       result.skipped.slice(0, 15).map(function (s) { return 'Dòng ' + s.row + ': ' + s.reason; }).join('\n');
     if (result.skipped.length > 15) msg += '\n... và ' + (result.skipped.length - 15) + ' dòng khác.';
   }
   return msg;
 }
 
-function sidebar_saveCsv(dateStr, unit, role, csvText, filename) {
-  var date = parseIsoDate_(dateStr);
-  if (!date) throw new Error('Ngày không hợp lệ.');
-
-  var meterCode = resolveMeterCode_(unit, role);
-  if (!meterCode) {
-    throw new Error('Chưa cấu hình mã công tơ ' + role + ' cho tổ ' + unit +
-      ' trong sheet CAI_DAT (dòng "Mã công tơ ' + role + ' - ' + unit + '"). Điền mã công tơ thật rồi thử lại.');
-  }
-
-  // Chặn lỗi chọn nhầm file: nếu tên file khớp một mã công tơ đã cấu hình
-  // KHÁC với mã của (tổ máy, loại dữ liệu) đang chọn thì dừng lại. Lỗi này
-  // từng xảy ra thật và gây sai số âm thầm (lưu dữ liệu Qmp vào ô Qdc).
-  if (filename) {
-    var fromName = matchMeterFromFilename_(filename);
-    if (fromName && fromName.code !== meterCode) {
-      throw new Error('Tên file "' + filename + '" ứng với công tơ ' + fromName.code +
-        ' (' + fromName.role + ' - ' + fromName.unit + '), nhưng bạn đang chọn ' + role + ' - ' + unit +
-        ' (công tơ ' + meterCode + '). Chọn lại cho khớp, hoặc dùng mục "Tải CSV hàng loạt" để hệ thống tự nhận diện.');
-    }
-  }
-
-  var kwhGiao = QDDCoreLibrary.extractKwhGiaoFromCsv(csvText);
-  saveCsvRow_(date, meterCode, kwhGiao);
-  return 'Đã lưu CSV ' + role + ' (công tơ ' + meterCode + ', tổ ' + unit + ') cho ngày ' +
-    Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd/MM/yyyy') + '.';
-}
-
 /**
- * Tải hàng loạt nhiều file CSV cùng lúc - tự dò (tổ máy, loại dữ liệu) từ
+ * Tải nhiều file CSV cùng lúc - tự dò (tổ máy, loại dữ liệu) từ
  * TÊN FILE (khớp với mã công tơ đã cấu hình trong CAI_DAT) và tự đọc
  * ngày từ NỘI DUNG file. File nào không tự dò được sẽ bị bỏ qua, báo lại
- * tên file + lý do để xử lý tay bằng mục "Lưu CSV" (1 file).
+ * tên file + lý do (thường do tên file đã bị đổi khác chuẩn).
  *
  * @param {Array<{filename:string, content:string}>} files
  * @returns {string}
@@ -82,34 +63,17 @@ function sidebar_saveCsvBulk(files) {
   if (skipped.length > 0) {
     msg += ' Bỏ qua ' + skipped.length + ' file:\n' + skipped.slice(0, 15).join('\n');
     if (skipped.length > 15) msg += '\n... và ' + (skipped.length - 15) + ' file khác.';
-    msg += '\n(Lưu tay các file này ở mục "Lưu CSV" phía trên.)';
+    msg += '\n(Kiểm tra lại TÊN file - phải giữ nguyên dạng <ngày><tháng><mã công tơ>.CSV như khi tải về, ' +
+      'và mã công tơ phải khớp cấu hình trong CAI_DAT.)';
   }
   return msg;
 }
 
-function sidebar_calcOneDay(dateStr, unit, cleanupSource) {
-  var date = parseIsoDate_(dateStr);
-  if (!date) throw new Error('Ngày không hợp lệ.');
-
-  var result = computeOneDay_(date, unit);
-  if (result.error) throw new Error(result.error);
-
-  clearResultsForDate_(date, unit);
-  appendResultToSheet_(date, unit, result.periods);
-  saveNextDayP0_(date, unit, result.endPower, result.carry);
-
-  var msg = 'Đã tính xong ' + Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd/MM/yyyy') +
-    ' - tổ ' + unit + ' (P0 ' + result.p0Source + '). Xem sheet KET_QUA.';
-  if (cleanupSource) {
-    var removed = clearSourceDataForDate_(date, unit);
-    msg += ' Đã dọn ' + removed.lenh + ' dòng lệnh và ' + removed.csv + ' dòng CSV của ngày này.';
-  }
-  if (result.warnings && result.warnings.length > 0) {
-    msg += '\n\n⚠ CẢNH BÁO:\n' + result.warnings.join('\n');
-  }
-  return msg;
-}
-
+/**
+ * Tính cho khoảng ngày đã chọn. Tính 1 ngày là trường hợp Từ ngày = Đến
+ * ngày - không có đường tính riêng cho 1 ngày, để chỉ có MỘT luồng tính
+ * duy nhất cần kiểm chứng.
+ */
 function sidebar_calcBatch(fromStr, toStr, units, cleanupSource) {
   var fromDate = parseIsoDate_(fromStr);
   var toDate = parseIsoDate_(toStr);
@@ -199,13 +163,17 @@ function sidebar_monthlyReport(monthStr, units, format) {
   });
   if (outRows.length > 0) {
     outSh.getRange(2, 1, outRows.length, BAO_CAO_THANG_HEADERS.length).setValues(outRows);
+    // Các cột số (từ cột 3 trở đi) hiển thị 2 số thập phân, giá trị thật giữ nguyên.
+    outSh.getRange(2, 3, outRows.length, BAO_CAO_THANG_HEADERS.length - 2).setNumberFormat('0.00');
   }
 
   var dates = Object.keys(dateSet).sort().map(function (k) { return dateSet[k]; });
-  var exportResult = buildAndExportReport_(dates, units, format);
+  // Đặt nhãn "Thang-MM-yyyy" theo THÁNG ĐƯỢC CHỌN, không suy từ danh sách
+  // ngày có dữ liệu - tháng thiếu vài ngày vẫn phải là báo cáo của tháng đó.
+  var exportResult = buildAndExportReport_(dates, units, format, 'Thang-' + m[2] + '-' + m[1]);
 
   var html = 'Đã tổng hợp ' + report.tongHop.soNgay + ' (ngày, tổ máy). Tổng Qdư: ' +
-    report.tongHop.tongQdu.toFixed(3) + ' MWh (xem sheet BAO_CAO_THANG).<br><br>' +
+    report.tongHop.tongQdu.toFixed(2) + ' MWh (xem sheet BAO_CAO_THANG).<br><br>' +
     '✓ File báo cáo tháng: <a href="' + exportResult.url + '" target="_blank">' + exportResult.name + '</a>';
   if (exportResult.missing.length > 0) {
     html += '<br><br>Bỏ qua (chưa có dữ liệu):<br>' + exportResult.missing.join('<br>');

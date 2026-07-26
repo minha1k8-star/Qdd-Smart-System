@@ -46,9 +46,68 @@ Nói cách khác: **công thức gốc `>0` (loại bỏ lệnh 0-0) là đúng*
 
 → Kết luận: người tính tay cho ngày 07/07 đã dùng thêm hiểu biết thực tế về sự cố (biết chắc tổ máy đã ngừng) để điền Qdd=0 thủ công, thay vì thuần tuý chạy công thức trên đúng dữ liệu danh sách lệnh đã xuất — không phải điều công thức tự động có thể suy ra được từ dữ liệu này. Không có hành động sửa nào cần làm ở đây.
 
+---
+
+# Đợt 2 — kiểm chứng trên chính bản Google Sheets (26/07/2026)
+
+Khác đợt 1 (chạy bằng bản tái hiện Python), đợt này đối chiếu **kết quả do chính Sheet + `QDD-Core-Library` tính ra** với bảng tính tay, trên 6 ngày: 17, 18, 19 và 23, 24, 25/07/2026 (tổ S1).
+
+Nguồn đối chiếu: `test-data/Kiểm tra Qdu ngày 200726.xlsx` (ngày 17-19) và `Kiểm tra Qdu ngày 260726.xlsx` (ngày 23-25).
+
+## Kết quả
+
+| Ngày | Lệch Qdd tối đa | Số chu kỳ lệch > 0,001 MW | Ghi chú |
+|---|---|---|---|
+| 17/07 | 1,2215 MW | 6/48 | 1 ô bảng tính tay sai, xem bên dưới |
+| 18/07 | 0,0538 MW | 5/48 | làm tròn |
+| 19/07 | 1,0114 MW | 8/48 | 1 ô bảng tính tay sai, xem bên dưới |
+| 23/07 | 0,0359 MW | 5/48 | làm tròn |
+| 24/07 | 0,1171 MW | 12/48 | làm tròn (ngày nhận carry-over) |
+| 25/07 | 0,0000 MW | 0/48 | ngày không có lệnh nào |
+
+**Qdư**: bằng 0 ở toàn bộ 48 chu kỳ của cả 6 ngày, ở cả hệ thống lẫn bảng tính tay — khớp tuyệt đối.
+
+## R07 (ramp vắt qua nửa đêm) — lần đầu kiểm chứng bằng dữ liệu thật
+
+Trước đợt này, R07 mới chỉ được chứng minh bằng test tổng hợp vì chưa có ngày vận hành nào rơi đúng tình huống. Ngày **23→24/07/2026** là ngày đầu tiên có:
+
+- Lệnh `G14001.2026.3037` lúc **23:50:46** ngày 23 (MO, bị dừng → công suất hiệu lực = CS hoàn thành = 534 MW), trong khi tổ máy đang ở 622,5 MW.
+- Lúc 24:00 ramp **chưa xong**: còn **590,1833 MW**, cần thêm **963 giây** nữa mới xuống 534 MW.
+- Ngày 24 nhận `carryTarget = 534` và chạy tiếp phần ramp còn lại trước khi nhận lệnh mới lúc 00:17:55.
+
+Kiểm chứng bằng cách chạy lại ngày 24 **có** và **không có** carry:
+
+| Chu kỳ | Có carry (R07) | Không carry | Bảng tính tay |
+|---|---|---|---|
+| 01 | **557,55** | 598,23 | **557,62** |
+| 02 | **599,32** | 609,49 | **599,21** |
+
+Không có R07 thì chu kỳ 1 sai khoảng **40 MW**. → **R07 đã được xác nhận bằng dữ liệu vận hành thật**, không còn là tính năng chỉ có test bao phủ.
+
+## Ba ô sai trong bảng tính tay (hệ thống đúng)
+
+Ba chu kỳ lệch ~1 MW đều nằm **ngay sau một lệnh bị Dừng**:
+
+| Ngày | Chu kỳ | Tính tay | Hệ thống | Tính tay độc lập bằng giấy bút |
+|---|---|---|---|---|
+| 17/07 | 40 (19:30-20:00) | 479,036 | **477,814** | **477,815** |
+| 19/07 | 42 (20:30-21:00) | 436,568 | **437,579** | **437,58** |
+
+Cách kiểm chứng chu kỳ 40 ngày 17/07: giữ 480,4 MW đến 19:53:17 (1397 s), giảm về 460 MW mất 349,7 s ở tốc độ 3,5 MW/phút, còn lại 53,3 s ở 460 MW → trung bình **477,815 MW**. Hệ thống ra 477,8144 — lệch 0,0006 MW.
+
+→ Kết luận: **hệ thống đúng theo đúng thuật toán đã tài liệu hoá; ba ô đó trong bảng tính tay sai.** Người tính tay có vẻ áp thời điểm dừng muộn hơn thực tế.
+
+> Điều này cũng đính chính kết luận "17/07 và 18/07 khớp tuyệt đối 0,0000 MW" ghi ở phần trên của tài liệu này: mức khớp thực tế của ngày 17/07 là **0,0075 MW ở các chu kỳ bình thường và 1,22 MW ở một chu kỳ mà bảng tính tay sai**.
+
+## Quy tắc nghiệp vụ được xác nhận lại trong đợt này
+
+Người phụ trách nghiệp vụ xác nhận: *"Ở cột lý do dừng/hủy có ghi chú thì cột công suất ra lệnh bằng CS hoàn thành."* Đây chính là **R03** (và R01 cho lệnh SO) đã cài sẵn trong `CommandFilter.selectEffective` — kiểm tra trên 4 lệnh bị dừng của các ngày 17-19/07 đều áp đúng, không cần sửa gì.
+
 ## Việc cần làm tiếp
 
 - [x] Điều tra và xác nhận với người phụ trách nghiệp vụ về quy tắc lệnh 0-0 và khởi động lại — **kết luận: công thức gốc đúng, không cần sửa** (UAT-32 đóng, xem cập nhật ở [09_Test_Cases.md](09_Test_Cases.md)).
+- [x] Kiểm tra tình huống ramp qua 00:00 (UAT-04) — **đã kiểm chứng bằng dữ liệu thật ngày 23→24/07**, xem Đợt 2 ở trên.
 - [ ] Ghi rõ quy tắc "khởi động lại cần CS ra lệnh = CS hoàn thành cùng giá trị" vào quy trình nhập liệu vận hành, để dữ liệu tương lai đủ điều kiện tính tự động (không cần can thiệp tay như ngày 07/07).
-- [ ] Mở rộng kiểm tra sang các ngày còn thiếu danh sách lệnh (04, 05, 08, 09, 20/07) khi có dữ liệu.
-- [ ] Kiểm tra thêm tình huống ramp qua 00:00 (UAT-04) — chưa có ngày nào trong đợt này rơi đúng tình huống ramp chưa hoàn tất lúc nửa đêm.
+- [ ] Mở rộng kiểm tra sang các ngày còn thiếu danh sách lệnh (04, 05, 08, 09/07) khi có dữ liệu.
+- [ ] Kiểm tra tổ **S2** trên bản Google Sheets — toàn bộ đợt 2 mới chỉ chạy S1.
+- [ ] Báo lại cho người phụ trách bảng tính tay về 3 ô sai ở trên, để bản đối chiếu gốc được sửa.

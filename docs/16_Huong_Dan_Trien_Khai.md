@@ -24,12 +24,13 @@ Cả 2 cách đều ra kết quả giống nhau về chức năng.
 1. Mở Sheet mẫu (xin link từ người quản trị hệ thống).
 2. **Tệp → Tạo bản sao** (File → Make a copy). Bản sao mang theo toàn bộ mã nguồn Apps Script.
 3. Mở bản sao vừa tạo, tải lại trang (F5).
-4. Menu **QDD Smart System → Thiết lập sheet**.
-5. Vào sheet `CAI_DAT`, sửa lại toàn bộ cho đúng nhà máy của bạn:
+4. **Kiểm tra múi giờ của bảng tính**: `Tệp → Cài đặt → Múi giờ` phải là **(GMT+07:00) Hồ Chí Minh**. Xem mục "Múi giờ" bên dưới — đặt sai sẽ làm lệch ngày-giờ của lệnh điều độ.
+5. Menu **QDD Smart System → Thiết lập sheet**.
+6. Vào sheet `CAI_DAT`, sửa lại toàn bộ cho đúng nhà máy của bạn:
    - Tên nhà máy, tốc độ ramp, hệ số Qdd_V, dung sai
    - **Mã công tơ Qdc/Qmp cho từng tổ máy** — bắt buộc phải sửa, giá trị mặc định chỉ đúng cho Duyên Hải 1
    - Nhãn báo cáo (vd `S1DH1` → đổi thành ký hiệu nhà máy bạn)
-6. Đọc sheet `HUONG_DAN` (ngoài cùng bên trái) để biết cách dùng.
+7. Đọc sheet `HUONG_DAN` (ngoài cùng bên trái) để biết cách dùng.
 
 > **Điều kiện**: thư viện `QDD-Core-Library` phải được chia sẻ ở mức "Bất kỳ ai có đường liên kết — Người xem". Nếu chưa, bản sao sẽ báo lỗi không truy cập được thư viện. Xem mục "Chia sẻ thư viện" bên dưới.
 
@@ -137,11 +138,35 @@ npx clasp push
 ### B8. Thiết lập trong Sheet
 
 1. Mở Sheet vừa tạo (link in ra ở bước B5), tải lại trang (F5).
-2. Menu **QDD Smart System → Thiết lập sheet**.
-3. Vào `CAI_DAT` điền đúng thông số nhà máy (như mục 5 của Cách A).
-4. Đọc sheet `HUONG_DAN` để biết quy trình sử dụng.
+2. **Kiểm tra múi giờ**: `Tệp → Cài đặt → Múi giờ` = **(GMT+07:00) Hồ Chí Minh** (xem mục "Múi giờ" bên dưới).
+3. Menu **QDD Smart System → Thiết lập sheet**.
+4. Vào `CAI_DAT` điền đúng thông số nhà máy (như bước 6 của Cách A).
+5. Đọc sheet `HUONG_DAN` để biết quy trình sử dụng.
+6. Lần đầu bấm một chức năng, Google hỏi cấp quyền — xem mục "Cấp quyền lần đầu" bên dưới.
 
 ---
+
+## Múi giờ (đọc kỹ — đã gây sai số liệu thật)
+
+Ba nơi phải cùng là giờ Việt Nam:
+
+| Nơi | Cách kiểm tra | Giá trị đúng |
+|---|---|---|
+| Bảng tính | `Tệp → Cài đặt → Múi giờ` | (GMT+07:00) Hồ Chí Minh |
+| Apps Script | `appsscript.json`, khoá `timeZone` | `Asia/Ho_Chi_Minh` |
+| Tài khoản Google | https://myaccount.google.com → Dữ liệu cá nhân | Việt Nam / GMT+7 |
+
+**Vì sao quan trọng**: ngày-giờ trong file Excel danh sách lệnh là giá trị "trần", không kèm múi giờ. Khi hệ thống nhờ Google Drive chuyển file Excel sang Google Sheets để đọc, bản tạm đó lấy **múi giờ mặc định của tài khoản Google**. Nếu tài khoản đang để mặc định `America/Los_Angeles` mà Sheet để giờ Việt Nam thì mọi lệnh bị dịch **+14 giờ** — lệnh buổi tối nhảy sang ngày hôm sau, kết quả sai dây chuyền **mà không có lỗi nào được báo**.
+
+Bản hiện tại đã tự khắc phục việc này (`alignTimeZoneWithTargetSheet_` đặt lại múi giờ file tạm trước khi đọc), nhưng **múi giờ của chính bảng tính vẫn phải đặt đúng** vì nó là mốc để quy chiếu.
+
+**Cách tự kiểm tra sau khi nhập lệnh**: sau mỗi lần nhập, sidebar hiện dòng `BĐTH từ … đến …`. Đối chiếu ngay với file gốc — lệch là biết có vấn đề múi giờ.
+
+## Cấp quyền lần đầu
+
+Lần đầu mỗi người bấm một chức năng, Google hỏi cấp quyền: chọn tài khoản → **Nâng cao (Advanced)** → **Chuyển đến … (unsafe)** → **Cho phép (Allow)**. Cảnh báo "unsafe" là bình thường với mọi script chưa qua kiểm duyệt của Google.
+
+Hệ thống xin các quyền: đọc/ghi bảng tính, và **truy cập Drive** (để chuyển đổi file Excel danh sách lệnh và ghi file báo cáo xuất ra — file tạm luôn bị xoá ngay sau khi đọc xong).
 
 ## Chia sẻ thư viện (bắt buộc nếu người khác cùng dùng)
 
@@ -194,7 +219,7 @@ cd src/QDD-Core-Library
 node tests/run_tests.js
 ```
 
-Phải thấy **tất cả test pass**. Bộ test này khoá lại các lỗi thật đã từng gặp (xem [CHANGELOG.md](../CHANGELOG.md)), nên nếu có test đỏ thì đừng đưa vào dùng.
+Phải thấy **tất cả test pass** (hiện là 45/45). Bộ test này khoá lại các lỗi thật đã từng gặp (xem [CHANGELOG.md](../CHANGELOG.md)), nên nếu có test đỏ thì đừng đưa vào dùng.
 
 Sau đó, nên **đối chiếu ít nhất 2 ngày có số liệu tính tay** trước khi tin kết quả — cách làm xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
 
@@ -211,3 +236,7 @@ Sau đó, nên **đối chiếu ít nhất 2 ngày có số liệu tính tay** t
 | Sửa code thư viện nhưng Sheet không đổi | Quên tạo version mới, hoặc Sheet chưa trỏ sang version mới. |
 | Kết quả Qdd **phẳng bằng P0 cả ngày** | Không lệnh nào được nhận — kiểm tra sheet `LENH` có dữ liệu đúng ngày/tổ máy không. Sidebar cũng cảnh báo trường hợp này. |
 | Thiếu P0 khi tính ngày đầu tiên | Điền tay 1 dòng vào `P0_NGAY`. Các ngày sau hệ thống tự ghi. |
+| Lệnh nhập vào **lệch ngày/giờ** so với file gốc | Múi giờ — xem mục "Múi giờ" ở trên. Đối chiếu dòng `BĐTH từ … đến …` mà sidebar hiện sau khi nhập. |
+| Nhập file Excel báo *"Google Drive không đọc được file này"* | File không phải `.xlsx/.xls` thật (vd `.xls` giả do hệ thống khác xuất ra), hoặc file đặt mật khẩu. Mở bằng Excel rồi **Lưu thành .xlsx** rồi nhập lại. |
+| Nhập file Excel báo *"Không tìm thấy bảng danh sách lệnh"* | Dòng tiêu đề không có đủ 9 cột bắt buộc, hoặc bảng nằm sâu hơn 25 dòng đầu. Thông báo lỗi liệt kê rõ từng sheet thiếu cột nào. |
+| File CSV bị **bỏ qua** khi tải | Tên file đã bị đổi. Phải giữ dạng `<ngày><tháng><mã công tơ>.CSV` (vd `17076001.CSV`) và mã công tơ khớp `CAI_DAT`. |

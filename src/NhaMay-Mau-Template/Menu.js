@@ -17,6 +17,14 @@ function showSidebar() {
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
+/**
+ * Số MW/MWh hiển thị cho người đọc: đúng 2 số thập phân.
+ * Chỉ dùng cho CHỮ hiển thị - phép tính bên trong luôn dùng số đầy đủ.
+ */
+function mw2_(v) {
+  return (typeof v === 'number' && !isNaN(v)) ? v.toFixed(2) : String(v);
+}
+
 /** "yyyy-MM-dd" (định dạng input type=date của HTML) -> Date */
 function parseIsoDate_(str) {
   var m = String(str).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -50,7 +58,7 @@ function computeOneDay_(date, unit) {
     var warnings = detectZeroZeroCommands_(allCommands, date, unit);
     if (p0Info.carryTarget) {
       warnings.push('Ngày trước còn ramp dở dang lúc 24:00 -> đã tự chạy tiếp từ ' +
-        p0Info.value + ' MW đến mục tiêu ' + p0Info.carryTarget + ' MW (quy tắc R07).');
+        mw2_(p0Info.value) + ' MW đến mục tiêu ' + mw2_(p0Info.carryTarget) + ' MW (quy tắc R07).');
     }
     if (effectiveCommands.length === 0 && !p0Info.carryTarget) {
       // Ngày không có lệnh nào vẫn tính được (Qdd giữ nguyên P0 cả ngày) và
@@ -58,7 +66,7 @@ function computeOneDay_(date, unit) {
       // quả sai mà trông vẫn "thành công" - lỗi này đã xảy ra thật với ngày
       // 19-20/07, nên phải cảnh báo rõ.
       warnings.push('Không có lệnh hiệu lực nào trong sheet LENH cho ngày/tổ máy này ' +
-        '-> Qdd giữ nguyên P0 = ' + p0Info.value + ' MW suốt 48 chu kỳ. ' +
+        '-> Qdd giữ nguyên P0 = ' + mw2_(p0Info.value) + ' MW suốt 48 chu kỳ. ' +
         'Kiểm tra lại xem đã nhập danh sách lệnh chưa (nếu ngày đó thực sự không có lệnh thì bỏ qua).');
     }
     return {

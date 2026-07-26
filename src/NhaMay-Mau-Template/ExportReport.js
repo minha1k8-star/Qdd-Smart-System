@@ -19,6 +19,8 @@ var EXPORT_FIRST_DATA_ROW = 4;
 var EXPORT_TOTAL_ROW = EXPORT_FIRST_DATA_ROW + 48; // hàng 52
 /** Vị trí (0-based) trong EXPORT_METRIC_COLUMNS của các cột cần cộng tổng ngày (chỉ các cột MWh). */
 var EXPORT_TOTAL_COL_OFFSETS = [1, 2, 3, 4]; // Qdd_V, Qdc, Qmp, Qdư
+/** Vị trí (0-based) các cột SỐ - bỏ qua "Qdư âm/dương" (5) và "Ghi chú" (9) vì là chữ. */
+var EXPORT_NUMERIC_COL_OFFSETS = [0, 1, 2, 3, 4, 6, 7, 8];
 
 /**
  * Chuyển 1 Google Sheets thành blob Excel/PDF bằng link xuất trực tiếp
@@ -109,12 +111,55 @@ function uniqueSheetName_(ss, baseName) {
 }
 
 /**
+ * Tên file xuất, đọc là biết ngay nội dung bên trong:
+ *   BaoCao_Qdd_Qdu_Thang-07-2026_S1-S2.xlsx      (báo cáo tháng)
+ *   BaoCao_Qdd_Qdu_23-07-2026_S1.xlsx            (đúng 1 ngày)
+ *   BaoCao_Qdd_Qdu_23-07-2026_den_25-07-2026_S1-S2.xlsx  (khoảng ngày)
+ *
+ * @param {Date[]} dates
+ * @param {string[]} units
+ * @param {string} ext        ".xlsx" | ".pdf"
+ * @param {string} [periodLabel]  nhãn kỳ báo cáo do bên gọi ấn định (báo cáo
+ *        tháng truyền "Thang-07-2026"); không truyền thì tự suy từ danh sách ngày.
+ */
+function buildExportFileName_(dates, units, ext, periodLabel) {
+  var tz = Session.getScriptTimeZone();
+  var fmt = function (d) { return Utilities.formatDate(d, tz, 'dd-MM-yyyy'); };
+
+  var period = periodLabel;
+  if (!period) {
+    var sorted = dates.slice().sort(function (a, b) { return a - b; });
+    var first = fmt(sorted[0]);
+    var last = fmt(sorted[sorted.length - 1]);
+    period = (first === last) ? first : (first + '_den_' + last);
+  }
+
+  return 'BaoCao_Qdd_Qdu_' + period + '_' + units.join('-') + ext;
+}
+
+/**
+ * Nếu thư mục đã có file trùng tên (xuất lại cùng một kỳ), thêm hậu tố
+ * " (2)", " (3)"... thay vì để hai file trùng tên hệt nhau trên Drive.
+ */
+function uniqueFileName_(folder, fileName, ext) {
+  var base = fileName.slice(0, fileName.length - ext.length);
+  var candidate = fileName;
+  var n = 2;
+  while (folder.getFilesByName(candidate).hasNext()) {
+    candidate = base + ' (' + n + ')' + ext;
+    n++;
+  }
+  return candidate;
+}
+
+/**
  * @param {Date[]} dates
  * @param {string[]} units  vd ["S1","S2"] - áp dụng cho mọi ngày trong danh sách
  * @param {string} format  "xlsx" | "pdf"
+ * @param {string} [periodLabel]  xem buildExportFileName_
  * @returns {{url:string, name:string, missing:string[]}}
  */
-function buildAndExportReport_(dates, units, format) {
+function buildAndExportReport_(dates, units, format, periodLabel) {
   var missing = [];
   var temp = SpreadsheetApp.create('QDD_export_tmp_' + new Date().getTime());
   var usedFirstSheet = false;
@@ -165,6 +210,13 @@ function buildAndExportReport_(dates, units, format) {
       sh.getRange(3, startCol, 1, EXPORT_BLOCK_WIDTH).setValues([EXPORT_METRIC_COLUMNS]).setFontWeight('bold');
       sh.getRange(EXPORT_FIRST_DATA_ROW, startCol, block.rows.length, EXPORT_BLOCK_WIDTH).setValues(block.rows);
 
+      // Mọi cột số trong file xuất hiển thị đúng 2 số thập phân. Giá trị
+      // thật vẫn đầy đủ (hàng Tổng ngày là SUM của số gốc, không phải tổng
+      // của các số đã làm tròn) - xem applyResultNumberFormat_ trong SheetIO.
+      EXPORT_NUMERIC_COL_OFFSETS.forEach(function (offset) {
+        sh.getRange(EXPORT_FIRST_DATA_ROW, startCol + offset, block.rows.length, 1).setNumberFormat('0.00');
+      });
+
       // Bảng trống thì không cộng tổng (tránh hiện 0 gây hiểu nhầm là đã tính ra 0).
       if (block.empty) return;
       EXPORT_TOTAL_COL_OFFSETS.forEach(function (offset) {
@@ -172,7 +224,7 @@ function buildAndExportReport_(dates, units, format) {
         var colLetter = columnLetter_(col);
         sh.getRange(EXPORT_TOTAL_ROW, col).setFormula(
           '=SUM(' + colLetter + EXPORT_FIRST_DATA_ROW + ':' + colLetter + (EXPORT_TOTAL_ROW - 1) + ')'
-        ).setFontWeight('bold');
+        ).setFontWeight('bold').setNumberFormat('0.00');
       });
     });
 
@@ -196,9 +248,9 @@ function buildAndExportReport_(dates, units, format) {
   var ext = format === 'pdf' ? '.pdf' : '.xlsx';
   var blob = exportSpreadsheetAsBlob_(temp.getId(), format);
 
-  var fileName = 'BaoCao_QDD_' + new Date().getTime() + ext;
   var parents = DriveApp.getFileById(SpreadsheetApp.getActiveSpreadsheet().getId()).getParents();
   var folder = parents.hasNext() ? parents.next() : DriveApp.getRootFolder();
+  var fileName = uniqueFileName_(folder, buildExportFileName_(dates, units, ext, periodLabel), ext);
   var outFile = folder.createFile(blob).setName(fileName);
 
   DriveApp.getFileById(temp.getId()).setTrashed(true);

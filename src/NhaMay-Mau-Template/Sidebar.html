@@ -19,69 +19,47 @@
 
 <div id="status"></div>
 
-<h3>1. Lưu CSV công tơ</h3>
-<div class="hint">Chọn tổ máy, loại dữ liệu rồi chọn file CSV - hệ thống <b>tự đọc ngày ghi trong file</b> và điền sẵn vào ô Ngày (xem lại/sửa nếu cần). Cần lưu đủ CẢ Qdc và Qmp cho 1 (ngày, tổ máy) thì mới tính được ngày đó.</div>
-<label>Tổ máy
-  <select id="csvUnit"><option value="S1">S1</option><option value="S2">S2</option></select>
-</label>
-<label>Loại dữ liệu
-  <select id="csvRole">
-    <option value="Qdc">Qdc</option>
-    <option value="Qmp">Qmp</option>
-  </select>
-</label>
-<label>File CSV <input type="file" id="csvFile" accept=".csv" onchange="onCsvFileSelected()"></label>
-<label>Ngày (tự đọc từ file, sửa lại nếu sai) <input type="date" id="csvDate"></label>
-<div class="hint" id="csvDateNote"></div>
-<button id="btnCsv" onclick="submitCsv()">Lưu CSV</button>
+<h3>1. Tải CSV công tơ</h3>
+<div class="hint">
+  Chọn <b>một hoặc nhiều file CSV cùng lúc</b> - hệ thống tự nhận diện tổ máy và loại dữ liệu (Qdc/Qmp) bằng cách so tên file với mã công tơ đã cấu hình ở CAI_DAT, và tự đọc ngày từ nội dung từng file. Không phải chọn tay gì cả.<br>
+  Tên file phải giữ nguyên như khi tải về (dạng <b>&lt;ngày&gt;&lt;tháng&gt;&lt;mã công tơ&gt;.CSV</b>, vd <b>17076001.CSV</b>). File nào không nhận diện được sẽ báo riêng theo tên - đổi lại đúng tên rồi tải lại.<br>
+  Cần đủ CẢ Qdc và Qmp của một (ngày, tổ máy) thì mới tính được ngày đó.
+</div>
+<label>File CSV (chọn được nhiều file) <input type="file" id="csvBulkFiles" accept=".csv" multiple></label>
+<button id="btnCsvBulk" onclick="submitCsvBulk()">Tải CSV</button>
 
 <h3>2. Nhập danh sách lệnh</h3>
 <div class="hint">
-  Có 2 cách, dùng cách nào cũng được:<br><br>
-  <b>Cách A - dán thẳng:</b> sheet <b>LENH</b> có cấu trúc GIỐNG HỆT file gốc (25 cột, Nhà máy ở cột B), nên copy toàn bộ file gốc dán thẳng vào LENH (từ dòng 2) là xong, không cần bấm gì thêm.<br><br>
-  <b>Cách B - qua LENH_STAGING (nên dùng khi nhập bổ sung):</b> dán file gốc vào sheet <b>LENH_STAGING</b> (giữ dòng tiêu đề) rồi bấm nút bên dưới. Hệ thống dò cột theo TÊN tiêu đề nên không sợ lệch cột, đồng thời gộp thông minh vào LENH: lệnh trùng ID Lệnh sẽ được cập nhật thay vì nhân đôi, và tự sắp xếp lại theo thời gian.
+  Chọn thẳng <b>file Excel danh sách lệnh</b> (.xlsx/.xls) - không cần mở file, không cần copy tay.
+  Hệ thống tự tìm sheet và dòng tiêu đề trong file, dò cột <b>theo TÊN tiêu đề</b> (không sợ lệch cột hay khác thứ tự),
+  rồi gộp vào sheet <b>LENH</b>: lệnh trùng <b>ID Lệnh</b> được cập nhật thay vì nhân đôi, và tự sắp xếp lại theo thời gian.<br>
+  Nhập bổ sung nhiều lần vẫn an toàn - chọn lại file mới là được.<br><br>
+  <i>Cách thủ công vẫn dùng được:</i> sheet LENH có cấu trúc giống hệt file gốc (25 cột, Nhà máy ở cột B) nên dán thẳng vào từ dòng 2 cũng chạy.
 </div>
-<button id="btnImportCmd" onclick="submitImportCommands()">Nhập từ LENH_STAGING</button>
+<label>File Excel danh sách lệnh <input type="file" id="cmdXlsxFile" accept=".xlsx,.xlsm,.xls"></label>
+<button id="btnImportCmd" onclick="submitImportCommands()">Đọc file và nhập lệnh</button>
 
-<h3>3. Tính 1 ngày</h3>
+<h3>3. Tính</h3>
 <div class="hint">
-  Trước khi bấm Tính, cần đã có: (1) danh sách lệnh trong sheet LENH cho ngày này (có thể không có lệnh nào cũng được),
-  (2) đủ CSV 6001 và 6303 cho ngày này (mục 1 ở trên).<br>
-  P0 (công suất đầu ngày) tự lấy từ chu kỳ cuối ngày liền trước đã tính - riêng NGÀY ĐẦU TIÊN dùng hệ thống phải điền tay 1 dòng vào sheet P0_NGAY trước.<br>
-  Kết quả ghi vào sheet KET_QUA (chạy lại cùng ngày sẽ tự thay kết quả cũ, không bị trùng).
+  Tính 1 ngày hay nhiều ngày liên tiếp đều ở đây - <b>tính 1 ngày thì để Từ ngày = Đến ngày</b> (chọn Từ ngày xong hệ thống tự điền Đến ngày giống hệt).<br>
+  Trước khi bấm Tính, cần đã có: (1) danh sách lệnh trong sheet LENH cho ngày đó (không có lệnh nào cũng tính được),
+  (2) đủ CSV Qdc và Qmp cho ngày đó (mục 1 ở trên).<br>
+  P0 (công suất đầu ngày) tự lấy từ cuối ngày liền trước đã tính - riêng NGÀY ĐẦU TIÊN dùng hệ thống phải điền tay 1 dòng vào sheet P0_NGAY trước.<br>
+  Kết quả ghi vào sheet KET_QUA (tính lại cùng ngày sẽ tự thay kết quả cũ, không bị trùng).
+  Ngày nào thiếu CSV hoặc thiếu P0 sẽ được báo riêng, KHÔNG làm dừng các ngày còn lại.
 </div>
-<label>Ngày <input type="date" id="oneDate"></label>
-<label>Tổ máy
-  <select id="oneUnit"><option value="S1">S1</option><option value="S2">S2</option></select>
-</label>
-<div class="checks"><label><input type="checkbox" id="oneCleanup" checked> Dọn lệnh + CSV của ngày này sau khi tính xong</label></div>
-<button id="btnOneDay" onclick="submitOneDay()">Tính</button>
-
-<h3>4. Tải CSV hàng loạt</h3>
-<div class="hint">
-  Dùng khi tính nhiều ngày (mục 5) - chọn CÙNG LÚC nhiều file CSV. Hệ thống tự nhận diện tổ máy/loại dữ liệu bằng cách so tên file với mã công tơ đã cấu hình ở CAI_DAT, và tự đọc ngày từ nội dung từng file - không cần chọn tay từng file.
-  File nào không tự nhận diện được sẽ báo riêng, lưu tay bằng mục 1 ở trên.
-</div>
-<label>Nhiều file CSV <input type="file" id="csvBulkFiles" accept=".csv" multiple></label>
-<button id="btnCsvBulk" onclick="submitCsvBulk()">Tải hàng loạt</button>
-
-<h3>5. Tính hàng loạt</h3>
-<div class="hint">
-  Tính nhiều ngày liên tiếp cùng lúc, cho 1 hoặc cả 2 tổ máy. Điều kiện giống mục 3, áp dụng cho từng ngày trong khoảng đã chọn.
-  Ngày nào thiếu CSV hoặc thiếu P0 sẽ được báo riêng trong kết quả, KHÔNG làm dừng các ngày còn lại.
-</div>
-<label>Từ ngày <input type="date" id="fromDate"></label>
+<label>Từ ngày <input type="date" id="fromDate" onchange="syncToDate()"></label>
 <label>Đến ngày <input type="date" id="toDate"></label>
 <div class="checks">
   <label><input type="checkbox" id="batchS1" checked> S1</label>
   <label><input type="checkbox" id="batchS2"> S2</label>
 </div>
-<div class="checks"><label><input type="checkbox" id="batchCleanup" checked> Dọn lệnh + CSV của các ngày đã tính xong</label></div>
-<button id="btnBatch" onclick="submitBatch()">Tính hàng loạt</button>
+<div class="checks"><label><input type="checkbox" id="batchCleanup"> Dọn lệnh + CSV của các ngày đã tính xong</label></div>
+<button id="btnBatch" onclick="submitBatch()">Tính</button>
 
-<h3>6. Báo cáo tháng</h3>
+<h3>4. Báo cáo tháng</h3>
 <div class="hint">
-  Xuất TOÀN BỘ các ngày ĐÃ TÍNH XONG (trong KET_QUA) của tháng được chọn thành 1 file (mỗi ngày 1 tab, các tổ máy cạnh nhau) - không tự tính bù ngày còn thiếu, cần tính đủ các ngày bằng mục 3/5 trước. Đồng thời cập nhật bảng tổng số liệu (Qdc/Qmp/Qdư...) vào sheet BAO_CAO_THANG.
+  Xuất TOÀN BỘ các ngày ĐÃ TÍNH XONG (trong KET_QUA) của tháng được chọn thành 1 file (mỗi ngày 1 tab, các tổ máy cạnh nhau) - không tự tính bù ngày còn thiếu, cần tính đủ các ngày bằng mục 3 trước. Đồng thời cập nhật bảng tổng số liệu (Qdc/Qmp/Qdư...) vào sheet BAO_CAO_THANG.
 </div>
 <label>Tháng <input type="month" id="reportMonth"></label>
 <div class="checks">
@@ -96,9 +74,9 @@
 </label>
 <button id="btnReport" onclick="submitMonthlyReport()">Tổng hợp + Xuất file</button>
 
-<h3>7. Xuất báo cáo (1 hoặc vài ngày cụ thể)</h3>
+<h3>5. Xuất báo cáo (1 hoặc vài ngày cụ thể)</h3>
 <div class="hint">
-  Giống mục 6 nhưng chọn đúng khoảng ngày tự do (không nhất thiết cả tháng) - mỗi ngày 1 tab, các tổ máy đã chọn nằm cạnh nhau trong cùng tab (giống layout file báo cáo gốc). Xuất 1 ngày thì chọn Từ ngày = Đến ngày.
+  Giống mục 4 nhưng chọn đúng khoảng ngày tự do (không nhất thiết cả tháng) - mỗi ngày 1 tab, các tổ máy đã chọn nằm cạnh nhau trong cùng tab (giống layout file báo cáo gốc). Xuất 1 ngày thì chọn Từ ngày = Đến ngày.
 </div>
 <label>Từ ngày <input type="date" id="exportFromDate"></label>
 <label>Đến ngày <input type="date" id="exportToDate"></label>
@@ -114,12 +92,12 @@
 </label>
 <button id="btnExport" onclick="submitExport()">Xuất báo cáo</button>
 
-<h3>8. Dọn dữ liệu cũ</h3>
+<h3>6. Dọn dữ liệu cũ</h3>
 <div class="hint">
   Dùng khi bàn giao Sheet cho người khác dùng thử, hoặc khi dữ liệu tích luỹ nhiều tháng làm sheet nặng.<br>
   <b>Giữ nguyên:</b> cấu hình trong CAI_DAT.<br>
   <b>Giữ lại:</b> kết quả của số ngày gần nhất bạn chọn (nên để 1) - để P0 ngày kế tiếp vẫn tự suy ra được, không phải nhập tay.<br>
-  <b>Xoá sạch:</b> LENH, LENH_STAGING, CSV_DATA, BAO_CAO_THANG, P0_NGAY và phần KET_QUA cũ hơn.<br>
+  <b>Xoá sạch:</b> LENH, CSV_DATA, BAO_CAO_THANG, P0_NGAY và phần KET_QUA cũ hơn.<br>
   Dữ liệu gốc vẫn còn trong file CSV/danh sách lệnh trên máy, cần thì nhập lại.
 </div>
 <label>Giữ lại kết quả của mấy ngày gần nhất
@@ -161,69 +139,14 @@
   }
 
   /**
-   * Tách ô đầu tiên (cột A) của dòng dữ liệu đầu tiên trong CSV và thử
-   * nhận dạng ngày theo vài định dạng phổ biến (dd-mm-yy, dd-mm-yyyy,
-   * dd/mm/yy, dd/mm/yyyy, yyyy-mm-dd). Trả về "yyyy-MM-dd" (định dạng
-   * input type=date) hoặc null nếu không nhận dạng được.
+   * Tính 1 ngày là trường hợp hay dùng nhất, nên chọn "Từ ngày" xong thì
+   * tự điền luôn "Đến ngày" giống hệt - muốn tính nhiều ngày chỉ việc sửa
+   * lại ô sau. Không ghi đè nếu người dùng đã tự chọn Đến ngày trước đó.
    */
-  function parseCsvDateGuess(csvText) {
-    var firstLine = String(csvText).split(/\r?\n/).find(function (l) { return l.trim().length > 0; });
-    if (!firstLine) return null;
-    var firstCell = firstLine.split(',')[0].trim().replace(/^"|"$/g, '');
-
-    var m = firstCell.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
-    if (m) return pad4_(m[1]) + '-' + pad2_(m[2]) + '-' + pad2_(m[3]);
-
-    m = firstCell.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})$/);
-    if (m) {
-      var day = m[1], month = m[2], year = m[3];
-      if (year.length === 2) year = (Number(year) <= 79 ? '20' : '19') + year;
-      return pad4_(year) + '-' + pad2_(month) + '-' + pad2_(day);
-    }
-    return null;
-  }
-  function pad2_(s) { s = String(s); return s.length < 2 ? '0' + s : s; }
-  function pad4_(s) { return String(s); }
-
-  function onCsvFileSelected() {
-    var fileInput = document.getElementById('csvFile');
-    var note = document.getElementById('csvDateNote');
-    if (!fileInput.files.length) { note.textContent = ''; return; }
-    note.textContent = 'Đang đọc ngày từ file...';
-    var reader = new FileReader();
-    reader.onload = function (e) {
-      var guess = parseCsvDateGuess(e.target.result);
-      if (guess) {
-        document.getElementById('csvDate').value = guess;
-        var d = new Date(guess);
-        note.textContent = '✓ Đã tự đọc ngày từ file: ' +
-          ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear() +
-          ' - kiểm tra lại, sửa nếu sai.';
-      } else {
-        note.textContent = '⚠ Không đọc được ngày trong file, vui lòng tự chọn ở ô Ngày bên dưới.';
-      }
-    };
-    reader.readAsText(fileInput.files[0]);
-  }
-
-  function submitCsv() {
-    var date = document.getElementById('csvDate').value;
-    var unit = document.getElementById('csvUnit').value;
-    var role = document.getElementById('csvRole').value;
-    var fileInput = document.getElementById('csvFile');
-    if (!fileInput.files.length) { setStatus('err', 'Chọn file CSV trước.'); return; }
-    if (!date) { setStatus('err', 'Chưa xác định được ngày - chọn tay ở ô Ngày.'); return; }
-    var restore = withButton('btnCsv', 'Đang lưu…', null);
-    setStatus('busy', 'Đang đọc và lưu file CSV...');
-    var reader = new FileReader();
-    reader.onload = function (e) {
-      google.script.run
-        .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
-        .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
-        .sidebar_saveCsv(date, unit, role, e.target.result, fileInput.files[0].name);
-    };
-    reader.onerror = function () { restore(); setStatus('err', '✗ Không đọc được file.'); };
-    reader.readAsText(fileInput.files[0]);
+  function syncToDate() {
+    var from = document.getElementById('fromDate');
+    var to = document.getElementById('toDate');
+    if (from.value && (!to.value || to.value < from.value)) to.value = from.value;
   }
 
   function readFileAsText_(file) {
@@ -253,18 +176,6 @@
       restore();
       setStatus('err', '✗ ' + err.message);
     });
-  }
-
-  function submitOneDay() {
-    var date = document.getElementById('oneDate').value;
-    var unit = document.getElementById('oneUnit').value;
-    if (!date) { setStatus('err', 'Chọn ngày trước.'); return; }
-    var restore = withButton('btnOneDay', 'Đang tính…', null);
-    setStatus('busy', 'Đang tính toán...');
-    google.script.run
-      .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
-      .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
-      .sidebar_calcOneDay(date, unit, document.getElementById('oneCleanup').checked);
   }
 
   function submitBatch() {
@@ -317,12 +228,23 @@
   }
 
   function submitImportCommands() {
+    var fileInput = document.getElementById('cmdXlsxFile');
+    if (!fileInput.files.length) { setStatus('err', 'Chọn file Excel danh sách lệnh trước.'); return; }
+    var file = fileInput.files[0];
+
     var restore = withButton('btnImportCmd', 'Đang nhập…', null);
-    setStatus('busy', 'Đang đọc LENH_STAGING và gộp vào LENH...');
-    google.script.run
-      .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
-      .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
-      .sidebar_importCommands();
+    setStatus('busy', 'Đang tải và đọc file "' + file.name + '"...');
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      // readAsDataURL -> "data:<mime>;base64,<nội dung>"; server chỉ cần phần sau dấu phẩy.
+      var base64 = String(e.target.result).split(',')[1];
+      google.script.run
+        .withSuccessHandler(function (msg) { restore(); setStatus('ok', '✓ ' + msg); })
+        .withFailureHandler(function (err) { restore(); setStatus('err', '✗ Lỗi: ' + err.message); })
+        .sidebar_importCommandsFromXlsx(base64, file.name);
+    };
+    reader.onerror = function () { restore(); setStatus('err', '✗ Không đọc được file.'); };
+    reader.readAsDataURL(file);
   }
 
   function submitCleanup() {

@@ -5,8 +5,7 @@
  * LUÔN giữ nguyên: CAI_DAT (cấu hình nhà máy).
  * Giữ có chọn lọc: KET_QUA của N ngày gần nhất - để P0 của ngày kế tiếp
  * vẫn tự suy ra được, không phải nhập tay lại (xem readOrInferP0_).
- * Xoá sạch: LENH, LENH_STAGING, CSV_DATA, BAO_CAO_THANG, P0_NGAY và phần
- * KET_QUA cũ hơn.
+ * Xoá sạch: LENH, CSV_DATA, BAO_CAO_THANG, P0_NGAY và phần KET_QUA cũ hơn.
  */
 
 /** Chuẩn hoá 1 ô ngày về chuỗi 'yyyy-MM-dd' để so sánh; trả '' nếu không phải ngày. */
@@ -64,7 +63,7 @@ function cleanupOldData_(keepDays) {
   }
 
   // --- Các sheet dữ liệu nguồn/kết xuất: xoá sạch dữ liệu, giữ dòng tiêu đề ---
-  [SHEETS.LENH, SHEETS.LENH_STAGING, SHEETS.CSV_DATA, SHEETS.BAO_CAO_THANG].forEach(function (name) {
+  [SHEETS.LENH, SHEETS.CSV_DATA, SHEETS.BAO_CAO_THANG].forEach(function (name) {
     var sh = ss.getSheetByName(name);
     if (!sh) return;
     var lastRow = sh.getLastRow();

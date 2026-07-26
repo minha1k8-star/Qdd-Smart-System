@@ -1,6 +1,8 @@
 # Project Status
 
-Cập nhật lần cuối: 2026-07-24.
+Cập nhật lần cuối: 2026-07-26.
+
+> **Trạng thái tổng quát**: bản Google Sheets + Apps Script đã **được đơn vị triển khai dùng thật** trên Sheet mẫu Duyên Hải 1. Bản Excel/VBA v1.3.1 trong `legacy/` giữ làm chuẩn đối chiếu.
 
 ## Sprint 0 — Documentation Foundation
 
@@ -23,19 +25,23 @@ Cập nhật lần cuối: 2026-07-24.
 
 ## Sprint 1 — QDD-Core-Library + Google Sheets Template
 
-🟢 Đã triển khai thật. `QDD-Core-Library` đã push lên Apps Script (đã login, đã publish version 1). Sheet mẫu đầu tiên (Duyên Hải 1) đã tạo, gắn Library, có menu 6 chức năng (thiết lập, lưu CSV, tính 1 ngày, tính hàng loạt, báo cáo tháng). 29/29 test cục bộ pass. Chưa xong: carry-over R07 (phải nhập tay P0), cảnh báo UAT-34, xuất file Excel/PDF riêng, đủ 15 chức năng như VBA.
+🟢 **Đã đưa vào sử dụng thật.** `QDD-Core-Library` publish **version 4**, Sheet mẫu (Duyên Hải 1) gắn Library và đang được đơn vị dùng để tính số liệu vận hành. 45/45 test cục bộ pass.
+
+Bảng điều khiển 6 mục: Tải CSV · Nhập danh sách lệnh (từ file Excel) · Tính · Báo cáo tháng · Xuất báo cáo · Dọn dữ liệu cũ.
 
 ## Sprint 2 — Algorithm (migrate)
 
-⬜ Chưa bắt đầu.
+🟢 **Xong phần tính toán.** Toàn bộ R01-R14 + R07 (carry-over qua nửa đêm) đã chạy trên Apps Script, đối chiếu 1:1 với bảng tính tay qua 2 đợt kiểm chứng — xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
+
+Còn nợ: ánh xạ 45 test hiện có sang đúng mã UAT trong [09_Test_Cases.md](09_Test_Cases.md); kiểm chứng tổ **S2** trên bản Google Sheets (mới chỉ chạy S1).
 
 ## Sprint 3 — Report
 
-⬜ Chưa bắt đầu.
+🟢 Báo cáo tháng + xuất file Excel/PDF theo ngày/khoảng ngày/cả tháng, layout bám file `Kiểm tra Qdu` gốc, tên file mang đúng kỳ báo cáo.
 
 ## Sprint 4 — Dashboard
 
-⬜ Chưa bắt đầu.
+⬜ Chưa bắt đầu (cùng với nhật ký thao tác).
 
 ## Rủi ro / việc cần quyết định
 

@@ -6,7 +6,9 @@ Công cụ tính toán và xuất báo cáo **Qdd** (công suất điều độ)
 
 ## Trạng thái hiện tại
 
-Bản **Google Sheets + Apps Script** đã chạy được và **đã kiểm chứng bằng dữ liệu vận hành thật**: ngày 17/07 và 18/07/2026 tổ S1 khớp **tuyệt đối (0,0000 MW / 48 chu kỳ)** với bảng tính tay độc lập. Xem [docs/15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md).
+Bản **Google Sheets + Apps Script** đã **được đơn vị đưa vào sử dụng thật** (Sheet mẫu Duyên Hải 1), thư viện thuật toán ở **version 4**, 45/45 test cục bộ pass.
+
+Đã kiểm chứng bằng dữ liệu vận hành thật qua **2 đợt, 16 tổ hợp (ngày, tổ máy)** — đối chiếu từng chu kỳ với bảng tính tay độc lập, sai lệch nằm trong mức làm tròn; riêng **3 ô lệch ~1 MW đã truy ra là bảng tính tay sai, không phải hệ thống**. Tình huống khó nhất — **ramp vắt qua nửa đêm (R07)** — đã được xác nhận bằng dữ liệu thật ngày 23→24/07/2026. Xem [docs/15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md).
 
 Bản **Excel + VBA v1.3.1** (trong [`legacy/`](legacy/)) là hệ thống gốc đã dùng nhiều tháng, giữ lại làm chuẩn đối chiếu.
 
@@ -43,6 +45,7 @@ Qdd-Smart-System/
 │   ├── 00_Project_Overview.md
 │   ├── 03_Business_Rules.md
 │   ├── 04_Algorithm_Specification.md
+│   ├── 05_System_Architecture.md          # Vì sao chọn Library thay vì Web App
 │   ├── 06_Database_Design.md
 │   ├── 09_Test_Cases.md
 │   ├── 14_Knowledge_Transfer.md
