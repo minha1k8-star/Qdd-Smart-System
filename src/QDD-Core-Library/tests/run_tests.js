@@ -379,5 +379,37 @@ console.log('12) Ten to may tuy y (H1/H2, TM1/TM2)');
   checkTrue('Ten 1 ky tu: A khong khop B', sel('A', 'B') === 0);
 }
 
+// 13) Moi ham ma Sheet goi qua QDDCoreLibrary.* phai co trong Public.js
+//
+// Loi da gap that: matchesUnit chi duoc export trong module noi bo
+// (QDD.CommandFilter) chu khong khai bao o Public.js, nen Sheet goi
+// QDDCoreLibrary.matchesUnit bi "is not a function" - test cuc bo khong
+// bat duoc vi no goi thang QDD.CommandFilter.matchesUnit.
+console.log('13) Sheet goi gi thi Public.js phai co cai do');
+{
+  const templateDir = path.join(SRC_DIR, '..', 'NhaMay-Mau-Template');
+  if (!fs.existsSync(templateDir)) {
+    console.log('  (bo qua: khong tim thay thu muc Sheet mau)');
+  } else {
+    const publicSrc = fs.readFileSync(path.join(SRC_DIR, 'Public.js'), 'utf8');
+    const exported = new Set(
+      [...publicSrc.matchAll(/^function\s+([A-Za-z0-9_]+)\s*\(/gm)].map((m) => m[1])
+    );
+    const called = new Set();
+    fs.readdirSync(templateDir)
+      .filter((f) => f.endsWith('.js') || f.endsWith('.html'))
+      .forEach((f) => {
+        const code = fs.readFileSync(path.join(templateDir, f), 'utf8');
+        [...code.matchAll(/QDDCoreLibrary\.([A-Za-z0-9_]+)/g)].forEach((m) => called.add(m[1]));
+      });
+    const missing = [...called].filter((name) => !exported.has(name));
+    checkTrue(
+      'Sheet goi ' + called.size + ' ham thu vien, tat ca deu co trong Public.js' +
+        (missing.length ? ' -- THIEU: ' + missing.join(', ') : ''),
+      missing.length === 0
+    );
+  }
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail > 0 ? 1 : 0);

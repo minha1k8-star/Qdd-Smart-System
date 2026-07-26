@@ -6,6 +6,18 @@ Mỗi mục ghi thay đổi và **lý do** của thay đổi đó, không chỉ 
 
 Bản Google Sheets + Apps Script được đưa vào sử dụng thật tại nhà máy Duyên Hải 1. Các mục dưới đây là nhật ký thay đổi trong quá trình xây dựng, mới nhất ở trên.
 
+### Hàm thư viện phải khai báo ở `Public.js` mới gọi được từ Sheet
+
+Ngay sau khi lên version 5, tính ngày 23–24/07 báo `QDDCoreLibrary.matchesUnit is not a function`. Nguyên nhân: `matchesUnit` mới chỉ được export trong module nội bộ `QDD.CommandFilter`, **chưa khai báo ở `Public.js`** — Sheet chỉ gọi được các hàm top-level ở file đó.
+
+Test cục bộ không bắt được vì nó gọi thẳng `QDD.CommandFilter.matchesUnit`, không đi qua ranh giới Library.
+
+- Bổ sung `matchesUnit` vào `Public.js`. Thư viện lên **version 6**.
+- **Thêm test chặn tái diễn**: quét mọi lời gọi `QDDCoreLibrary.*` trong Sheet mẫu và đối chiếu với danh sách hàm khai báo ở `Public.js`. Đã kiểm bằng cách tạm bỏ hàm ra — test báo đỏ đúng như mong đợi.
+- Ghi vào `AGENTS.md` mục cạm bẫy kỹ thuật.
+
+> Ngày 25/07 không báo lỗi vì hôm đó không có lệnh nào — vòng lặp thoát ở bước so ngày trước khi chạm tới `matchesUnit`. Đúng kiểu lỗi chỉ lộ ra ở một phần dữ liệu.
+
 ### Tên tổ máy tuỳ ý (H1/H2, E1/E2…) — sửa một cái bẫy so khớp
 
 Câu hỏi từ người dùng: nhà máy đặt tên tổ máy là `H1`/`H2` hay `E1`/`E2` thì chỉ cần đổi trong `CAI_DAT` thôi phải không? Kiểm tra bằng cách chạy thử thì **đúng với tên 2 ký tự, nhưng sai với tên dài hơn**.

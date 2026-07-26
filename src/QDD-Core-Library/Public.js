@@ -19,6 +19,18 @@ function selectEffectiveCommands(commands, targetDate, unit) {
 }
 
 /**
+ * Lệnh này có thuộc tổ máy đang tính không (khớp cả khi cột "Tổ máy"
+ * trong file lệnh ghi dài hơn, vd cấu hình "S1" - file ghi "S1DH1").
+ * Tầng Sheet dùng để lọc cảnh báo, phải đi qua đây để dùng CHUNG một
+ * quy tắc với CommandFilter, không tự lặp lại logic riêng.
+ * @param {string} toMay
+ * @param {string} unit
+ */
+function matchesUnit(toMay, unit) {
+  return QDD.CommandFilter.matchesUnit(toMay, unit);
+}
+
+/**
  * @param {Object} input  Xem QDD.QddCalculator.calculateDay
  */
 function calculateDay(input) {
