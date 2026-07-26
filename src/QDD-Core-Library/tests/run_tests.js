@@ -358,5 +358,26 @@ console.log('11) R07 - ramp vat qua nua dem');
     wrong[0].qdd === wrong[47].qdd);
 }
 
+// 12) Ten to may khong chi la S1/S2
+console.log('12) Ten to may tuy y (H1/H2, TM1/TM2)');
+{
+  const d = new Date(2026, 6, 17);
+  const mk = (toMay) => ({
+    id: 'X' + toMay, toMay, csRaLenh: 500, csHoanThanh: 500,
+    bdth: new Date(2026, 6, 17, 10, 0, 0), hoanThanh: 1, dungLenh: false, nguonLenh: 'MO',
+  });
+  const sel = (toMay, unit) => QDD.CommandFilter.selectEffective([mk(toMay)], d, unit).length;
+
+  checkTrue('H1 khop H1', sel('H1', 'H1') === 1);
+  checkTrue('H1 KHONG khop H2', sel('H1', 'H2') === 0);
+  checkTrue('E1 khop E1', sel('E1', 'E1') === 1);
+  checkTrue('LENH ghi "S1DH1" van khop to may "S1"', sel('S1DH1', 'S1') === 1);
+  // Bay cu: so 2 ky tu dau lam lenh cua TM1 bi tinh sang TM2
+  checkTrue('TM1 KHONG bi tinh sang TM2', sel('TM1', 'TM2') === 0);
+  checkTrue('TM1 khop TM1', sel('TM1', 'TM1') === 1);
+  checkTrue('GT01 KHONG bi tinh sang GT02', sel('GT01', 'GT02') === 0);
+  checkTrue('Ten 1 ky tu: A khong khop B', sel('A', 'B') === 0);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail > 0 ? 1 : 0);

@@ -6,7 +6,7 @@
  *
  * @typedef {Object} RawCommand
  * @property {string} id
- * @property {string} toMay        "S1" | "S2"
+ * @property {string} toMay        tên tổ máy, vd "S1" (chấp nhận cả "S1DH1")
  * @property {number} csRaLenh     CS ra lệnh (MW), có thể null/undefined
  * @property {number} csHoanThanh  CS hoàn thành (MW), có thể null/undefined
  * @property {Date}   bdth         Thời điểm BĐTH
@@ -30,6 +30,25 @@ QDD.CommandFilter = (function () {
 
   function isStopped(dungLenh) {
     return dungLenh === true || dungLenh === 'TRUE' || dungLenh === 1;
+  }
+
+  /**
+   * Lệnh này có thuộc tổ máy đang tính không.
+   *
+   * Cột "Tổ máy" trong file lệnh gốc đôi khi ghi dài hơn tên tổ máy đã
+   * cấu hình (vd cấu hình "S1", file ghi "S1DH1"), nên chấp nhận cả
+   * trường hợp giá trị trong file BẮT ĐẦU BẰNG tên tổ máy.
+   *
+   * TRƯỚC ĐÂY so 2 KÝ TỰ ĐẦU, và đó là một cái bẫy: nhà máy đặt tên tổ
+   * máy dài hơn 2 ký tự mà 2 ký tự đầu giống nhau (TM1/TM2, GT01/GT02)
+   * thì lệnh của tổ này bị tính sang tổ kia - sai âm thầm, không báo lỗi.
+   * Nay so theo TOÀN BỘ tên tổ máy đã cấu hình.
+   */
+  function matchesUnit(toMay, unit) {
+    var a = String(toMay || '').toUpperCase().trim();
+    var b = String(unit || '').toUpperCase().trim();
+    if (!b) return false;
+    return a === b || a.indexOf(b) === 0;
   }
 
   function secondsOfDay(date) {
@@ -59,17 +78,16 @@ QDD.CommandFilter = (function () {
   /**
    * @param {RawCommand[]} commands  Toàn bộ lệnh (nhiều ngày/nhiều tổ máy)
    * @param {Date} targetDate        Ngày đang tính
-   * @param {string} unit            "S1" | "S2"
+   * @param {string} unit            tên tổ máy như cấu hình, vd "S1", "H1", "TM1"
    * @returns {EffectiveCommand[]}   Đã lọc + sắp theo thời gian tăng dần
    */
   function selectEffective(commands, targetDate, unit) {
-    var unitPrefix = unit.toUpperCase().slice(0, 2);
     var out = [];
 
     commands.forEach(function (c) {
       if (!isDateLike(c.bdth) || !isDateLike(targetDate)) return;
       if (!sameDate(c.bdth, targetDate)) return;
-      if ((c.toMay || '').toUpperCase().slice(0, 2) !== unitPrefix) return;
+      if (!matchesUnit(c.toMay, unit)) return;
       if (!isCompleted(c.hoanThanh)) return;
 
       var nguon = (c.nguonLenh || '').toUpperCase();
@@ -105,7 +123,7 @@ QDD.CommandFilter = (function () {
     return out;
   }
 
-  return { selectEffective: selectEffective };
+  return { selectEffective: selectEffective, matchesUnit: matchesUnit };
 })();
 
 if (typeof module !== 'undefined' && module.exports) { module.exports = QDD; }

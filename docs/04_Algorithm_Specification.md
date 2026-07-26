@@ -40,7 +40,7 @@ Một lệnh được coi là **hợp lệ** khi thoả đồng thời:
 ```
 BĐTH là ngày-giờ hợp lệ
 VÀ ngày của BĐTH = ngày đang tính
-VÀ 2 ký tự đầu của Tổ máy = 2 ký tự đầu tổ máy đang tính
+VÀ Tổ máy khớp tổ máy đang tính (bằng nhau, hoặc bắt đầu bằng tên tổ máy — vd cấu hình "S1" khớp giá trị "S1DH1" trong file lệnh)
 VÀ Hoàn thành = 1
 VÀ ( (Nguồn lệnh = "SO" VÀ CS hoàn thành > 0)
      HOẶC (Nguồn lệnh = "MO" VÀ CS ra lệnh > 0) )
@@ -55,6 +55,8 @@ P_hiệu_lực = CS hoàn thành   nếu Nguồn lệnh = "SO"                  
 ```
 
 Điều kiện `> 0` cho cả SO và MO là **chủ đích, đã xác nhận nghiệp vụ** — lệnh "0-0" (CS ra lệnh = CS hoàn thành = 0, thường là trip/ngừng sự cố) **không được tính**. Không nới thành `>= 0`. Xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
+
+> **Tên tổ máy không cố định là S1/S2** — lấy theo cấu hình của từng nhà máy (`H1`, `E1`, `TM1`…). Trước đây chỉ so **2 ký tự đầu**, và đó là một cái bẫy: nhà máy đặt tên dài hơn 2 ký tự mà 2 ký tự đầu giống nhau (`TM1`/`TM2`, `GT01`/`GT02`) thì **lệnh của tổ này bị tính sang tổ kia, sai âm thầm**. Nay so theo **toàn bộ tên tổ máy** đã cấu hình.
 
 Lệnh hiệu lực được sắp theo **giây trong ngày** của BĐTH:
 `seconds = giờ × 3600 + phút × 60 + giây`.

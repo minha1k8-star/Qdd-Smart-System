@@ -9,7 +9,7 @@ Apps Script Library dùng chung cho QDD Smart System — logic Ramp Engine, ch�
 | File | Vai trò | Tương ứng docs/04 |
 |---|---|---|
 | `Config.js` | Hằng số nghiệp vụ (tốc độ ramp, hệ số Qdd_V, dung sai...) | Mục 9 |
-| `CommandFilter.js` | R01-R03: chọn lệnh hiệu lực + công suất hiệu lực | Mục 1 |
+| `CommandFilter.js` | R01-R03: chọn lệnh hiệu lực + công suất hiệu lực; so khớp tên tổ máy | Mục 1 |
 | `RampEngine.js` | R06: nội suy ngắt ramp giữa các lệnh | Mục 2 |
 | `Segments.js` | Dựng đoạn công suất phủ 24h | Mục 3 |
 | `AreaIntegration.js` | R08: tích phân hình thang 48 chu kỳ → Qdd | Mục 4 |

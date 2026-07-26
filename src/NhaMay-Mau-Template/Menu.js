@@ -95,13 +95,12 @@ function computeOneDay_(date, unit) {
 function detectZeroZeroCommands_(allCommands, date, unit) {
   var tz = Session.getScriptTimeZone();
   var dateStr = Utilities.formatDate(date, tz, 'yyyy-MM-dd');
-  var unitPrefix = unit.toUpperCase().slice(0, 2);
   var warnings = [];
 
   allCommands.forEach(function (c) {
     if (!(c.bdth instanceof Date)) return;
     if (Utilities.formatDate(c.bdth, tz, 'yyyy-MM-dd') !== dateStr) return;
-    if (String(c.toMay || '').toUpperCase().slice(0, 2) !== unitPrefix) return;
+    if (!QDDCoreLibrary.matchesUnit(c.toMay, unit)) return;
     var completed = (c.hoanThanh === 1 || c.hoanThanh === true || String(c.hoanThanh).toUpperCase() === 'TRUE');
     if (!completed) return;
     if (Number(c.csRaLenh) === 0 && Number(c.csHoanThanh) === 0) {

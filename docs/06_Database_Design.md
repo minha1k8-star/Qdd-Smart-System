@@ -36,6 +36,8 @@ Hai cột: nhãn (A) và giá trị (B). Đọc theo **nhãn**, không theo số
 | Mã công tơ Qmp - S2 | `csv301` | |
 | Nhãn báo cáo - S2 | `S2DH1` | |
 
+> **Tên tổ máy tuỳ nhà máy** — không bắt buộc `S1`/`S2`. Dùng `H1`/`H2`, `E1`/`E2` hay tên khác đều được, chỉ cần **trùng với giá trị ở cột "Tổ máy" trong file lệnh**. Lưu ý đặt tên sao cho **tên tổ này không phải là phần đầu của tên tổ kia** (`TM1`/`TM12` sẽ khớp lẫn nhau).
+
 > **Danh sách tổ máy được suy ra từ chính các dòng này** (`getConfiguredUnits_` quét các nhãn dạng `Mã công tơ Qdc - <tổ máy>`). Nhà máy có **3 tổ máy trở lên** chỉ cần **thêm 3 dòng** cho mỗi tổ (`Mã công tơ Qdc - S3`, `Mã công tơ Qmp - S3`, `Nhãn báo cáo - S3`) — sidebar và báo cáo tự hiện đủ, **không phải sửa một dòng code nào**. Thứ tự trong `CAI_DAT` quyết định thứ tự hiển thị.
 
 > **Mã công tơ ghi dạng `csv001`, có chữ `csv` phía trước.** Ghi `001` thì Google Sheets tự hiểu là **số 1** và cắt mất hai số 0 đầu — đặt định dạng "Văn bản thuần" cũng không cứu được ô đã lỡ lưu thành số. Chữ `csv` giữ cho ô luôn là văn bản, đồng thời nhắc người đọc đó là mã nằm trong **tên file CSV**. "Thiết lập sheet" tự chuẩn hoá mọi dạng cũ (`6001`, `001`, `1`) về `csv001` và sửa luôn các dòng `CSV_DATA` cũ theo.
@@ -56,7 +58,7 @@ Hai cột: nhãn (A) và giá trị (B). Đọc theo **nhãn**, không theo số
 |---|---|---|
 | 1 | ID Lệnh | khoá gộp khi nhập lại (trùng ID → cập nhật, không nhân đôi) |
 | 2 | Nhà máy | |
-| 3 | Tổ máy | lọc S1/S2 |
+| 3 | Tổ máy | lọc theo tổ máy; khớp khi bằng hoặc bắt đầu bằng tên đã cấu hình (`S1` khớp `S1DH1`) |
 | 4 | Nội dung lệnh | |
 | 5 | CS ra lệnh (MW) | P hiệu lực khi MO bình thường (R02) |
 | 6 | CS hoàn thành (MW) | P hiệu lực khi SO (R01) hoặc MO bị dừng (R03) |

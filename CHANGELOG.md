@@ -6,6 +6,16 @@ Mỗi mục ghi thay đổi và **lý do** của thay đổi đó, không chỉ 
 
 Bản Google Sheets + Apps Script được đưa vào sử dụng thật tại nhà máy Duyên Hải 1. Các mục dưới đây là nhật ký thay đổi trong quá trình xây dựng, mới nhất ở trên.
 
+### Tên tổ máy tuỳ ý (H1/H2, E1/E2…) — sửa một cái bẫy so khớp
+
+Câu hỏi từ người dùng: nhà máy đặt tên tổ máy là `H1`/`H2` hay `E1`/`E2` thì chỉ cần đổi trong `CAI_DAT` thôi phải không? Kiểm tra bằng cách chạy thử thì **đúng với tên 2 ký tự, nhưng sai với tên dài hơn**.
+
+`CommandFilter.selectEffective` so **2 ký tự đầu** của tên tổ máy. Nhà máy đặt tên `TM1`/`TM2` hoặc `GT01`/`GT02` thì hai tổ đều có 2 ký tự đầu giống nhau → **lệnh của tổ này bị tính sang tổ kia, sai âm thầm, không báo lỗi gì**.
+
+Nay so theo **toàn bộ tên tổ máy** đã cấu hình: khớp khi bằng nhau, hoặc khi giá trị trong file lệnh **bắt đầu bằng** tên đó (giữ lại trường hợp cấu hình `S1` mà file lệnh ghi `S1DH1`). Thêm 8 test khoá lại, gồm các trường hợp phải KHÔNG khớp. Thư viện lên **version 5**.
+
+> Còn một giới hạn cần biết khi đặt tên: **tên tổ này không được là phần đầu của tên tổ kia** (`TM1` và `TM12` sẽ khớp lẫn nhau). Đã ghi vào `docs/06_Database_Design.md`.
+
 ### Google Sheets cắt mất số 0 đầu của mã công tơ
 
 Ngay sau khi đổi mã công tơ sang `001`, Sheet hiển thị thành **`1`** — Google Sheets tự hiểu ô `001` là SỐ 1 và cắt hai số 0 đứng đầu. Ba lớp xử lý:
