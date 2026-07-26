@@ -6,7 +6,7 @@ Công cụ tính toán và xuất báo cáo **Qdd** (công suất điều độ)
 
 ## Trạng thái hiện tại
 
-Bản **Google Sheets + Apps Script** đã **được đơn vị đưa vào sử dụng thật** (Sheet mẫu Duyên Hải 1), thư viện thuật toán ở **version 4**, 45/45 test cục bộ pass.
+Bản **Google Sheets + Apps Script** đã **được đơn vị đưa vào sử dụng thật** (Sheet mẫu Duyên Hải 1), thư viện thuật toán ở **version 6**, 54/54 test cục bộ pass.
 
 Đã kiểm chứng bằng dữ liệu vận hành thật qua **2 đợt, 16 tổ hợp (ngày, tổ máy)** — đối chiếu từng chu kỳ với bảng tính tay độc lập, sai lệch nằm trong mức làm tròn; riêng **3 ô lệch ~1 MW đã truy ra là bảng tính tay sai, không phải hệ thống**. Tình huống khó nhất — **ramp vắt qua nửa đêm (R07)** — đã được xác nhận bằng dữ liệu thật ngày 23→24/07/2026. Xem [docs/15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md).
 

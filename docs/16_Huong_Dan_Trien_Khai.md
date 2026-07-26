@@ -219,7 +219,7 @@ cd src/QDD-Core-Library
 node tests/run_tests.js
 ```
 
-Phải thấy **tất cả test pass** (hiện là 45/45). Bộ test này khoá lại các lỗi thật đã từng gặp (xem [CHANGELOG.md](../CHANGELOG.md)), nên nếu có test đỏ thì đừng đưa vào dùng.
+Phải thấy **tất cả test pass** (hiện là 54/54). Bộ test này khoá lại các lỗi thật đã từng gặp (xem [CHANGELOG.md](../CHANGELOG.md)), nên nếu có test đỏ thì đừng đưa vào dùng.
 
 Sau đó, nên **đối chiếu ít nhất 2 ngày có số liệu tính tay** trước khi tin kết quả — cách làm xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
 

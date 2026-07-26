@@ -2,7 +2,7 @@
 
 Hai lớp kiểm thử:
 
-1. **Test tự động** (`src/QDD-Core-Library/tests/run_tests.js`) — chạy bằng Node, không cần Google, không cần dữ liệu thật. Khoá lại từng lỗi đã gặp. Chạy: `node tests/run_tests.js`. Hiện **45/45 pass**.
+1. **Test tự động** (`src/QDD-Core-Library/tests/run_tests.js`) — chạy bằng Node, không cần Google, không cần dữ liệu thật. Khoá lại từng lỗi đã gặp. Chạy: `node tests/run_tests.js`. Hiện **54/54 pass**.
 2. **Đối chiếu dữ liệu thật** — so kết quả hệ thống với bảng tính tay độc lập trên dữ liệu vận hành. Kết quả ghi ở [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md).
 
 > Theo [AGENTS.md](../AGENTS.md): thay đổi ở [03_Business_Rules.md](03_Business_Rules.md) hoặc [04_Algorithm_Specification.md](04_Algorithm_Specification.md) phải có test case tương ứng ở đây.
@@ -42,9 +42,9 @@ Hai lớp kiểm thử:
 | **TC-29** | **Tổ máy S2**: lọc đúng S2, P0 và lịch sử độc lập với S1 | Cần dữ liệu thật S2 + bảng tính tay | 🟡 **Chưa chạy** |
 | **TC-30** | **Giữ P0 người dùng nhập tay**, không bị ghi đè bởi P0 tự động | Cần kiểm tay trên Sheet | 🟡 **Chưa chạy** |
 | **TC-31** | **Khởi động lại sau sự cố** (CS ra lệnh = CS hoàn thành = tải thật) | Cần dữ liệu thật đúng mẫu | 🟡 **Chưa chạy** |
-| **TC-32** | **R15 — Qdd chỉ tính từ lúc hoàn thành lệnh khởi động**, giai đoạn tăng tải từ 0 không tính | Cần chốt 3 điểm ở [03_Business_Rules.md](03_Business_Rules.md#r15--khởi-động-lại-tổ-máy-sau-khi-ngừng) + dữ liệu thật | 🔴 **Chưa triển khai** |
+| **TC-32** | **R15 — Qdd chỉ tính từ lúc hoàn thành lệnh khởi động**, giai đoạn tăng tải từ 0 không tính | — | ⚪ **Quyết định KHÔNG triển khai** (26/07/2026), xử lý ở khâu vận hành |
 
-## Ba case còn nợ
+## Các case còn lại
 
 **TC-29 — tổ máy S2** là ưu tiên cao nhất. Toàn bộ đối chiếu dữ liệu thật đến nay mới chạy **S1**. Mã công tơ, P0 và chuỗi ngày của S2 độc lập hoàn toàn với S1, nên không suy ra được từ kết quả S1. Cần một vài ngày S2 có bảng tính tay để đối chiếu.
 
@@ -52,7 +52,7 @@ Hai lớp kiểm thử:
 
 **TC-31 — khởi động lại sau sự cố**: chờ có dữ liệu vận hành đúng mẫu "CS ra lệnh = CS hoàn thành = tải thật". Dữ liệu 07/07/2026 không dùng được vì chỉ có CS ra lệnh, thiếu CS hoàn thành.
 
-**TC-32 — R15, Qdd chỉ tính từ lúc hoàn thành lệnh khởi động**: quy tắc mới nêu ngày 26/07/2026, **hệ thống chưa làm**. Hiện giai đoạn tăng tải từ 0 lên tải mục tiêu vẫn được tính Qdd theo ramp thường, cho ra kết quả cao hơn thực tế. Chỉ ảnh hưởng ngày có khởi động lại. Cần chốt 3 điểm chi tiết và có dữ liệu thật kèm bảng tính tay trước khi triển khai.
+**TC-32 — R15**: **quyết định KHÔNG triển khai bằng code** (26/07/2026) — trưởng ca biết thời điểm nào bắt đầu tính Qdd nên tự quyết định khi nào nhập dữ liệu và bấm tính. Lưu ý vận hành: riêng ngày khởi động lại, nếu bấm tính cả ngày thì giai đoạn tăng tải từ 0 vẫn được tính theo ramp thường (cao hơn thực tế) — ngày đó xử lý tay hoặc bắt đầu tính từ ngày kế tiếp. Xem [03_Business_Rules.md](03_Business_Rules.md#r15--khởi-động-lại-tổ-máy-sau-khi-ngừng).
 
 ## Cách chạy test tự động
 

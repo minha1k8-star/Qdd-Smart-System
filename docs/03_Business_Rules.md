@@ -77,13 +77,22 @@ Toàn bộ quy tắc trên áp dụng được cho **cả tổ máy S1 và S2**,
 
 Phạm vi ảnh hưởng: chỉ những ngày có khởi động lại sau khi ngừng — không ảnh hưởng vận hành bình thường, nên toàn bộ kết quả đã kiểm chứng ở [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md) không bị ảnh hưởng.
 
-**Chưa triển khai vì còn 3 điểm cần chốt** (xem TC-32 ở [09_Test_Cases.md](09_Test_Cases.md)):
+**QUYẾT ĐỊNH 26/07/2026 — KHÔNG triển khai bằng code, xử lý ở khâu vận hành.**
+
+Lý do (người phụ trách nghiệp vụ): trưởng ca biết chính xác thời điểm nào bắt đầu tính Qdd cho tổ máy vừa khởi động, nên tự quyết định khi nào nhập dữ liệu và khi nào bấm tính. Viết thêm code cho tình huống này vừa phức tạp vừa phải đoán thay người vận hành.
+
+Hệ thống đã có sẵn hai cơ chế hỗ trợ cách làm này:
+
+- **Không có P0 thì từ chối tính**, không suy từ ngày cũ hơn (`readOrInferP0_` chỉ đọc đúng dòng P0 của ngày đó). Nên tổ máy bị bỏ trống nhiều ngày sẽ không âm thầm dùng công suất trước lúc ngừng.
+- **Cảnh báo khi ngày tính không có lệnh hiệu lực nào**, để người vận hành biết Qdd đang phẳng theo P0.
+
+**Điều cần người vận hành lưu ý** — hệ thống không tự xử lý được: **riêng ngày khởi động lại**, nếu bấm tính cả ngày đó thì giai đoạn tăng tải từ 0 lên tải mục tiêu vẫn được tính Qdd theo tốc độ ramp thường, tức **cao hơn thực tế**. Ngày đó nên xử lý tay, hoặc chỉ bắt đầu tính từ ngày kế tiếp.
+
+Nếu sau này muốn tự động hoá, cần chốt 3 điểm và có dữ liệu thật kèm bảng tính tay (xem TC-32 ở [09_Test_Cases.md](09_Test_Cases.md)):
 
 1. Các chu kỳ **trước** thời điểm hoàn thành ghi Qdd = **0**, hay để trống và không tính Qdư?
 2. Mốc "từ lúc đó" là cột **Thời điểm hoàn thành** của lệnh khởi động? (Hiện mọi lệnh đều dùng **BĐTH** — R04 nói rõ không dùng cột hoàn thành, nên đây sẽ là ngoại lệ đầu tiên.)
 3. Chu kỳ 30 phút **chứa** thời điểm hoàn thành thì tính thế nào: phần trước 0 + phần sau tải thật rồi lấy trung bình, hay cả chu kỳ tính tải thật?
-
-Cần **dữ liệu thật của một ngày khởi động lại kèm bảng tính tay** để đối chiếu trước khi đưa vào — theo đúng nguyên tắc ở [AGENTS.md](../AGENTS.md).
 
 ## Ghi chú
 

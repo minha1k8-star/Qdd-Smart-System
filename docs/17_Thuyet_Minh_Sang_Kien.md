@@ -88,7 +88,7 @@ Hệ thống phát hiện và cảnh báo rõ các tình huống mà công cụ 
 Nguyên tắc: hệ thống **chỉ cảnh báo, không tự sửa số liệu** — quyền quyết định thuộc về người vận hành.
 
 **d) Có bộ kiểm thử tự động bảo vệ thuật toán**
-Toàn bộ quy tắc nghiệp vụ được khoá lại bằng **45 trường hợp kiểm thử tự động**, chạy được trên máy cá nhân mà không cần dữ liệu vận hành thật. Mỗi lỗi phát hiện trong quá trình triển khai đều được bổ sung một trường hợp kiểm thử tương ứng để không tái diễn. Nhờ đó mỗi lỗi chỉ xảy ra đúng một lần.
+Toàn bộ quy tắc nghiệp vụ được khoá lại bằng **54 trường hợp kiểm thử tự động**, chạy được trên máy cá nhân mà không cần dữ liệu vận hành thật. Mỗi lỗi phát hiện trong quá trình triển khai đều được bổ sung một trường hợp kiểm thử tương ứng để không tái diễn. Nhờ đó mỗi lỗi chỉ xảy ra đúng một lần.
 
 **e) Toàn bộ tri thức được tài liệu hoá công khai**
 Quy tắc nghiệp vụ, đặc tả thuật toán, lịch sử lỗi và lý do của từng quyết định thiết kế đều được ghi lại trong kho mã nguồn — để người tiếp nhận sau này (hoặc nhà máy khác) hiểu được hệ thống mà không phụ thuộc vào trí nhớ của người xây dựng.
@@ -120,7 +120,7 @@ Trong quá trình đối chiếu, hệ thống phát hiện trường hợp **ng
 
 **5.3. Kiểm thử tự động**
 
-45/45 trường hợp kiểm thử đạt, bao phủ: chọn công suất hiệu lực theo loại lệnh, nội suy khi lệnh mới cắt ngang, tích phân diện tích 48 chu kỳ, quy đổi Qdd_V/Qdc/Qmp/Qdư theo dải dung sai, chuyển tiếp công suất qua nửa đêm, và các lỗi kỹ thuật đã từng gặp.
+54/54 trường hợp kiểm thử đạt, bao phủ: chọn công suất hiệu lực theo loại lệnh, nội suy khi lệnh mới cắt ngang, tích phân diện tích 48 chu kỳ, quy đổi Qdd_V/Qdc/Qmp/Qdư theo dải dung sai, chuyển tiếp công suất qua nửa đêm, và các lỗi kỹ thuật đã từng gặp.
 
 ## 6. Hiệu quả
 

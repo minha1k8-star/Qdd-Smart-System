@@ -2,13 +2,13 @@
 
 Cập nhật lần cuối: 2026-07-26.
 
-> **Trạng thái tổng quát**: hệ thống đã **được đơn vị đưa vào sử dụng thật** trên Sheet của nhà máy Duyên Hải 1. Thư viện `QDD-Core-Library` ở **version 4**, 45/45 test cục bộ pass.
+> **Trạng thái tổng quát**: hệ thống đã **được đơn vị đưa vào sử dụng thật** trên Sheet của nhà máy Duyên Hải 1. Thư viện `QDD-Core-Library` ở **version 4**, 54/54 test cục bộ pass.
 
 ## Đã xong
 
 | Hạng mục | Trạng thái |
 |---|---|
-| `QDD-Core-Library` — toàn bộ thuật toán R01-R14 + R07 | ✅ version 4, 45/45 test pass |
+| `QDD-Core-Library` — toàn bộ thuật toán R01-R14 + R07 | ✅ version 4, 54/54 test pass |
 | Sheet mẫu nhà máy đầu tiên, gắn Library | ✅ đang dùng thật |
 | Bảng điều khiển 6 mục | ✅ |
 | Nhập danh sách lệnh từ file Excel | ✅ |
@@ -28,7 +28,7 @@ Cập nhật lần cuối: 2026-07-26.
 | **Kiểm chứng tổ S2** (TC-29) | Ưu tiên cao nhất. Toàn bộ đối chiếu đến nay mới chạy S1; mã công tơ, P0 và chuỗi ngày của S2 độc lập nên không suy ra được từ S1 |
 | Kiểm thử giữ P0 nhập tay (TC-30) | Code đã xử lý, chưa chạy thử thật trên Sheet |
 | Khởi động lại sau sự cố (TC-31) | Chờ dữ liệu vận hành đúng mẫu "CS ra lệnh = CS hoàn thành = tải thật" |
-| **R15 — Qdd chỉ tính từ lúc hoàn thành lệnh khởi động** (TC-32) | Quy tắc mới nêu 26/07/2026, **hệ thống chưa làm**. Giai đoạn tăng tải từ 0 hiện vẫn được tính Qdd → cao hơn thực tế. Cần chốt 3 điểm chi tiết + dữ liệu thật |
+
 | Triển khai nhà máy thứ hai | Đồng thời là phép thử cho tài liệu [16_Huong_Dan_Trien_Khai.md](16_Huong_Dan_Trien_Khai.md) |
 
 ## Rủi ro / việc cần theo dõi
@@ -36,4 +36,5 @@ Cập nhật lần cuối: 2026-07-26.
 - **Chỉ mới kiểm chứng một tổ máy.** Kết quả S1 khớp không bảo đảm S2 khớp — cấu hình mã công tơ khác, chuỗi P0 khác. Cần đối chiếu vài ngày S2 trước khi tin số liệu S2.
 - **Quy trình nhập liệu vận hành** cần ghi đủ CS hoàn thành khi khởi động lại tổ máy sau sự cố. Thiếu trường này thì hệ thống không tự suy ra được tổ máy đã ngừng (xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md), UAT lệnh 0-0).
 - **Bảng tính tay đối chiếu có 3 ô sai** đã phát hiện (ngày 17/07 chu kỳ 40, ngày 19/07 chu kỳ 42). Nên báo lại người phụ trách bảng tính tay để sửa bản gốc, tránh lần sau đối chiếu lại nghi ngờ nhầm hệ thống.
+- **Ngày khởi động lại tổ máy sau khi ngừng** phải xử lý tay: hệ thống vẫn tính giai đoạn tăng tải từ 0 theo ramp thường (cao hơn thực tế). Đã quyết định không tự động hoá — xem R15 ở [03_Business_Rules.md](03_Business_Rules.md#r15--khởi-động-lại-tổ-máy-sau-khi-ngừng).
 - **Cập nhật thư viện không tự động.** Khi có nhiều nhà máy dùng chung Library, mỗi nhà máy phải tự đổi sang version mới — đúng theo kiến trúc đã chọn, nhưng cần quy trình thông báo.

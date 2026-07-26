@@ -245,7 +245,7 @@ Chi tiết các phương án đã cân nhắc: [05_System_Architecture.md](05_Sy
 
 Đây là phần quyết định việc hệ thống có đáng tin để dùng cho đối soát điện năng hay không.
 
-**a) Bộ kiểm thử tự động — 45 trường hợp.**
+**a) Bộ kiểm thử tự động — 54 trường hợp.**
 Mỗi quy tắc nghiệp vụ và mỗi lỗi từng gặp đều được khoá lại bằng một trường hợp kiểm thử. Chạy dưới 1 giây, không cần dữ liệu thật. Có một trường hợp không đạt thì không được đưa vào sử dụng. Nhờ đó **mỗi lỗi chỉ có thể xảy ra đúng một lần**.
 
 **b) Cảnh báo chủ động thay vì im lặng cho ra số sai.**

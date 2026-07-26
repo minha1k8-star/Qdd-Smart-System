@@ -4,7 +4,7 @@
 
 Nền tảng: **Google Sheets + Apps Script gắn liền từng file + thư viện code dùng chung** (`QDD-Core-Library`). Không làm Web App trung tâm — lý do và các phương án đã cân nhắc xem [05_System_Architecture.md](docs/05_System_Architecture.md).
 
-- [x] `QDD-Core-Library` — toàn bộ thuật toán: chọn công suất hiệu lực (R01-R03), Ramp Engine (R05-R06), dựng đoạn công suất, tích phân diện tích (R08), quy đổi Qdd/Qdd_V/Qdc/Qmp/Qdư (R09-R14), carry-over qua nửa đêm (R07), đọc CSV (R10/R12), báo cáo tháng. Quản lý bằng `clasp` + Git, **45/45 test cục bộ pass**.
+- [x] `QDD-Core-Library` — toàn bộ thuật toán: chọn công suất hiệu lực (R01-R03), Ramp Engine (R05-R06), dựng đoạn công suất, tích phân diện tích (R08), quy đổi Qdd/Qdd_V/Qdc/Qmp/Qdư (R09-R14), carry-over qua nửa đêm (R07), đọc CSV (R10/R12), báo cáo tháng. Quản lý bằng `clasp` + Git, **54/54 test cục bộ pass**.
 - [x] Sheet mẫu cho nhà máy đầu tiên (Duyên Hải 1), gắn Library — xem [src/NhaMay-Mau-Template/README.md](src/NhaMay-Mau-Template/README.md).
 - [x] Bảng điều khiển 6 mục: Tải CSV · Nhập danh sách lệnh · Tính · Báo cáo tháng · Xuất báo cáo · Dọn dữ liệu cũ.
 - [x] Nhập danh sách lệnh **thẳng từ file Excel** tải lên — không copy tay, tự dò sheet và dòng tiêu đề, gộp theo ID Lệnh.
