@@ -29,16 +29,18 @@ Hai cột: nhãn (A) và giá trị (B). Đọc theo **nhãn**, không theo số
 
 | Nhãn | Mặc định (Duyên Hải 1) | Dùng cho |
 |---|---|---|
-| Mã công tơ Qdc - S1 | `001` | R10 — nhận diện file CSV theo tên |
-| Mã công tơ Qmp - S1 | `303` | R12 |
+| Mã công tơ Qdc - S1 | `csv001` | R10 — nhận diện file CSV theo tên |
+| Mã công tơ Qmp - S1 | `csv303` | R12 |
 | Nhãn báo cáo - S1 | `S1DH1` | tiêu đề khối trong file xuất |
-| Mã công tơ Qdc - S2 | `002` | |
-| Mã công tơ Qmp - S2 | `301` | |
+| Mã công tơ Qdc - S2 | `csv002` | |
+| Mã công tơ Qmp - S2 | `csv301` | |
 | Nhãn báo cáo - S2 | `S2DH1` | |
 
 > **Danh sách tổ máy được suy ra từ chính các dòng này** (`getConfiguredUnits_` quét các nhãn dạng `Mã công tơ Qdc - <tổ máy>`). Nhà máy có **3 tổ máy trở lên** chỉ cần **thêm 3 dòng** cho mỗi tổ (`Mã công tơ Qdc - S3`, `Mã công tơ Qmp - S3`, `Nhãn báo cáo - S3`) — sidebar và báo cáo tự hiện đủ, **không phải sửa một dòng code nào**. Thứ tự trong `CAI_DAT` quyết định thứ tự hiển thị.
 
-> **Ô mã công tơ phải ở định dạng "Văn bản thuần"** — Google Sheets tự hiểu `001` là số 1 rồi cắt mất hai số 0 đầu. "Thiết lập sheet" tự đặt định dạng này. Nếu vẫn thấy hiển thị `1`, gõ lại `001` là được (hoặc ghi `csv001` — hệ thống cũng hiểu). Việc so khớp chịu được cả trường hợp mất số 0, nên số liệu không sai, chỉ là nhìn khó hiểu.
+> **Mã công tơ ghi dạng `csv001`, có chữ `csv` phía trước.** Ghi `001` thì Google Sheets tự hiểu là **số 1** và cắt mất hai số 0 đầu — đặt định dạng "Văn bản thuần" cũng không cứu được ô đã lỡ lưu thành số. Chữ `csv` giữ cho ô luôn là văn bản, đồng thời nhắc người đọc đó là mã nằm trong **tên file CSV**. "Thiết lập sheet" tự chuẩn hoá mọi dạng cũ (`6001`, `001`, `1`) về `csv001` và sửa luôn các dòng `CSV_DATA` cũ theo.
+>
+> Việc so khớp chỉ lấy **phần chữ số**, nên `csv001`, `001` hay `1` đều được hiểu là cùng một công tơ — chữ `csv` thuần tuý phục vụ hiển thị.
 
 > **MÃ CÔNG TƠ KHÔNG KÈM CHỮ SỐ NĂM.** Tên file CSV có dạng `<ngày><tháng><năm 1 chữ số><mã công tơ>` — `17076001.CSV` = ngày 17, tháng 07, **năm 2026 (số 6)**, công tơ **001**. Điền `6001` thì sang 2027 tên file thành `17077001.CSV` và **hệ thống không nhận ra file nào**. Chạy "Thiết lập sheet" sẽ tự bỏ chữ số năm khỏi mã 4 chữ số và sửa luôn các dòng `CSV_DATA` cũ theo, có báo rõ đã đổi những gì.
 
@@ -76,7 +78,7 @@ Sheet tự sắp xếp theo **Thời điểm BĐTH** tăng dần sau mỗi lần
 | Cột | Nội dung |
 |---|---|
 | 1 | Ngày |
-| 2 | Mã công tơ (vd `001`) — không kèm chữ số năm |
+| 2 | Mã công tơ (vd `csv001`) — không kèm chữ số năm |
 | 3–50 | Chu kỳ 1 … Chu kỳ 48 — giá trị `KwhGiao` gốc, **chưa chia 1000** |
 
 Mỗi dòng = một cặp (ngày, mã công tơ). Ghi lại cùng cặp sẽ **ghi đè**, không nhân đôi. Tự sắp xếp theo Ngày rồi Mã công tơ.

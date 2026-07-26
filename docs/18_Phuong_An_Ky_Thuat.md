@@ -228,7 +228,7 @@ Danh sách tổ máy **không cố định trong code** mà suy ra từ chính b
 
 Tương tự, mã công tơ, tốc độ tăng/giảm tải, hệ số quy đổi và dung sai đều là cấu hình riêng của từng nhà máy.
 
-> **Lưu ý khi cấu hình mã công tơ**: tên file CSV có dạng `<ngày><tháng><năm 1 chữ số><mã công tơ>` — ví dụ `17076001.CSV` là ngày 17, tháng 07, **năm 2026 (chữ số 6)**, công tơ **001**. Cấu hình chỉ ghi phần mã công tơ (`001`), không ghi kèm chữ số năm, để sang năm sau hệ thống vẫn nhận đúng file.
+> **Lưu ý khi cấu hình mã công tơ**: tên file CSV có dạng `<ngày><tháng><năm 1 chữ số><mã công tơ>` — ví dụ `17076001.CSV` là ngày 17, tháng 07, **năm 2026 (chữ số 6)**, công tơ **001**. Cấu hình ghi `csv001` — phần chữ số là mã công tơ, không kèm chữ số năm (để sang năm sau hệ thống vẫn nhận đúng file), còn chữ `csv` phía trước giữ cho ô luôn là văn bản (Google Sheets tự cắt số 0 đầu nếu ô là số).
 
 ### Vì sao không làm một website tập trung
 

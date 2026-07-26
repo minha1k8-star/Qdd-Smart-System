@@ -120,9 +120,26 @@ var CAI_DAT_LABELS = {
  * Giá trị dưới đây là của Duyên Hải 1 - nhà máy khác PHẢI tự điền lại.
  */
 var DEFAULT_UNITS = [
-  { unit: 'S1', qdc: '001', qmp: '303', reportLabel: 'S1DH1' },
-  { unit: 'S2', qdc: '002', qmp: '301', reportLabel: 'S2DH1' },
+  { unit: 'S1', qdc: 'csv001', qmp: 'csv303', reportLabel: 'S1DH1' },
+  { unit: 'S2', qdc: 'csv002', qmp: 'csv301', reportLabel: 'S2DH1' },
 ];
+
+/**
+ * Tiền tố bắt buộc của mã công tơ trong CAI_DAT.
+ *
+ * VÌ SAO PHẢI CÓ CHỮ: Google Sheets tự hiểu ô "001" là SỐ 1 rồi cắt mất
+ * hai số 0 đầu - đặt định dạng văn bản cũng KHÔNG cứu được ô đã lỡ lưu
+ * thành số (đã thử, ô vẫn hiển thị 1). Thêm chữ "csv" phía trước là cách
+ * chắc chắn để ô luôn là văn bản, đồng thời người đọc hiểu ngay đó là mã
+ * nằm trong TÊN FILE CSV.
+ *
+ * Việc so khớp chỉ lấy phần chữ số nên "csv001", "001" hay 1 đều khớp
+ * đúng cùng một công tơ - tiền tố chỉ phục vụ hiển thị.
+ */
+var METER_CODE_PREFIX = 'csv';
+
+/** Số chữ số tối thiểu của mã công tơ - dùng để bù lại các số 0 đầu đã bị Sheets cắt. */
+var METER_CODE_MIN_DIGITS = 3;
 
 function setupAllSheets() {
   ensureSheet_(SHEETS.CAI_DAT);
@@ -165,9 +182,10 @@ function setupAllSheets() {
   var units = getConfiguredUnits_();
   var msg = 'Đã tạo đủ các sheet cần thiết. Tổ máy đang cấu hình: ' + (units.join(', ') || '(chưa có)') + '.';
   if (meterChanges.length > 0) {
-    msg += '\n\nĐã BỎ CHỮ SỐ NĂM khỏi mã công tơ (chữ số đầu là năm, không thuộc mã công tơ):\n' +
-      meterChanges.join('\n') +
-      '\nCác dòng CSV_DATA cũ cũng đã được đổi theo, không cần tải lại CSV.';
+    msg += '\n\nĐã chuẩn hoá mã công tơ về dạng "csv001":\n' + meterChanges.join('\n') +
+      '\n\nLý do: chữ số đầu trong "6001" là NĂM (2026), không thuộc mã công tơ; ' +
+      'và Google Sheets cắt mất số 0 đầu nếu ô là số, nên thêm chữ "csv" cho ô luôn là văn bản.\n' +
+      'Các dòng CSV_DATA cũ đã được đổi theo, KHÔNG cần tải lại CSV.';
   }
   msg += '\n\nXem sheet HUONG_DAN (ngoài cùng bên trái) để biết cách dùng. ' +
     'Nhớ kiểm tra "Mã công tơ Qdc/Qmp" cho từng tổ máy trong CAI_DAT trước khi tính.';
@@ -218,60 +236,91 @@ function formatMeterCodeCellsAsText_(caiDat) {
 }
 
 /**
- * Bỏ CHỮ SỐ NĂM khỏi mã công tơ đã cấu hình (vd "6001" -> "001"), và sửa
- * luôn các dòng CSV_DATA cũ đang lưu theo mã có chữ số năm.
+ * Chuẩn hoá mã công tơ trong CAI_DAT về dạng "csv001", và sửa luôn các
+ * dòng CSV_DATA cũ theo.
  *
- * VÌ SAO CẦN: chữ số đầu trong "6001" là NĂM 2026, không thuộc mã công
- * tơ. Để nguyên thì sang 2027 tên file thành "17077001.CSV", không còn
- * kết thúc bằng "6001" nữa - mọi file CSV sẽ bị bỏ qua mà người dùng
- * không hiểu vì sao.
+ * Xử lý cùng lúc ba vấn đề đã gặp thật:
  *
- * Chỉ đụng tới mã đúng 4 chữ số. Việc đã đổi được báo rõ trong thông báo
- * cuối "Thiết lập sheet" - không đổi âm thầm.
+ * 1. CHỮ SỐ NĂM. "6001" = năm 2026 (số 6) + công tơ 001. Để nguyên thì
+ *    sang 2027 tên file thành "17077001.CSV", không còn khớp -> mọi file
+ *    CSV bị bỏ qua mà người dùng không hiểu vì sao.
+ * 2. MẤT SỐ 0 ĐẦU. Google Sheets hiểu "001" là số 1. Bù lại đủ 3 chữ số.
+ * 3. Ô lưu dạng SỐ nên bị cắt lại lần nữa. Thêm tiền tố "csv" để ô luôn
+ *    là văn bản, và người đọc hiểu ngay đó là mã trong tên file CSV.
+ *
+ * Mọi thay đổi đều được liệt kê trong thông báo cuối "Thiết lập sheet" -
+ * không đổi âm thầm.
  *
  * @returns {string[]} mô tả các thay đổi đã thực hiện (rỗng nếu không có gì)
  */
 function migrateMeterCodes_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var caiDat = ss.getSheetByName(SHEETS.CAI_DAT);
+  var caiDat = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CAI_DAT);
   var lastRow = caiDat.getLastRow();
   if (!lastRow) return [];
 
   var rows = caiDat.getRange(1, 1, lastRow, 2).getValues();
   var changes = [];
-  var codeMap = {}; // mã cũ -> mã mới, để sửa CSV_DATA theo
 
   rows.forEach(function (r, i) {
-    if (!/^Mã công tơ (Qdc|Qmp) - /.test(String(r[0]).trim())) return;
-    var oldCode = String(r[1]).trim();
-    if (!/^\d{4}$/.test(oldCode)) return;
-    var newCode = oldCode.slice(1);
+    var label = String(r[0]).trim();
+    if (!/^Mã công tơ (Qdc|Qmp) - /.test(label)) return;
+    var oldRaw = String(r[1]).trim();
+    if (!oldRaw) return;
+    var newCode = normalizeMeterCode_(oldRaw);
+    if (newCode === oldRaw) return;
     caiDat.getRange(i + 1, 2).setNumberFormat('@').setValue(newCode);
-    codeMap[oldCode] = newCode;
-    changes.push(String(r[0]).trim() + ': ' + oldCode + ' → ' + newCode);
+    changes.push(label + ': ' + oldRaw + ' \u2192 ' + newCode);
   });
 
-  if (changes.length > 0) migrateCsvDataMeterCodes_(codeMap);
+  migrateCsvDataMeterCodes_();
   return changes;
 }
 
-/** Đổi mã công tơ trong các dòng CSV_DATA cũ theo bản đồ mã cũ -> mã mới. */
-function migrateCsvDataMeterCodes_(codeMap) {
+/**
+ * Đưa một mã công tơ bất kỳ về dạng chuẩn "csv001".
+ * Nhận được: "6001" (kèm chữ số năm), "001", 1 (đã mất số 0), "csv001".
+ */
+function normalizeMeterCode_(raw) {
+  var digits = String(raw).replace(/[^0-9]/g, '');
+  if (!digits) return String(raw);
+  // 4 chữ số = còn kèm chữ số năm ở đầu (vd 6001) -> bỏ chữ số đầu.
+  if (digits.length === 4) digits = digits.slice(1);
+  while (digits.length < METER_CODE_MIN_DIGITS) digits = '0' + digits;
+  return METER_CODE_PREFIX + digits;
+}
+
+/**
+ * Đổi mã công tơ trong các dòng CSV_DATA cũ sang đúng mã đang cấu hình.
+ * Không có bước này thì dữ liệu CSV đã tải trước đây sẽ không tìm thấy
+ * khi tính lại ngày cũ (báo "thiếu CSV" cho ngày đã có đủ dữ liệu).
+ */
+function migrateCsvDataMeterCodes_() {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CSV_DATA);
   if (!sh) return;
   var lastRow = sh.getLastRow();
   if (lastRow < 2) return;
+
+  var configured = getAllConfiguredMeters_().map(function (m) { return m.code; });
   var range = sh.getRange(2, 2, lastRow - 1, 1);
   var values = range.getValues();
   var touched = false;
+
   for (var i = 0; i < values.length; i++) {
-    var code = String(values[i][0]).trim();
-    if (codeMap[code]) {
-      values[i][0] = codeMap[code];
-      touched = true;
+    var current = String(values[i][0]).trim();
+    if (!current) continue;
+    var normalized = normalizeMeterCode_(current);
+    for (var j = 0; j < configured.length; j++) {
+      if (sameMeterCode_(normalized, configured[j]) && current !== configured[j]) {
+        values[i][0] = configured[j];
+        touched = true;
+        break;
+      }
     }
   }
-  if (touched) range.setValues(values);
+  if (touched) {
+    range.setNumberFormat('@');
+    range.setValues(values);
+  }
 }
 
 /**

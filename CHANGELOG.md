@@ -10,9 +10,9 @@ Bản Google Sheets + Apps Script được đưa vào sử dụng thật tại n
 
 Ngay sau khi đổi mã công tơ sang `001`, Sheet hiển thị thành **`1`** — Google Sheets tự hiểu ô `001` là SỐ 1 và cắt hai số 0 đứng đầu. Ba lớp xử lý:
 
-- **Định dạng ô thành văn bản thuần** (`setNumberFormat('@')`) cho các ô mã công tơ trong `CAI_DAT` và cột mã công tơ của `CSV_DATA` — người dùng gõ `001` thì giữ nguyên `001`.
+- **Mã công tơ đổi sang dạng `csv001`** (có chữ `csv` phía trước). Chỉ đặt định dạng "Văn bản thuần" là **không đủ** — ô đã lỡ lưu thành số thì đổi định dạng vẫn hiển thị `1`, đã thử và xác nhận. Chữ `csv` giữ cho ô luôn là văn bản, đồng thời nhắc người đọc đó là mã nằm trong **tên file CSV**. `normalizeMeterCode_` chuẩn hoá mọi dạng cũ (`6001` → `csv001`, `001` → `csv001`, `1` → `csv001`) và sửa luôn các dòng `CSV_DATA` cũ theo.
 - **So khớp chịu được cả trường hợp đã mất số 0**: `sameMeterCode_` và `meterMatchesFilename_` so theo **giá trị số** chứ không so chuỗi, nên ô đang là `1` vẫn khớp đúng file `17076001.CSV`. Cần thiết vì cùng một công tơ có thể đang nằm trong Sheet dưới hai dạng (`001` ở chỗ này, `1` ở chỗ kia) tuỳ ô đó có định dạng văn bản hay không — so chuỗi thuần sẽ âm thầm báo "thiếu CSV" cho ngày đã có dữ liệu.
-- **Chấp nhận mã có tiền tố chữ** (`csv001`) — cách người dùng hay dùng để Sheets khỏi cắt số 0. Chỉ lấy phần chữ số khi so khớp.
+- **So khớp chỉ lấy phần chữ số**, nên `csv001`, `001` và `1` đều được hiểu là cùng một công tơ — không phụ thuộc ô đang ở dạng nào.
 
 **Cách so khớp cũng được siết chặt hơn**: với tên file chuẩn (toàn chữ số), so **đúng toàn bộ phần mã công tơ** (bỏ 5 ký tự đầu = ngày + tháng + chữ số năm) thay vì so phần đuôi. So phần đuôi từng khớp nhầm: mã `1` khớp cả file của công tơ 301 vì `...6301` cũng kết thúc bằng `1`. Đã kiểm 13 trường hợp, gồm cả các trường hợp phải KHÔNG khớp.
 
