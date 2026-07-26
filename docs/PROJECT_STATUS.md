@@ -18,7 +18,7 @@ Cập nhật lần cuối: 2026-07-26.
 | Kiểm chứng độ chính xác tổ **S1** bằng dữ liệu thật | ✅ 2 đợt, 16 tổ hợp — xem [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md) |
 | Kiểm chứng **R07** (ramp qua nửa đêm) bằng dữ liệu thật | ✅ ngày 23→24/07/2026 |
 | Tài liệu: quy tắc nghiệp vụ, thuật toán, schema, triển khai, hướng dẫn trong file | ✅ |
-| Nhật ký thao tác (`NHAT_KY`) | ✅ |
+| Hỗ trợ số tổ máy bất kỳ (thêm tổ = thêm dòng cấu hình) | ✅ |
 | Hồ sơ sáng kiến kỹ thuật | ✅ bản thảo — còn các mục [CẦN ĐIỀN] là số liệu của đơn vị |
 
 ## Đang nợ
@@ -29,7 +29,6 @@ Cập nhật lần cuối: 2026-07-26.
 | Kiểm thử giữ P0 nhập tay (TC-30) | Code đã xử lý, chưa chạy thử thật trên Sheet |
 | Khởi động lại sau sự cố (TC-31) | Chờ dữ liệu vận hành đúng mẫu "CS ra lệnh = CS hoàn thành = tải thật" |
 | Triển khai nhà máy thứ hai | Đồng thời là phép thử cho tài liệu [16_Huong_Dan_Trien_Khai.md](16_Huong_Dan_Trien_Khai.md) |
-| Dashboard theo tháng/quý | Chưa bắt đầu |
 
 ## Rủi ro / việc cần theo dõi
 

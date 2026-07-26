@@ -12,7 +12,9 @@ Google Sheets đầu tiên gắn `QDD-Core-Library`, dùng làm **bản mẫu đ
 2. **QDD Smart System → Thiết lập sheet** — tạo/nâng cấp đủ các sheet cần thiết. Chạy lại nhiều lần được: tự bù dòng cấu hình còn thiếu và tự dựng lại `LENH` đúng cấu trúc mà không mất dữ liệu.
 3. Điền `CAI_DAT` đúng thông số thật của nhà máy:
    - Tốc độ ramp, hệ số Qdd_V, dung sai.
-   - **Mã công tơ Qdc/Qmp cho từng tổ máy** (4 dòng: Qdc-S1, Qmp-S1, Qdc-S2, Qmp-S2). ⚠️ Mã công tơ khác nhau giữa S1/S2 và giữa các nhà máy — giá trị mặc định (6001/6303/6002/6301) chỉ đúng cho Duyên Hải 1.
+   - **Mã công tơ Qdc/Qmp cho từng tổ máy**. ⚠️ Mã công tơ khác nhau giữa các tổ máy và giữa các nhà máy — giá trị mặc định (`001`/`303`/`002`/`301`) chỉ đúng cho Duyên Hải 1.
+   - ⚠️ **Không kèm chữ số năm**: file `17076001.CSV` = ngày 17, tháng 07, **năm 2026 (số 6)**, công tơ **001** → điền `001`, không điền `6001`.
+   - **Nhà máy có nhiều hơn 2 tổ máy**: thêm 3 dòng cho mỗi tổ (`Mã công tơ Qdc - S3`, `Mã công tơ Qmp - S3`, `Nhãn báo cáo - S3`). Sidebar và báo cáo tự hiện đủ, không cần sửa code.
    - **Nhãn báo cáo** cho từng tổ (mặc định `S1DH1`, `S2DH1`) — hiện trên đầu mỗi khối trong file xuất.
 4. **QDD Smart System → Bảng điều khiển** — mở sidebar bên phải, dùng cho mọi thao tác còn lại.
 
@@ -23,7 +25,7 @@ Sheet **`HUONG_DAN`** (ngoài cùng bên trái) chứa toàn bộ hướng dẫn
 ## Bảng điều khiển (sidebar)
 
 ### 1. Tải CSV công tơ
-Chọn **một hoặc nhiều file CSV cùng lúc** — hệ thống tự nhận diện tổ máy/loại dữ liệu bằng cách so **tên file** với mã công tơ trong `CAI_DAT` (tên file thật dạng `<ngày><tháng><mã công tơ>.CSV`, vd `17076001.CSV`) và **tự đọc ngày từ nội dung** file. File không nhận diện được sẽ báo riêng theo tên — sửa lại tên file cho đúng chuẩn rồi tải lại.
+Chọn **một hoặc nhiều file CSV cùng lúc** — hệ thống tự nhận diện tổ máy/loại dữ liệu bằng cách so **tên file** với mã công tơ trong `CAI_DAT` (tên file thật dạng `<ngày><tháng><năm 1 chữ số><mã công tơ>.CSV`, vd `17076001.CSV` = 17/07, năm 2026, công tơ **001**) và **tự đọc ngày từ nội dung** file. File không nhận diện được sẽ báo riêng theo tên — sửa lại tên file cho đúng chuẩn rồi tải lại.
 
 Không còn đường "lưu từng file có chọn tay tổ máy/loại dữ liệu": việc chọn tay vừa mất công vừa từng gây lưu nhầm Qmp vào ô Qdc, trong khi nhận diện theo tên file không sai được.
 
@@ -61,14 +63,6 @@ Hai điểm bám sát bản gốc:
 
 ### 6. Dọn dữ liệu cũ
 Dùng khi bàn giao Sheet cho người khác, hoặc khi dữ liệu tích luỹ nhiều tháng. Giữ nguyên `CAI_DAT` và kết quả của **N ngày gần nhất** (để P0 vẫn tự suy được), xoá phần còn lại. Có hộp xác nhận trước khi chạy.
-
-## Nhật ký thao tác
-
-Sheet **`NHAT_KY`** ghi lại mọi thao tác chạy từ sidebar: **thời gian · người dùng · thao tác · chi tiết · kết quả** — kể cả thao tác **thất bại** (dòng lỗi thường là dòng hữu ích nhất khi truy vết). Dòng mới nhất nằm trên cùng, giữ tối đa 2000 dòng.
-
-Lần đầu mở Bảng điều khiển, hệ thống hỏi tên bạn và nhớ riêng theo từng tài khoản Google. Phải tự khai vì `Session.getActiveUser().getEmail()` chỉ trả về email khi người dùng **cùng miền Google Workspace** với chủ Sheet — nhà máy dùng Gmail cá nhân nên hàm đó luôn trả chuỗi rỗng.
-
-> Tên là **do người dùng tự khai**, không phải danh tính đã xác thực. Dùng để phối hợp công việc, **không dùng làm bằng chứng quy trách nhiệm** — việc đó xem `Tệp → Lịch sử phiên bản` của Google Sheets (Google tự ghi, không sửa được).
 
 ## Cảnh báo tự động
 

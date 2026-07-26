@@ -24,20 +24,63 @@ function getConfig_() {
   };
 }
 
+/** Nhãn dòng cấu hình mã công tơ, vd meterLabel_('S1','Qdc') -> "Mã công tơ Qdc - S1". */
+function meterLabel_(unit, role) {
+  return 'Mã công tơ ' + role + ' - ' + unit;
+}
+
+/** Nhãn dòng cấu hình nhãn báo cáo, vd "Nhãn báo cáo - S1". */
+function reportLabelLabel_(unit) {
+  return 'Nhãn báo cáo - ' + unit;
+}
+
 /**
- * Tra mã công tơ thật (vd "6001") theo (tổ máy, loại dữ liệu) từ CAI_DAT.
- * Mã công tơ KHÁC NHAU giữa các tổ máy và giữa các nhà máy - không có giá
- * trị mặc định cố định ngoài Sheet mẫu ban đầu (6001/6303 cho S1).
- * @param {string} unit "S1"|"S2"
+ * Danh sách tổ máy của nhà máy này, SUY RA TỪ CHÍNH CAI_DAT - mỗi dòng
+ * "Mã công tơ Qdc - <tổ máy>" là một tổ máy.
+ *
+ * Nhờ vậy nhà máy có 3 tổ máy trở lên chỉ cần THÊM DÒNG vào CAI_DAT
+ * ("Mã công tơ Qdc - S3", "Mã công tơ Qmp - S3", "Nhãn báo cáo - S3"),
+ * không phải sửa một dòng code nào. Thứ tự trong CAI_DAT quyết định thứ
+ * tự hiển thị trên sidebar và thứ tự các khối trong file báo cáo.
+ *
+ * @returns {string[]} vd ["S1","S2"] hoặc ["S1","S2","S3"]
+ */
+function getConfiguredUnits_() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CAI_DAT);
+  var lastRow = sh ? sh.getLastRow() : 0;
+  if (!lastRow) return [];
+  var rows = sh.getRange(1, 1, lastRow, 1).getValues();
+  var units = [];
+  rows.forEach(function (r) {
+    var m = String(r[0]).trim().match(/^Mã công tơ Qdc - (.+)$/);
+    if (m) {
+      var unit = m[1].trim();
+      if (unit && units.indexOf(unit) === -1) units.push(unit);
+    }
+  });
+  return units;
+}
+
+/** Sidebar gọi để dựng danh sách tổ máy động (không hard-code S1/S2). */
+function sidebar_getUnits() {
+  return getConfiguredUnits_();
+}
+
+/**
+ * Tra mã công tơ thật theo (tổ máy, loại dữ liệu) từ CAI_DAT.
+ *
+ * MÃ CÔNG TƠ KHÔNG CHỨA CHỮ SỐ NĂM. Tên file CSV thật có dạng
+ * <ngày><tháng><năm 1 chữ số><mã công tơ>, vd "17076001.CSV" = ngày 17,
+ * tháng 07, năm 2026 (số 6), công tơ 001. Cấu hình chỉ ghi phần mã công
+ * tơ ("001"), KHÔNG ghi "6001" - nếu ghi kèm chữ số năm thì sang năm sau
+ * tên file đổi thành "17077001.CSV" và hệ thống sẽ không nhận ra file nào.
+ *
+ * @param {string} unit vd "S1"
  * @param {string} role "Qdc"|"Qmp"
  * @returns {string|null}
  */
 function resolveMeterCode_(unit, role) {
-  var L = CAI_DAT_LABELS;
-  var key = 'METER_' + role.toUpperCase() + '_' + unit.toUpperCase(); // vd METER_QDC_S1
-  var label = L[key];
-  if (!label) return null;
-  var value = getConfigValue_(label);
+  var value = getConfigValue_(meterLabel_(unit, role));
   return value ? String(value).trim() : null;
 }
 
@@ -87,7 +130,7 @@ function readAllCommands_() {
  */
 function getAllConfiguredMeters_() {
   var out = [];
-  ['S1', 'S2'].forEach(function (unit) {
+  getConfiguredUnits_().forEach(function (unit) {
     ['Qdc', 'Qmp'].forEach(function (role) {
       var code = resolveMeterCode_(unit, role);
       if (code) out.push({ unit: unit, role: role, code: code });
@@ -99,8 +142,10 @@ function getAllConfiguredMeters_() {
 /**
  * Dò (tổ máy, loại dữ liệu) từ TÊN FILE, dựa vào mã công tơ đã cấu hình
  * trong CAI_DAT. Tên file CSV thật thường có dạng <ngày><tháng><mã công
- * tơ>.CSV (vd "17076001.CSV" = ngày 17, tháng 07, công tơ 6001) - mã công
- * tơ luôn nằm ở CUỐI phần số của tên file, nên so khớp theo endsWith.
+ * tơ>.CSV (vd "17076001.CSV" = ngày 17, tháng 07, năm 2026 (số 6), công
+ * tơ 001) - mã công tơ luôn nằm ở CUỐI phần số của tên file, nên so khớp
+ * theo endsWith. Vì mã cấu hình KHÔNG kèm chữ số năm, cách so khớp này
+ * vẫn đúng khi sang năm mới (file "17077001.CSV" vẫn kết thúc bằng "001").
  * @param {string} filename
  * @returns {{unit:string, role:string, code:string}|null}
  */
@@ -201,9 +246,9 @@ function saveCsvRow_(date, meterCode, kwhGiao) {
 /**
  * Đọc 48 giá trị KwhGiao theo (ngày, tổ máy, loại dữ liệu) - mã công tơ
  * thật được TRA TỪ CAI_DAT (khác nhau giữa các tổ máy/nhà máy, không cố
- * định "6001"/"6303").
+ * định).
  * @param {Date} date
- * @param {string} unit  "S1"|"S2"
+ * @param {string} unit  vd "S1"
  * @param {string} role  "Qdc"|"Qmp"
  * @returns {number[]|null}  48 giá trị, hoặc null nếu chưa có dữ liệu/chưa cấu hình mã công tơ
  */

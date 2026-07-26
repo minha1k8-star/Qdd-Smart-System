@@ -16,17 +16,29 @@ Hướng dẫn sử dụng đầy đủ, luôn nằm ngoài cùng bên trái. **
 
 Hai cột: nhãn (A) và giá trị (B). Đọc theo **nhãn**, không theo số dòng.
 
+**Cấu hình chung:**
+
 | Nhãn | Mặc định | Dùng cho |
 |---|---|---|
+| Tên nhà máy | | |
 | Tốc độ ramp (MW/phút) | `3.5` | R05, R06 — tính thời lượng ramp |
 | Hệ số Qdd_V | `0.9188` | R09 |
 | Dung sai (+-) | `0.03` | R13 — dải ±3% |
-| Mã công tơ Qdc - S1 | `6001` | R10 — nhận diện file CSV theo tên |
-| Mã công tơ Qmp - S1 | `6303` | R12 |
-| Mã công tơ Qdc - S2 | `6002` | |
-| Mã công tơ Qmp - S2 | `6301` | |
-| Nhãn báo cáo - S1 | vd `S1DH1` | tiêu đề khối trong file xuất |
-| Nhãn báo cáo - S2 | vd `S2DH1` | |
+
+**Cấu hình theo từng tổ máy** — 3 dòng cho mỗi tổ:
+
+| Nhãn | Mặc định (Duyên Hải 1) | Dùng cho |
+|---|---|---|
+| Mã công tơ Qdc - S1 | `001` | R10 — nhận diện file CSV theo tên |
+| Mã công tơ Qmp - S1 | `303` | R12 |
+| Nhãn báo cáo - S1 | `S1DH1` | tiêu đề khối trong file xuất |
+| Mã công tơ Qdc - S2 | `002` | |
+| Mã công tơ Qmp - S2 | `301` | |
+| Nhãn báo cáo - S2 | `S2DH1` | |
+
+> **Danh sách tổ máy được suy ra từ chính các dòng này** (`getConfiguredUnits_` quét các nhãn dạng `Mã công tơ Qdc - <tổ máy>`). Nhà máy có **3 tổ máy trở lên** chỉ cần **thêm 3 dòng** cho mỗi tổ (`Mã công tơ Qdc - S3`, `Mã công tơ Qmp - S3`, `Nhãn báo cáo - S3`) — sidebar và báo cáo tự hiện đủ, **không phải sửa một dòng code nào**. Thứ tự trong `CAI_DAT` quyết định thứ tự hiển thị.
+
+> **MÃ CÔNG TƠ KHÔNG KÈM CHỮ SỐ NĂM.** Tên file CSV có dạng `<ngày><tháng><năm 1 chữ số><mã công tơ>` — `17076001.CSV` = ngày 17, tháng 07, **năm 2026 (số 6)**, công tơ **001**. Điền `6001` thì sang 2027 tên file thành `17077001.CSV` và **hệ thống không nhận ra file nào**. Chạy "Thiết lập sheet" sẽ tự bỏ chữ số năm khỏi mã 4 chữ số và sửa luôn các dòng `CSV_DATA` cũ theo, có báo rõ đã đổi những gì.
 
 **Mã công tơ và nhãn báo cáo khác nhau giữa các nhà máy** — bắt buộc sửa khi triển khai cho nhà máy mới, giá trị mặc định chỉ đúng cho Duyên Hải 1.
 
@@ -62,7 +74,7 @@ Sheet tự sắp xếp theo **Thời điểm BĐTH** tăng dần sau mỗi lần
 | Cột | Nội dung |
 |---|---|
 | 1 | Ngày |
-| 2 | Mã công tơ (vd `6001`) |
+| 2 | Mã công tơ (vd `001`) — không kèm chữ số năm |
 | 3–50 | Chu kỳ 1 … Chu kỳ 48 — giá trị `KwhGiao` gốc, **chưa chia 1000** |
 
 Mỗi dòng = một cặp (ngày, mã công tơ). Ghi lại cùng cặp sẽ **ghi đè**, không nhân đôi. Tự sắp xếp theo Ngày rồi Mã công tơ.
@@ -121,26 +133,6 @@ Tính lại cùng một (ngày, tổ máy) sẽ **thay thế** 48 dòng cũ, kh�
 
 Ghi đè toàn bộ mỗi lần chạy báo cáo tháng — đây là bảng dẫn xuất, không phải dữ liệu gốc.
 
-## `NHAT_KY` — Nhật ký thao tác
-
-| Cột | Nội dung |
-|---|---|
-| 1 | Thời gian |
-| 2 | Người dùng (tự khai, xem bên dưới) |
-| 3 | Thao tác — `Tải CSV`, `Nhập lệnh`, `Tính`, `Báo cáo tháng`, `Xuất báo cáo`, `Dọn dữ liệu cũ` |
-| 4 | Chi tiết — tham số người dùng đã chọn |
-| 5 | Kết quả — tóm tắt, hoặc `✗ <lỗi>` nếu thất bại |
-
-Dòng mới nhất **chèn lên đầu**, giữ tối đa **2000 dòng**, cũ hơn thì tự xoá bớt.
-
-Ghi **cả thao tác thất bại** — đó thường là dòng hữu ích nhất khi truy vết sự cố.
-
-**Cột "Người dùng" do người dùng tự khai** một lần, lưu trong `UserProperties` (riêng theo từng tài khoản Google). Lý do: `Session.getActiveUser().getEmail()` chỉ trả về email khi người dùng cùng miền Google Workspace với chủ Sheet; nhà máy dùng Gmail cá nhân nên hàm đó luôn trả chuỗi rỗng.
-
-> Đây là tên **tự khai**, không phải danh tính đã xác thực — dùng để phối hợp công việc, không dùng làm bằng chứng quy trách nhiệm. Nguồn không sửa được là `Tệp → Lịch sử phiên bản` của Google Sheets.
-
-Việc ghi nhật ký **không bao giờ được làm hỏng thao tác chính**: mọi lỗi khi ghi log đều bị nuốt lặng, vì mất một dòng nhật ký nhẹ hơn nhiều so với làm hỏng một lần tính đã chạy xong.
-
 ---
 
 ## Dữ liệu nào tái tạo được, dữ liệu nào không
@@ -152,6 +144,5 @@ Việc ghi nhật ký **không bao giờ được làm hỏng thao tác chính**
 | `P0_NGAY` | Tính lại từ ngày liền trước; nếu mất cả chuỗi thì phải nhập tay P0 ngày đầu |
 | `KET_QUA` | Tính lại được nếu còn lệnh + CSV |
 | `BAO_CAO_THANG` | Chạy lại báo cáo tháng |
-| `NHAT_KY` | **Không tái tạo được** — nhưng chỉ là nhật ký, không ảnh hưởng số liệu |
 
 Google Sheets có sẵn `Tệp → Lịch sử phiên bản` để khôi phục khi lỡ xoá.

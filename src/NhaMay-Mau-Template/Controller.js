@@ -10,7 +10,6 @@
  * @param {string} filename
  */
 function sidebar_importCommandsFromXlsx(base64, filename) {
-  return runLogged_('Nhập lệnh', 'File: ' + filename, function () {
   var result = importCommandsFromXlsx_(base64, filename);
   var msg = 'Đã đọc file "' + filename + '" (sheet "' + result.sheetName +
     '", tiêu đề ở dòng ' + result.headerRowIndex + ', ' + result.totalRows + ' dòng dữ liệu).\n' +
@@ -22,9 +21,7 @@ function sidebar_importCommandsFromXlsx(base64, filename) {
       result.skipped.slice(0, 15).map(function (s) { return 'Dòng ' + s.row + ': ' + s.reason; }).join('\n');
     if (result.skipped.length > 15) msg += '\n... và ' + (result.skipped.length - 15) + ' dòng khác.';
   }
-  return { value: msg, tomTat: result.imported + ' lệnh mới, ' + result.updated + ' cập nhật, ' +
-    result.skipped.length + ' bỏ qua; BĐTH ' + result.range.from + ' → ' + result.range.to };
-  });
+  return msg;
 }
 
 /**
@@ -37,8 +34,6 @@ function sidebar_importCommandsFromXlsx(base64, filename) {
  * @returns {string}
  */
 function sidebar_saveCsvBulk(files) {
-  return runLogged_('Tải CSV', files.length + ' file: ' +
-    files.map(function (f) { return f.filename; }).slice(0, 8).join(', '), function () {
   var savedCount = 0;
   var skipped = [];
 
@@ -71,9 +66,7 @@ function sidebar_saveCsvBulk(files) {
     msg += '\n(Kiểm tra lại TÊN file - phải giữ nguyên dạng <ngày><tháng><mã công tơ>.CSV như khi tải về, ' +
       'và mã công tơ phải khớp cấu hình trong CAI_DAT.)';
   }
-  return { value: msg, tomTat: 'Lưu ' + savedCount + '/' + files.length + ' file' +
-    (skipped.length ? ', bỏ qua ' + skipped.length : '') };
-  });
+  return msg;
 }
 
 /**
@@ -82,9 +75,6 @@ function sidebar_saveCsvBulk(files) {
  * duy nhất cần kiểm chứng.
  */
 function sidebar_calcBatch(fromStr, toStr, units, cleanupSource) {
-  return runLogged_('Tính',
-    fromStr + (fromStr === toStr ? '' : ' → ' + toStr) + ', tổ ' + units.join('+') +
-    (cleanupSource ? ', CÓ dọn dữ liệu nguồn' : ''), function () {
   var fromDate = parseIsoDate_(fromStr);
   var toDate = parseIsoDate_(toStr);
   if (!fromDate || !toDate || toDate < fromDate) throw new Error('Khoảng ngày không hợp lệ.');
@@ -126,11 +116,7 @@ function sidebar_calcBatch(fromStr, toStr, units, cleanupSource) {
     msg += '\n\n⚠ CẢNH BÁO (' + allWarnings.length + '):\n' + allWarnings.slice(0, 10).join('\n');
     if (allWarnings.length > 10) msg += '\n... và ' + (allWarnings.length - 10) + ' cảnh báo khác.';
   }
-  return { value: msg, tomTat: 'Tính xong ' + okCount + ' (ngày, tổ máy)' +
-    (errDetails.length ? ', ' + errDetails.length + ' lỗi/thiếu dữ liệu' : '') +
-    (allWarnings.length ? ', ' + allWarnings.length + ' cảnh báo' : '') +
-    (cleanupSource ? '; đã dọn ' + cleaned.lenh + ' lệnh + ' + cleaned.csv + ' CSV' : '') };
-  });
+  return msg;
 }
 
 /**
@@ -140,7 +126,6 @@ function sidebar_calcBatch(fromStr, toStr, units, cleanupSource) {
  * @returns {{html: string}}
  */
 function sidebar_monthlyReport(monthStr, units, format) {
-  return runLogged_('Báo cáo tháng', 'Tháng ' + monthStr + ', tổ ' + units.join('+') + ', ' + format, function () {
   var m = String(monthStr).trim().match(/^(\d{4})-(\d{2})$/); // input type=month -> yyyy-MM
   if (!m) throw new Error('Định dạng tháng không hợp lệ.');
   if (!units || units.length === 0) throw new Error('Chọn ít nhất 1 tổ máy.');
@@ -193,9 +178,7 @@ function sidebar_monthlyReport(monthStr, units, format) {
   if (exportResult.missing.length > 0) {
     html += '<br><br>Bỏ qua (chưa có dữ liệu):<br>' + exportResult.missing.join('<br>');
   }
-  return { value: { html: html }, tomTat: 'Tổng hợp ' + report.tongHop.soNgay +
-    ' (ngày, tổ máy), tổng Qdư ' + report.tongHop.tongQdu.toFixed(2) + ' MWh; xuất "' + exportResult.name + '"' };
-  });
+  return { html: html };
 }
 
 /**
@@ -204,8 +187,6 @@ function sidebar_monthlyReport(monthStr, units, format) {
  * @returns {{html: string}}  Trả về HTML nhỏ (có link tải) để sidebar hiển thị trực tiếp.
  */
 function sidebar_exportReport(fromStr, toStr, units, format) {
-  return runLogged_('Xuất báo cáo',
-    fromStr + (fromStr === toStr ? '' : ' → ' + toStr) + ', tổ ' + units.join('+') + ', ' + format, function () {
   var fromDate = parseIsoDate_(fromStr);
   var toDate = parseIsoDate_(toStr);
   if (!fromDate || !toDate || toDate < fromDate) throw new Error('Khoảng ngày không hợp lệ.');
@@ -221,7 +202,5 @@ function sidebar_exportReport(fromStr, toStr, units, format) {
   if (result.missing.length > 0) {
     html += '<br><br>Bỏ qua (chưa có dữ liệu):<br>' + result.missing.join('<br>');
   }
-  return { value: { html: html }, tomTat: 'Xuất "' + result.name + '"' +
-    (result.missing.length ? ', bỏ qua ' + result.missing.length + ' (ngày, tổ máy) chưa có dữ liệu' : '') };
-  });
+  return { html: html };
 }

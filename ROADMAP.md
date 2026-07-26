@@ -29,11 +29,14 @@ Nền tảng: **Google Sheets + Apps Script gắn liền từng file + thư vi�
 - [ ] Triển khai cho nhà máy thứ hai và **kiểm chứng lại quy trình triển khai** bằng một người chưa từng dựng hệ thống.
 - [ ] Quy trình cập nhật phiên bản thư viện khi có nhiều nhà máy cùng dùng.
 
-## Giai đoạn 4 — Mở rộng (chưa bắt đầu)
+## Giai đoạn 4 — Mở rộng
 
-- [x] **Nhật ký thao tác** — sheet `NHAT_KY` ghi ai làm gì, lúc nào, kết quả ra sao (kể cả thao tác lỗi).
-- [ ] Dashboard tổng quan theo tháng/quý — nên dùng lại `MonthlyReport.aggregate` để không sinh ra nguồn số liệu thứ hai.
+- [x] Hỗ trợ nhà máy có **số tổ máy bất kỳ** — thêm tổ chỉ cần thêm dòng cấu hình, không sửa code.
 - [ ] Cập nhật quy trình nhập liệu vận hành: ghi đủ CS hoàn thành khi khởi động lại tổ máy, để dữ liệu đủ điều kiện tính tự động (xem [15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md)).
+
+## Đã cân nhắc và quyết định KHÔNG làm
+
+- **Dashboard tổng quan** và **nhật ký thao tác**: đã dựng thử nhật ký rồi gỡ bỏ theo quyết định nghiệp vụ — hệ thống giữ phạm vi hẹp đúng một việc là tính và xuất báo cáo Qdd/Qdư. Google Sheets đã có sẵn `Tệp → Lịch sử phiên bản` cho nhu cầu truy vết.
 
 ## Nguyên tắc xuyên suốt
 

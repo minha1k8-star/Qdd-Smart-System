@@ -18,7 +18,6 @@ var SHEETS = {
   P0_NGAY: 'P0_NGAY',
   KET_QUA: 'KET_QUA',
   BAO_CAO_THANG: 'BAO_CAO_THANG',
-  NHAT_KY: 'NHAT_KY',
 };
 
 /**
@@ -95,55 +94,60 @@ function ensureSheet_(name, headers) {
  * getConfigValue_() theo NHÃN, không theo số dòng cố định, để chèn/xoá
  * dòng không làm hỏng việc đọc cấu hình.
  *
- * QUAN TRỌNG: mã công tơ Qdc/Qmp KHÁC NHAU giữa các tổ máy và giữa các
- * nhà máy - "6001"/"6303" chỉ là ví dụ mặc định của Duyên Hải 1 tổ S1,
- * KHÔNG được coi là cố định. Mỗi nhà máy khi copy Sheet này phải tự điền
- * đúng mã công tơ thật của mình vào 4 dòng "Mã công tơ ..." bên dưới.
+ * Các dòng cấu hình RIÊNG THEO TỔ MÁY (mã công tơ, nhãn báo cáo) không
+ * liệt kê ở đây mà suy ra từ chính CAI_DAT - xem getConfiguredUnits_.
  */
 var CAI_DAT_LABELS = {
   TEN_NHA_MAY: 'Tên nhà máy',
   RAMP_RATE: 'Tốc độ ramp (MW/phút)',
   QDD_V_COEF: 'Hệ số Qdd_V',
   TOLERANCE: 'Dung sai (+-)',
-  METER_QDC_S1: 'Mã công tơ Qdc - S1',
-  METER_QMP_S1: 'Mã công tơ Qmp - S1',
-  METER_QDC_S2: 'Mã công tơ Qdc - S2',
-  METER_QMP_S2: 'Mã công tơ Qmp - S2',
-  REPORT_LABEL_S1: 'Nhãn báo cáo - S1',
-  REPORT_LABEL_S2: 'Nhãn báo cáo - S2',
 };
 
-/** Giá trị mặc định cho Duyên Hải 1 - nhà máy khác PHẢI tự điền lại. */
-var CAI_DAT_DEFAULTS = {
-  METER_QDC_S1: '6001',
-  METER_QMP_S1: '6303',
-  METER_QDC_S2: '6002',
-  METER_QMP_S2: '6301',
-  REPORT_LABEL_S1: 'S1DH1',
-  REPORT_LABEL_S2: 'S2DH1',
-};
+/**
+ * Tổ máy mặc định khi tạo Sheet mới. Nhà máy có NHIỀU HƠN 2 TỔ MÁY chỉ
+ * cần THÊM 3 DÒNG vào CAI_DAT cho mỗi tổ (không phải sửa code):
+ *   Mã công tơ Qdc - S3 | <mã>
+ *   Mã công tơ Qmp - S3 | <mã>
+ *   Nhãn báo cáo - S3   | <nhãn>
+ * Danh sách tổ máy được suy ra từ chính các dòng này - xem getConfiguredUnits_.
+ *
+ * MÃ CÔNG TƠ KHÔNG KÈM CHỮ SỐ NĂM: tên file CSV có dạng
+ * <ngày><tháng><năm 1 chữ số><mã công tơ>, vd "17076001.CSV" = 17/07, năm
+ * 2026 (số 6), công tơ 001. Ghi "6001" thì sang 2027 tên file thành
+ * "17077001.CSV" và hệ thống sẽ không nhận ra file nào.
+ *
+ * Giá trị dưới đây là của Duyên Hải 1 - nhà máy khác PHẢI tự điền lại.
+ */
+var DEFAULT_UNITS = [
+  { unit: 'S1', qdc: '001', qmp: '303', reportLabel: 'S1DH1' },
+  { unit: 'S2', qdc: '002', qmp: '301', reportLabel: 'S2DH1' },
+];
 
 function setupAllSheets() {
   ensureSheet_(SHEETS.CAI_DAT);
   var caiDat = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CAI_DAT);
   if (caiDat.getLastRow() === 0) {
-    var L = CAI_DAT_LABELS, D = CAI_DAT_DEFAULTS;
-    caiDat.getRange('A1:B12').setValues([
+    var L = CAI_DAT_LABELS;
+    var rows = [
       [L.TEN_NHA_MAY, 'Duyên Hải 1'],
       [L.RAMP_RATE, 3.5],
       [L.QDD_V_COEF, 0.9188],
       [L.TOLERANCE, 0.03],
-      [L.METER_QDC_S1, D.METER_QDC_S1],
-      [L.METER_QMP_S1, D.METER_QMP_S1],
-      [L.METER_QDC_S2, D.METER_QDC_S2],
-      [L.METER_QMP_S2, D.METER_QMP_S2],
-      [L.REPORT_LABEL_S1, D.REPORT_LABEL_S1],
-      [L.REPORT_LABEL_S2, D.REPORT_LABEL_S2],
-      ['', ''],
-      ['Ghi chú', 'Sheet mẫu - copy cho từng nhà máy, chỉnh lại toàn bộ giá trị cột B cho đúng thực tế. Mã công tơ và nhãn báo cáo khác nhau giữa các nhà máy - phải tự điền đúng, không dùng nguyên giá trị mặc định của Duyên Hải 1.'],
-    ]);
+    ];
+    DEFAULT_UNITS.forEach(function (u) {
+      rows.push([meterLabel_(u.unit, 'Qdc'), u.qdc]);
+      rows.push([meterLabel_(u.unit, 'Qmp'), u.qmp]);
+      rows.push([reportLabelLabel_(u.unit), u.reportLabel]);
+    });
+    rows.push(['', '']);
+    rows.push(['Ghi chú', 'Sheet mẫu - chỉnh lại toàn bộ giá trị cột B cho đúng nhà máy của bạn. ' +
+      'MÃ CÔNG TƠ KHÔNG KÈM CHỮ SỐ NĂM (vd file 17076001.CSV thì mã công tơ là 001, số 6 là năm 2026). ' +
+      'Nhà máy có thêm tổ máy: thêm 3 dòng "Mã công tơ Qdc - S3", "Mã công tơ Qmp - S3", "Nhãn báo cáo - S3".']);
+    caiDat.getRange(1, 1, rows.length, 2).setValues(rows);
   }
-  migrateConfigLabels_(caiDat); // bù các dòng cấu hình mới nếu CAI_DAT đã có từ trước (bản cũ)
+  migrateConfigLabels_(caiDat);      // bù các dòng cấu hình chung còn thiếu (nâng cấp từ bản cũ)
+  var meterChanges = migrateMeterCodes_();  // bỏ chữ số năm khỏi mã công tơ của bản cũ
 
   ensureSheet_(SHEETS.LENH, LENH_HEADERS);
   migrateLenhSheet_(); // chèn cột "Nhà máy" nếu LENH còn dùng cấu trúc 9 cột cũ
@@ -151,12 +155,21 @@ function setupAllSheets() {
   ensureSheet_(SHEETS.P0_NGAY, P0_NGAY_HEADERS);
   ensureSheet_(SHEETS.KET_QUA, KET_QUA_HEADERS);
   ensureSheet_(SHEETS.BAO_CAO_THANG, BAO_CAO_THANG_HEADERS);
-  ensureSheet_(SHEETS.NHAT_KY, NHAT_KY_HEADERS);
   removeLeftoverSheet_('CSV_STAGING'); // sheet cũ từ thiết kế trước, không còn dùng (đọc CSV trực tiếp trong sidebar)
+  removeLeftoverSheet_('NHAT_KY');   // nhật ký thao tác - đã bỏ theo yêu cầu nghiệp vụ
   removeLeftoverSheet_('LENH_STAGING'); // không còn dùng: lệnh nhập thẳng từ file Excel tải lên ở sidebar mục 2
   buildHuongDanSheet_(); // ghi lại sheet hướng dẫn, đặt ngoài cùng bên trái
 
-  SpreadsheetApp.getUi().alert('Đã tạo đủ các sheet cần thiết. Xem sheet HUONG_DAN (ngoài cùng bên trái) để biết cách dùng. Nhớ điền đúng "Mã công tơ Qdc/Qmp" cho từng tổ máy trong CAI_DAT trước khi tính.');
+  var units = getConfiguredUnits_();
+  var msg = 'Đã tạo đủ các sheet cần thiết. Tổ máy đang cấu hình: ' + (units.join(', ') || '(chưa có)') + '.';
+  if (meterChanges.length > 0) {
+    msg += '\n\nĐã BỎ CHỮ SỐ NĂM khỏi mã công tơ (chữ số đầu là năm, không thuộc mã công tơ):\n' +
+      meterChanges.join('\n') +
+      '\nCác dòng CSV_DATA cũ cũng đã được đổi theo, không cần tải lại CSV.';
+  }
+  msg += '\n\nXem sheet HUONG_DAN (ngoài cùng bên trái) để biết cách dùng. ' +
+    'Nhớ kiểm tra "Mã công tơ Qdc/Qmp" cho từng tổ máy trong CAI_DAT trước khi tính.';
+  SpreadsheetApp.getUi().alert(msg);
 }
 
 /** Xoá 1 sheet cũ không còn dùng nếu tồn tại (dọn dẹp khi nâng cấp từ bản cũ). */
@@ -166,20 +179,75 @@ function removeLeftoverSheet_(name) {
   if (sh) ss.deleteSheet(sh);
 }
 
-/** Thêm các dòng nhãn cấu hình còn thiếu vào CAI_DAT đã có sẵn (nâng cấp từ bản cũ). */
+/** Thêm các dòng cấu hình CHUNG còn thiếu vào CAI_DAT đã có sẵn (nâng cấp từ bản cũ). */
 function migrateConfigLabels_(caiDat) {
   var lastRow = caiDat.getLastRow();
   var existingLabels = lastRow > 0 ? caiDat.getRange(1, 1, lastRow, 1).getValues().map(function (r) { return String(r[0]).trim(); }) : [];
   var toAdd = [];
   Object.keys(CAI_DAT_LABELS).forEach(function (key) {
     var label = CAI_DAT_LABELS[key];
-    if (existingLabels.indexOf(label) === -1) {
-      toAdd.push([label, CAI_DAT_DEFAULTS[key] || '']);
-    }
+    if (existingLabels.indexOf(label) === -1) toAdd.push([label, '']);
   });
   if (toAdd.length > 0) {
     caiDat.getRange(lastRow + 1, 1, toAdd.length, 2).setValues(toAdd);
   }
+}
+
+/**
+ * Bỏ CHỮ SỐ NĂM khỏi mã công tơ đã cấu hình (vd "6001" -> "001"), và sửa
+ * luôn các dòng CSV_DATA cũ đang lưu theo mã có chữ số năm.
+ *
+ * VÌ SAO CẦN: chữ số đầu trong "6001" là NĂM 2026, không thuộc mã công
+ * tơ. Để nguyên thì sang 2027 tên file thành "17077001.CSV", không còn
+ * kết thúc bằng "6001" nữa - mọi file CSV sẽ bị bỏ qua mà người dùng
+ * không hiểu vì sao.
+ *
+ * Chỉ đụng tới mã đúng 4 chữ số. Việc đã đổi được báo rõ trong thông báo
+ * cuối "Thiết lập sheet" - không đổi âm thầm.
+ *
+ * @returns {string[]} mô tả các thay đổi đã thực hiện (rỗng nếu không có gì)
+ */
+function migrateMeterCodes_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var caiDat = ss.getSheetByName(SHEETS.CAI_DAT);
+  var lastRow = caiDat.getLastRow();
+  if (!lastRow) return [];
+
+  var rows = caiDat.getRange(1, 1, lastRow, 2).getValues();
+  var changes = [];
+  var codeMap = {}; // mã cũ -> mã mới, để sửa CSV_DATA theo
+
+  rows.forEach(function (r, i) {
+    if (!/^Mã công tơ (Qdc|Qmp) - /.test(String(r[0]).trim())) return;
+    var oldCode = String(r[1]).trim();
+    if (!/^\d{4}$/.test(oldCode)) return;
+    var newCode = oldCode.slice(1);
+    caiDat.getRange(i + 1, 2).setValue(newCode);
+    codeMap[oldCode] = newCode;
+    changes.push(String(r[0]).trim() + ': ' + oldCode + ' → ' + newCode);
+  });
+
+  if (changes.length > 0) migrateCsvDataMeterCodes_(codeMap);
+  return changes;
+}
+
+/** Đổi mã công tơ trong các dòng CSV_DATA cũ theo bản đồ mã cũ -> mã mới. */
+function migrateCsvDataMeterCodes_(codeMap) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CSV_DATA);
+  if (!sh) return;
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) return;
+  var range = sh.getRange(2, 2, lastRow - 1, 1);
+  var values = range.getValues();
+  var touched = false;
+  for (var i = 0; i < values.length; i++) {
+    var code = String(values[i][0]).trim();
+    if (codeMap[code]) {
+      values[i][0] = codeMap[code];
+      touched = true;
+    }
+  }
+  if (touched) range.setValues(values);
 }
 
 /**

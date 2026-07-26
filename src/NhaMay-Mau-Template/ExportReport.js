@@ -45,8 +45,7 @@ function exportSpreadsheetAsBlob_(spreadsheetId, format) {
 
 /** Nhãn hiển thị của tổ máy trong báo cáo (vd "S1DH1"), lấy từ CAI_DAT; không có thì dùng "Tổ S1". */
 function reportUnitLabel_(unit) {
-  var key = 'REPORT_LABEL_' + unit.toUpperCase();
-  var label = CAI_DAT_LABELS[key] ? getConfigValue_(CAI_DAT_LABELS[key]) : null;
+  var label = getConfigValue_(reportLabelLabel_(unit));
   return label ? String(label).trim() : 'Tổ ' + unit;
 }
 

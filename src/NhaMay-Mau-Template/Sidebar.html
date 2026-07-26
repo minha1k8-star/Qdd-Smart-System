@@ -15,15 +15,10 @@
   #status.busy { background: #fef7e0; color: #664d03; display: block; border-left: 4px solid #fbbc04; }
   .spin { display: inline-block; width: 11px; height: 11px; border: 2px solid #b58900; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: -1px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  #whoBar { font-size: 11.5px; color: #666; padding: 6px 0 2px; border-bottom: 1px solid #eee; }
-  #whoBar a { color: #4285f4; margin-left: 4px; }
 </style>
 
 <div id="status"></div>
 
-<div id="whoBar">
-  Người dùng: <b id="whoName">…</b> <a href="#" onclick="askName(true); return false;">đổi</a>
-</div>
 
 <h3>1. Tải CSV công tơ</h3>
 <div class="hint">
@@ -56,10 +51,7 @@
 </div>
 <label>Từ ngày <input type="date" id="fromDate" onchange="syncToDate()"></label>
 <label>Đến ngày <input type="date" id="toDate"></label>
-<div class="checks">
-  <label><input type="checkbox" id="batchS1" checked> S1</label>
-  <label><input type="checkbox" id="batchS2"> S2</label>
-</div>
+<div class="checks" id="batchUnits"></div>
 <div class="checks"><label><input type="checkbox" id="batchCleanup"> Dọn lệnh + CSV của các ngày đã tính xong</label></div>
 <button id="btnBatch" onclick="submitBatch()">Tính</button>
 
@@ -68,10 +60,7 @@
   Xuất TOÀN BỘ các ngày ĐÃ TÍNH XONG (trong KET_QUA) của tháng được chọn thành 1 file (mỗi ngày 1 tab, các tổ máy cạnh nhau) - không tự tính bù ngày còn thiếu, cần tính đủ các ngày bằng mục 3 trước. Đồng thời cập nhật bảng tổng số liệu (Qdc/Qmp/Qdư...) vào sheet BAO_CAO_THANG.
 </div>
 <label>Tháng <input type="month" id="reportMonth"></label>
-<div class="checks">
-  <label><input type="checkbox" id="reportS1" checked> S1</label>
-  <label><input type="checkbox" id="reportS2" checked> S2</label>
-</div>
+<div class="checks" id="reportUnits"></div>
 <label>Định dạng file xuất
   <select id="reportFormat">
     <option value="xlsx">Excel (.xlsx)</option>
@@ -86,10 +75,7 @@
 </div>
 <label>Từ ngày <input type="date" id="exportFromDate"></label>
 <label>Đến ngày <input type="date" id="exportToDate"></label>
-<div class="checks">
-  <label><input type="checkbox" id="exportS1" checked> S1</label>
-  <label><input type="checkbox" id="exportS2" checked> S2</label>
-</div>
+<div class="checks" id="exportUnits"></div>
 <label>Định dạng
   <select id="exportFormat">
     <option value="xlsx">Excel (.xlsx)</option>
@@ -145,39 +131,49 @@
   }
 
   /**
+   * Danh sách tổ máy KHÔNG hard-code S1/S2 - đọc từ CAI_DAT, nên nhà máy
+   * có 3 tổ máy trở lên chỉ cần thêm dòng cấu hình là sidebar tự hiện đủ.
+   * Mục "Tính" mặc định chỉ tick tổ đầu tiên (thường tính từng tổ một);
+   * hai mục báo cáo tick sẵn tất cả (báo cáo thường cần đủ các tổ).
+   */
+  function buildUnitChecks(units) {
+    [['batchUnits', false], ['reportUnits', true], ['exportUnits', true]].forEach(function (cfg) {
+      var box = document.getElementById(cfg[0]);
+      box.textContent = '';
+      if (!units.length) {
+        box.textContent = 'Chưa cấu hình tổ máy nào trong CAI_DAT.';
+        return;
+      }
+      units.forEach(function (u, i) {
+        var label = document.createElement('label');
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = u;
+        cb.checked = cfg[1] || i === 0;
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(' ' + u));
+        box.appendChild(label);
+      });
+    });
+  }
+
+  function checkedUnits(containerId) {
+    var boxes = document.getElementById(containerId).querySelectorAll('input[type=checkbox]');
+    var out = [];
+    for (var i = 0; i < boxes.length; i++) if (boxes[i].checked) out.push(boxes[i].value);
+    return out;
+  }
+
+  google.script.run
+    .withSuccessHandler(buildUnitChecks)
+    .withFailureHandler(function () { buildUnitChecks([]); })
+    .sidebar_getUnits();
+
+  /**
    * Tính 1 ngày là trường hợp hay dùng nhất, nên chọn "Từ ngày" xong thì
    * tự điền luôn "Đến ngày" giống hệt - muốn tính nhiều ngày chỉ việc sửa
    * lại ô sau. Không ghi đè nếu người dùng đã tự chọn Đến ngày trước đó.
    */
-  /**
-   * Tên người dùng phục vụ sheet NHAT_KY. Phải tự khai vì tài khoản Gmail
-   * cá nhân không cùng miền Workspace nên Apps Script không lấy được email.
-   * Lưu riêng theo từng tài khoản Google, chỉ hỏi một lần.
-   */
-  function loadName() {
-    google.script.run
-      .withSuccessHandler(function (name) {
-        document.getElementById('whoName').textContent = name || '(chưa khai tên)';
-        if (!name) askName(false);
-      })
-      .withFailureHandler(function () { document.getElementById('whoName').textContent = '(chưa khai tên)'; })
-      .sidebar_getUserName();
-  }
-
-  function askName(isChange) {
-    var current = document.getElementById('whoName').textContent;
-    var msg = isChange ? 'Đổi tên hiển thị trong nhật ký:'
-                       : 'Nhập tên của bạn (ghi vào sheet NHAT_KY để biết ai đã làm gì):';
-    var name = prompt(msg, isChange && current.indexOf('(') !== 0 ? current : '');
-    if (name === null || !name.trim()) return;
-    google.script.run
-      .withSuccessHandler(function (saved) { document.getElementById('whoName').textContent = saved; })
-      .withFailureHandler(function (err) { setStatus('err', '✗ ' + err.message); })
-      .sidebar_setUserName(name);
-  }
-
-  loadName();
-
   function syncToDate() {
     var from = document.getElementById('fromDate');
     var to = document.getElementById('toDate');
@@ -216,9 +212,7 @@
   function submitBatch() {
     var fromDate = document.getElementById('fromDate').value;
     var toDate = document.getElementById('toDate').value;
-    var units = [];
-    if (document.getElementById('batchS1').checked) units.push('S1');
-    if (document.getElementById('batchS2').checked) units.push('S2');
+    var units = checkedUnits('batchUnits');
     if (!fromDate || !toDate) { setStatus('err', 'Chọn đủ khoảng ngày.'); return; }
     if (units.length === 0) { setStatus('err', 'Chọn ít nhất 1 tổ máy.'); return; }
     var restore = withButton('btnBatch', 'Đang tính…', null);
@@ -232,9 +226,7 @@
   function submitMonthlyReport() {
     var month = document.getElementById('reportMonth').value;
     var format = document.getElementById('reportFormat').value;
-    var units = [];
-    if (document.getElementById('reportS1').checked) units.push('S1');
-    if (document.getElementById('reportS2').checked) units.push('S2');
+    var units = checkedUnits('reportUnits');
     if (!month) { setStatus('err', 'Chọn tháng trước.'); return; }
     if (units.length === 0) { setStatus('err', 'Chọn ít nhất 1 tổ máy.'); return; }
     var restore = withButton('btnReport', 'Đang tổng hợp…', null);
@@ -249,9 +241,7 @@
     var fromDate = document.getElementById('exportFromDate').value;
     var toDate = document.getElementById('exportToDate').value;
     var format = document.getElementById('exportFormat').value;
-    var units = [];
-    if (document.getElementById('exportS1').checked) units.push('S1');
-    if (document.getElementById('exportS2').checked) units.push('S2');
+    var units = checkedUnits('exportUnits');
     if (!fromDate || !toDate) { setStatus('err', 'Chọn đủ khoảng ngày.'); return; }
     if (units.length === 0) { setStatus('err', 'Chọn ít nhất 1 tổ máy.'); return; }
     var restore = withButton('btnExport', 'Đang xuất…', null);

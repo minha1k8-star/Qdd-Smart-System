@@ -222,6 +222,14 @@ Trong 6 ngày đối chiếu gần nhất, chênh lệch lớn nhất giữa h�
 
 Nhờ tách bạch như vậy, thuật toán kiểm thử được độc lập — chạy trên máy cá nhân, không cần tài khoản Google và không cần dữ liệu vận hành thật.
 
+### Nhà máy có bao nhiêu tổ máy cũng dùng được
+
+Danh sách tổ máy **không cố định trong code** mà suy ra từ chính bảng cấu hình của từng nhà máy. Nhà máy 3 tổ máy chỉ cần thêm 3 dòng cấu hình cho tổ thứ ba (mã công tơ Qdc, mã công tơ Qmp, nhãn báo cáo) — bảng điều khiển tự hiện thêm ô chọn và báo cáo tự thêm khối cho tổ đó, **không phải sửa phần mềm**.
+
+Tương tự, mã công tơ, tốc độ tăng/giảm tải, hệ số quy đổi và dung sai đều là cấu hình riêng của từng nhà máy.
+
+> **Lưu ý khi cấu hình mã công tơ**: tên file CSV có dạng `<ngày><tháng><năm 1 chữ số><mã công tơ>` — ví dụ `17076001.CSV` là ngày 17, tháng 07, **năm 2026 (chữ số 6)**, công tơ **001**. Cấu hình chỉ ghi phần mã công tơ (`001`), không ghi kèm chữ số năm, để sang năm sau hệ thống vẫn nhận đúng file.
+
 ### Vì sao không làm một website tập trung
 
 Đã cân nhắc và **chủ động không chọn**, vì hai lý do:
@@ -311,8 +319,7 @@ Nêu rõ để hồ sơ trung thực:
 ## 9. Hướng phát triển
 
 - Kiểm chứng tổ S2 và triển khai cho nhà máy thứ hai.
-- Bảng tổng quan (dashboard) theo tháng/quý.
-- Nhật ký thao tác: ai tính ngày nào, lúc nào.
+- Triển khai cho nhà máy thứ hai (hệ thống đã hỗ trợ số tổ máy bất kỳ — thêm tổ chỉ cần thêm dòng cấu hình).
 
 ---
 

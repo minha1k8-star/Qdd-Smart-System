@@ -6,17 +6,24 @@ Mỗi mục ghi thay đổi và **lý do** của thay đổi đó, không chỉ 
 
 Bản Google Sheets + Apps Script được đưa vào sử dụng thật tại nhà máy Duyên Hải 1. Các mục dưới đây là nhật ký thay đổi trong quá trình xây dựng, mới nhất ở trên.
 
-### Nhật ký thao tác (sheet NHAT_KY)
+### Mã công tơ bỏ chữ số năm; hỗ trợ số tổ máy bất kỳ
 
-Nhiều người cùng dùng một Sheet thì khi số liệu có vấn đề không truy được ai đã làm gì. Nay mọi thao tác chạy từ sidebar đều ghi 1 dòng vào sheet `NHAT_KY`: **thời gian · người dùng · thao tác · chi tiết · kết quả**.
+**Chữ số đầu trong "6001" là NĂM 2026, không thuộc mã công tơ.** Tên file CSV có dạng `<ngày><tháng><năm 1 chữ số><mã công tơ>` — `17076001.CSV` = 17/07, năm 2026 (số 6), công tơ **001**.
 
-- Ghi **cả thao tác thất bại** (`✗ <lỗi>`) — dòng lỗi thường là dòng hữu ích nhất khi truy vết.
-- Dòng mới nhất chèn lên đầu; giữ tối đa 2000 dòng, cũ hơn tự xoá bớt.
-- Việc ghi log **không bao giờ làm hỏng thao tác chính**: mọi lỗi khi ghi đều nuốt lặng. Mất một dòng nhật ký nhẹ hơn nhiều so với làm hỏng một lần tính đã chạy xong. Lỗi của thao tác chính vẫn được ném tiếp ra sidebar như cũ — `runLogged_` chỉ quan sát, không nuốt lỗi.
+Để nguyên `6001` trong cấu hình thì **sang 2027 tên file thành `17077001.CSV`**, không còn kết thúc bằng `6001` → **mọi file CSV bị bỏ qua** mà người dùng không hiểu vì sao. Đây là lỗi hẹn giờ, không phải chuyện thẩm mỹ.
 
-**Người dùng phải tự khai tên** một lần (lưu trong `UserProperties`, riêng theo từng tài khoản Google). Lý do: `Session.getActiveUser().getEmail()` chỉ trả về email khi người dùng **cùng miền Google Workspace** với chủ Sheet — nhà máy dùng Gmail cá nhân nên hàm đó luôn trả chuỗi rỗng.
+- Cấu hình mặc định đổi thành `001` / `303` (S1) và `002` / `301` (S2).
+- `migrateMeterCodes_` tự bỏ chữ số năm khỏi mã 4 chữ số khi chạy "Thiết lập sheet", **và sửa luôn các dòng `CSV_DATA` cũ** theo — không phải tải lại CSV. Việc đã đổi được liệt kê rõ trong thông báo cuối, không đổi âm thầm.
 
-> Ghi rõ giới hạn: tên là **tự khai**, không phải danh tính đã xác thực. Dùng để phối hợp công việc, không dùng làm bằng chứng quy trách nhiệm — việc đó dùng `Tệp → Lịch sử phiên bản` của Google Sheets.
+**Hỗ trợ nhà máy có số tổ máy bất kỳ.** Trước đây S1/S2 bị hard-code ở cấu hình, sidebar và báo cáo. Nay **danh sách tổ máy suy ra từ chính `CAI_DAT`** (`getConfiguredUnits_` quét các nhãn `Mã công tơ Qdc - <tổ máy>`):
+
+- Nhà máy 3 tổ máy chỉ cần **thêm 3 dòng** vào `CAI_DAT` cho tổ thứ ba — sidebar tự hiện thêm ô chọn, báo cáo tự thêm khối, **không sửa một dòng code nào**.
+- Ba nhóm ô chọn tổ máy trên sidebar giờ dựng động từ cấu hình.
+- Thứ tự trong `CAI_DAT` quyết định thứ tự hiển thị và thứ tự khối trong file báo cáo.
+
+### Bỏ nhật ký thao tác
+
+Đã dựng sheet `NHAT_KY` ghi lại ai làm gì lúc nào, nhưng **gỡ bỏ theo quyết định nghiệp vụ** — hệ thống giữ phạm vi hẹp đúng một việc là tính và xuất báo cáo. Nhu cầu truy vết dùng `Tệp → Lịch sử phiên bản` sẵn có của Google Sheets. Sheet `NHAT_KY` cũ tự bị xoá khi chạy "Thiết lập sheet".
 
 ### Tên file xuất đọc là biết ngay kỳ báo cáo
 
