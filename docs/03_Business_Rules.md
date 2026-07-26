@@ -57,7 +57,7 @@ Qdd của mỗi chu kỳ 30 phút (1.800 giây) là **trung bình diện tích**
 
 ### R10–R12 — Nguồn dữ liệu CSV
 
-Qdc và Qmp **không đến từ tính toán**, mà đọc trực tiếp từ dòng `KwhGiao` trong 2 file CSV công tơ (6001 và 6303 tương ứng) — mỗi file có 48 giá trị số cho 48 chu kỳ. Cột ngày trong CSV bị **bỏ qua hoàn toàn** khi nhập (chỉ dùng số, không dùng ngày trong file làm căn cứ — ngày tính lấy từ `CAI_DAT`).
+Qdc và Qmp **không đến từ tính toán**, mà đọc trực tiếp từ dòng `KwhGiao` trong 2 file CSV công tơ (6001 và 6303 tương ứng) — mỗi file có 48 giá trị số cho 48 chu kỳ. Ngày của file CSV được **đọc từ chính nội dung file**, và tổ máy/loại dữ liệu nhận diện từ **tên file** (so với mã công tơ cấu hình trong `CAI_DAT`) — người dùng không phải chọn tay.
 
 ### R13–R14 — Xác định Qdư
 
@@ -66,6 +66,24 @@ Dải dung sai mặc định là **±3%** quanh Qdd (dung sai này cấu hình �
 ## Quy tắc phạm vi áp dụng
 
 Toàn bộ quy tắc trên áp dụng được cho **cả tổ máy S1 và S2**, với điều kiện cấu trúc danh sách lệnh, CSV 6001/6303 và quy tắc nghiệp vụ giống nhau giữa hai tổ. Lịch sử công suất (P) của mỗi tổ được lưu và xử lý độc lập (xem R07, UAT-15 ở [09_Test_Cases.md](09_Test_Cases.md)).
+
+## Quy tắc CHỜ TRIỂN KHAI (chưa có trong hệ thống)
+
+### R15 — Khởi động lại tổ máy sau khi ngừng
+
+**Người phụ trách nghiệp vụ nêu ngày 26/07/2026:** khi khởi động lại tổ máy, lệnh khởi động chỉ được coi là **hoàn thành** khi đạt công suất với **CS ra lệnh = CS hoàn thành = cùng một tải thật** (vd 435,7 – 435,7). **Từ thời điểm đó mới bắt đầu tính Qdd** — giai đoạn tăng tải từ 0 lên tới tải đó KHÔNG tính.
+
+**Hệ thống hiện tại KHÔNG làm như vậy.** Hiện lệnh khởi động được xử lý như mọi lệnh khác: ramp tuyến tính từ P0 (=0) lên tải mục tiêu theo tốc độ cấu hình (3,5 MW/phút → khoảng 2 giờ để lên 435,7 MW), và Qdd được tính cho cả giai đoạn ramp đó. Kết quả sẽ **cao hơn thực tế** trong giai đoạn khởi động.
+
+Phạm vi ảnh hưởng: chỉ những ngày có khởi động lại sau khi ngừng — không ảnh hưởng vận hành bình thường, nên toàn bộ kết quả đã kiểm chứng ở [15_Accuracy_Validation_2026-07.md](15_Accuracy_Validation_2026-07.md) không bị ảnh hưởng.
+
+**Chưa triển khai vì còn 3 điểm cần chốt** (xem TC-32 ở [09_Test_Cases.md](09_Test_Cases.md)):
+
+1. Các chu kỳ **trước** thời điểm hoàn thành ghi Qdd = **0**, hay để trống và không tính Qdư?
+2. Mốc "từ lúc đó" là cột **Thời điểm hoàn thành** của lệnh khởi động? (Hiện mọi lệnh đều dùng **BĐTH** — R04 nói rõ không dùng cột hoàn thành, nên đây sẽ là ngoại lệ đầu tiên.)
+3. Chu kỳ 30 phút **chứa** thời điểm hoàn thành thì tính thế nào: phần trước 0 + phần sau tải thật rồi lấy trung bình, hay cả chu kỳ tính tải thật?
+
+Cần **dữ liệu thật của một ngày khởi động lại kèm bảng tính tay** để đối chiếu trước khi đưa vào — theo đúng nguyên tắc ở [AGENTS.md](../AGENTS.md).
 
 ## Ghi chú
 

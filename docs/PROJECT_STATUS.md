@@ -28,6 +28,7 @@ Cập nhật lần cuối: 2026-07-26.
 | **Kiểm chứng tổ S2** (TC-29) | Ưu tiên cao nhất. Toàn bộ đối chiếu đến nay mới chạy S1; mã công tơ, P0 và chuỗi ngày của S2 độc lập nên không suy ra được từ S1 |
 | Kiểm thử giữ P0 nhập tay (TC-30) | Code đã xử lý, chưa chạy thử thật trên Sheet |
 | Khởi động lại sau sự cố (TC-31) | Chờ dữ liệu vận hành đúng mẫu "CS ra lệnh = CS hoàn thành = tải thật" |
+| **R15 — Qdd chỉ tính từ lúc hoàn thành lệnh khởi động** (TC-32) | Quy tắc mới nêu 26/07/2026, **hệ thống chưa làm**. Giai đoạn tăng tải từ 0 hiện vẫn được tính Qdd → cao hơn thực tế. Cần chốt 3 điểm chi tiết + dữ liệu thật |
 | Triển khai nhà máy thứ hai | Đồng thời là phép thử cho tài liệu [16_Huong_Dan_Trien_Khai.md](16_Huong_Dan_Trien_Khai.md) |
 
 ## Rủi ro / việc cần theo dõi
