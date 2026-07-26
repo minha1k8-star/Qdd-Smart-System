@@ -6,6 +6,18 @@ Mỗi mục ghi thay đổi và **lý do** của thay đổi đó, không chỉ 
 
 Bản Google Sheets + Apps Script được đưa vào sử dụng thật tại nhà máy Duyên Hải 1. Các mục dưới đây là nhật ký thay đổi trong quá trình xây dựng, mới nhất ở trên.
 
+### Nhật ký thao tác (sheet NHAT_KY)
+
+Nhiều người cùng dùng một Sheet thì khi số liệu có vấn đề không truy được ai đã làm gì. Nay mọi thao tác chạy từ sidebar đều ghi 1 dòng vào sheet `NHAT_KY`: **thời gian · người dùng · thao tác · chi tiết · kết quả**.
+
+- Ghi **cả thao tác thất bại** (`✗ <lỗi>`) — dòng lỗi thường là dòng hữu ích nhất khi truy vết.
+- Dòng mới nhất chèn lên đầu; giữ tối đa 2000 dòng, cũ hơn tự xoá bớt.
+- Việc ghi log **không bao giờ làm hỏng thao tác chính**: mọi lỗi khi ghi đều nuốt lặng. Mất một dòng nhật ký nhẹ hơn nhiều so với làm hỏng một lần tính đã chạy xong. Lỗi của thao tác chính vẫn được ném tiếp ra sidebar như cũ — `runLogged_` chỉ quan sát, không nuốt lỗi.
+
+**Người dùng phải tự khai tên** một lần (lưu trong `UserProperties`, riêng theo từng tài khoản Google). Lý do: `Session.getActiveUser().getEmail()` chỉ trả về email khi người dùng **cùng miền Google Workspace** với chủ Sheet — nhà máy dùng Gmail cá nhân nên hàm đó luôn trả chuỗi rỗng.
+
+> Ghi rõ giới hạn: tên là **tự khai**, không phải danh tính đã xác thực. Dùng để phối hợp công việc, không dùng làm bằng chứng quy trách nhiệm — việc đó dùng `Tệp → Lịch sử phiên bản` của Google Sheets.
+
 ### Tên file xuất đọc là biết ngay kỳ báo cáo
 
 Tên file xuất trước đây là `BaoCao_QDD_<timestamp>.xlsx` — nhìn không biết của ngày/tháng nào, tải về vài file là lẫn. Nay đặt theo đúng kỳ báo cáo và tổ máy:

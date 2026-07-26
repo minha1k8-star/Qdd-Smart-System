@@ -18,6 +18,7 @@ var SHEETS = {
   P0_NGAY: 'P0_NGAY',
   KET_QUA: 'KET_QUA',
   BAO_CAO_THANG: 'BAO_CAO_THANG',
+  NHAT_KY: 'NHAT_KY',
 };
 
 /**
@@ -150,6 +151,7 @@ function setupAllSheets() {
   ensureSheet_(SHEETS.P0_NGAY, P0_NGAY_HEADERS);
   ensureSheet_(SHEETS.KET_QUA, KET_QUA_HEADERS);
   ensureSheet_(SHEETS.BAO_CAO_THANG, BAO_CAO_THANG_HEADERS);
+  ensureSheet_(SHEETS.NHAT_KY, NHAT_KY_HEADERS);
   removeLeftoverSheet_('CSV_STAGING'); // sheet cũ từ thiết kế trước, không còn dùng (đọc CSV trực tiếp trong sidebar)
   removeLeftoverSheet_('LENH_STAGING'); // không còn dùng: lệnh nhập thẳng từ file Excel tải lên ở sidebar mục 2
   buildHuongDanSheet_(); // ghi lại sheet hướng dẫn, đặt ngoài cùng bên trái

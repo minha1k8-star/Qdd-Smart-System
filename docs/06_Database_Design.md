@@ -121,6 +121,26 @@ Tính lại cùng một (ngày, tổ máy) sẽ **thay thế** 48 dòng cũ, kh�
 
 Ghi đè toàn bộ mỗi lần chạy báo cáo tháng — đây là bảng dẫn xuất, không phải dữ liệu gốc.
 
+## `NHAT_KY` — Nhật ký thao tác
+
+| Cột | Nội dung |
+|---|---|
+| 1 | Thời gian |
+| 2 | Người dùng (tự khai, xem bên dưới) |
+| 3 | Thao tác — `Tải CSV`, `Nhập lệnh`, `Tính`, `Báo cáo tháng`, `Xuất báo cáo`, `Dọn dữ liệu cũ` |
+| 4 | Chi tiết — tham số người dùng đã chọn |
+| 5 | Kết quả — tóm tắt, hoặc `✗ <lỗi>` nếu thất bại |
+
+Dòng mới nhất **chèn lên đầu**, giữ tối đa **2000 dòng**, cũ hơn thì tự xoá bớt.
+
+Ghi **cả thao tác thất bại** — đó thường là dòng hữu ích nhất khi truy vết sự cố.
+
+**Cột "Người dùng" do người dùng tự khai** một lần, lưu trong `UserProperties` (riêng theo từng tài khoản Google). Lý do: `Session.getActiveUser().getEmail()` chỉ trả về email khi người dùng cùng miền Google Workspace với chủ Sheet; nhà máy dùng Gmail cá nhân nên hàm đó luôn trả chuỗi rỗng.
+
+> Đây là tên **tự khai**, không phải danh tính đã xác thực — dùng để phối hợp công việc, không dùng làm bằng chứng quy trách nhiệm. Nguồn không sửa được là `Tệp → Lịch sử phiên bản` của Google Sheets.
+
+Việc ghi nhật ký **không bao giờ được làm hỏng thao tác chính**: mọi lỗi khi ghi log đều bị nuốt lặng, vì mất một dòng nhật ký nhẹ hơn nhiều so với làm hỏng một lần tính đã chạy xong.
+
 ---
 
 ## Dữ liệu nào tái tạo được, dữ liệu nào không
@@ -132,5 +152,6 @@ Ghi đè toàn bộ mỗi lần chạy báo cáo tháng — đây là bảng d�
 | `P0_NGAY` | Tính lại từ ngày liền trước; nếu mất cả chuỗi thì phải nhập tay P0 ngày đầu |
 | `KET_QUA` | Tính lại được nếu còn lệnh + CSV |
 | `BAO_CAO_THANG` | Chạy lại báo cáo tháng |
+| `NHAT_KY` | **Không tái tạo được** — nhưng chỉ là nhật ký, không ảnh hưởng số liệu |
 
 Google Sheets có sẵn `Tệp → Lịch sử phiên bản` để khôi phục khi lỡ xoá.

@@ -15,9 +15,15 @@
   #status.busy { background: #fef7e0; color: #664d03; display: block; border-left: 4px solid #fbbc04; }
   .spin { display: inline-block; width: 11px; height: 11px; border: 2px solid #b58900; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: -1px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  #whoBar { font-size: 11.5px; color: #666; padding: 6px 0 2px; border-bottom: 1px solid #eee; }
+  #whoBar a { color: #4285f4; margin-left: 4px; }
 </style>
 
 <div id="status"></div>
+
+<div id="whoBar">
+  Người dùng: <b id="whoName">…</b> <a href="#" onclick="askName(true); return false;">đổi</a>
+</div>
 
 <h3>1. Tải CSV công tơ</h3>
 <div class="hint">
@@ -143,6 +149,35 @@
    * tự điền luôn "Đến ngày" giống hệt - muốn tính nhiều ngày chỉ việc sửa
    * lại ô sau. Không ghi đè nếu người dùng đã tự chọn Đến ngày trước đó.
    */
+  /**
+   * Tên người dùng phục vụ sheet NHAT_KY. Phải tự khai vì tài khoản Gmail
+   * cá nhân không cùng miền Workspace nên Apps Script không lấy được email.
+   * Lưu riêng theo từng tài khoản Google, chỉ hỏi một lần.
+   */
+  function loadName() {
+    google.script.run
+      .withSuccessHandler(function (name) {
+        document.getElementById('whoName').textContent = name || '(chưa khai tên)';
+        if (!name) askName(false);
+      })
+      .withFailureHandler(function () { document.getElementById('whoName').textContent = '(chưa khai tên)'; })
+      .sidebar_getUserName();
+  }
+
+  function askName(isChange) {
+    var current = document.getElementById('whoName').textContent;
+    var msg = isChange ? 'Đổi tên hiển thị trong nhật ký:'
+                       : 'Nhập tên của bạn (ghi vào sheet NHAT_KY để biết ai đã làm gì):';
+    var name = prompt(msg, isChange && current.indexOf('(') !== 0 ? current : '');
+    if (name === null || !name.trim()) return;
+    google.script.run
+      .withSuccessHandler(function (saved) { document.getElementById('whoName').textContent = saved; })
+      .withFailureHandler(function (err) { setStatus('err', '✗ ' + err.message); })
+      .sidebar_setUserName(name);
+  }
+
+  loadName();
+
   function syncToDate() {
     var from = document.getElementById('fromDate');
     var to = document.getElementById('toDate');

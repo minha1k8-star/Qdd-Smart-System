@@ -62,6 +62,14 @@ Hai điểm bám sát bản gốc:
 ### 6. Dọn dữ liệu cũ
 Dùng khi bàn giao Sheet cho người khác, hoặc khi dữ liệu tích luỹ nhiều tháng. Giữ nguyên `CAI_DAT` và kết quả của **N ngày gần nhất** (để P0 vẫn tự suy được), xoá phần còn lại. Có hộp xác nhận trước khi chạy.
 
+## Nhật ký thao tác
+
+Sheet **`NHAT_KY`** ghi lại mọi thao tác chạy từ sidebar: **thời gian · người dùng · thao tác · chi tiết · kết quả** — kể cả thao tác **thất bại** (dòng lỗi thường là dòng hữu ích nhất khi truy vết). Dòng mới nhất nằm trên cùng, giữ tối đa 2000 dòng.
+
+Lần đầu mở Bảng điều khiển, hệ thống hỏi tên bạn và nhớ riêng theo từng tài khoản Google. Phải tự khai vì `Session.getActiveUser().getEmail()` chỉ trả về email khi người dùng **cùng miền Google Workspace** với chủ Sheet — nhà máy dùng Gmail cá nhân nên hàm đó luôn trả chuỗi rỗng.
+
+> Tên là **do người dùng tự khai**, không phải danh tính đã xác thực. Dùng để phối hợp công việc, **không dùng làm bằng chứng quy trách nhiệm** — việc đó xem `Tệp → Lịch sử phiên bản` của Google Sheets (Google tự ghi, không sửa được).
+
 ## Cảnh báo tự động
 
 **Lệnh "0-0"** (CS ra lệnh = CS hoàn thành = 0, thường là trip/ngừng sự cố): theo quy tắc nghiệp vụ đã xác nhận, loại lệnh này **không được tính** — nhưng hệ thống sẽ **cảnh báo rõ** để người vận hành biết Qdd giai đoạn đó có thể cao hơn thực tế và tự xử lý. Hệ thống chỉ cảnh báo, không tự sửa số (xem [docs/09_Test_Cases.md](../../docs/09_Test_Cases.md)).

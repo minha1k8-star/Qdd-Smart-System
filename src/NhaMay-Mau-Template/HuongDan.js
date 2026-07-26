@@ -1,7 +1,6 @@
 /**
  * Sheet HƯỚNG DẪN ngay trong file - để người dùng mới (hoặc người tiếp
  * nhận sau này) đọc được cách dùng mà không cần tìm tài liệu bên ngoài.
- * Tương đương sheet HUONG_DAN của bản VBA cũ.
  *
  * Nội dung do hệ thống quản lý: mỗi lần chạy "Thiết lập sheet" sẽ được
  * ghi lại từ đầu, nên đừng sửa tay trực tiếp vào sheet này.
@@ -55,6 +54,7 @@ var HUONG_DAN_ROWS = [
   ['P0_NGAY', 'Công suất đầu ngày. Hệ thống tự ghi cho ngày kế tiếp sau mỗi lần tính; dòng bạn tự nhập sẽ không bị ghi đè.'],
   ['KET_QUA', 'Kết quả tính, mỗi ngày 48 dòng. Ngày mới nhất nằm trên cùng.'],
   ['BAO_CAO_THANG', 'Bảng tổng hợp theo ngày của tháng được chọn.'],
+  ['NHAT_KY', 'Nhật ký thao tác: ai làm gì, lúc nào, kết quả ra sao (kể cả thao tác lỗi). Dòng mới nhất ở trên cùng, giữ tối đa 2000 dòng.'],
   ['', ''],
 
   ['G. LƯU Ý QUAN TRỌNG', ''],
@@ -62,7 +62,8 @@ var HUONG_DAN_ROWS = [
   ['G2', 'Sidebar mục 6 "Dọn dữ liệu cũ" dùng khi bàn giao file hoặc khi dữ liệu tích luỹ nhiều tháng. Giữ CAI_DAT và kết quả N ngày gần nhất, xoá phần còn lại. Không hoàn tác được.'],
   ['G3', 'Dữ liệu gốc (file CSV, file danh sách lệnh) vẫn nằm trên máy bạn — nếu lỡ xoá trong file này thì nhập lại được.'],
   ['G4', 'Người dùng cần quyền CHỈNH SỬA mới thấy menu. Người chỉ có quyền Xem sẽ không chạy được chức năng nào.'],
-  ['G5', 'Lần đầu mỗi người dùng bấm một chức năng, Google sẽ hỏi cấp quyền — chọn tài khoản, bấm Nâng cao (Advanced) rồi Cho phép (Allow).'],
+  ['G5', 'Lần đầu mở Bảng điều khiển, hệ thống hỏi TÊN của bạn để ghi vào NHAT_KY. Tên này do bạn tự khai (không phải danh tính đã xác thực) — muốn biết chắc ai sửa gì thì xem Tệp → Lịch sử phiên bản của Google Sheets.'],
+  ['G6', 'Lần đầu mỗi người dùng bấm một chức năng, Google sẽ hỏi cấp quyền — chọn tài khoản, bấm Nâng cao (Advanced) rồi Cho phép (Allow).'],
   ['', ''],
 
   ['Tài liệu kỹ thuật đầy đủ: https://github.com/minha1k8-star/Qdd-Smart-System', ''],

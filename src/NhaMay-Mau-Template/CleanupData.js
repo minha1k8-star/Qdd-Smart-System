@@ -85,6 +85,7 @@ function cleanupOldData_(keepDays) {
  * @returns {string}
  */
 function sidebar_cleanupOldData(keepDays) {
+  return runLogged_('Dọn dữ liệu cũ', 'Giữ lại ' + keepDays + ' ngày gần nhất', function () {
   var n = Number(keepDays);
   if (isNaN(n) || n < 0) throw new Error('Số ngày giữ lại không hợp lệ.');
 
@@ -108,5 +109,8 @@ function sidebar_cleanupOldData(keepDays) {
     msg += '\nĐã xoá sạch KET_QUA - lần tính tiếp theo phải nhập lại P0 vào sheet P0_NGAY.';
   }
   msg += '\nCấu hình trong CAI_DAT được giữ nguyên.';
-  return msg;
+  return { value: msg, tomTat: 'Xoá ' + (r.ketQua || 0) + ' dòng KET_QUA, ' +
+    (r[SHEETS.LENH] || 0) + ' lệnh, ' + (r[SHEETS.CSV_DATA] || 0) + ' dòng CSV; giữ ' +
+    result.keptDates.length + ' ngày' };
+  });
 }

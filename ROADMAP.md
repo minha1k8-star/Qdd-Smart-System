@@ -31,8 +31,8 @@ Nền tảng: **Google Sheets + Apps Script gắn liền từng file + thư vi�
 
 ## Giai đoạn 4 — Mở rộng (chưa bắt đầu)
 
-- [ ] Dashboard tổng quan.
-- [ ] Nhật ký thao tác (ai tính ngày nào, lúc nào).
+- [x] **Nhật ký thao tác** — sheet `NHAT_KY` ghi ai làm gì, lúc nào, kết quả ra sao (kể cả thao tác lỗi).
+- [ ] Dashboard tổng quan theo tháng/quý — nên dùng lại `MonthlyReport.aggregate` để không sinh ra nguồn số liệu thứ hai.
 - [ ] Cập nhật quy trình nhập liệu vận hành: ghi đủ CS hoàn thành khi khởi động lại tổ máy, để dữ liệu đủ điều kiện tính tự động (xem [15_Accuracy_Validation_2026-07.md](docs/15_Accuracy_Validation_2026-07.md)).
 
 ## Nguyên tắc xuyên suốt
