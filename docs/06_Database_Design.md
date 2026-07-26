@@ -38,6 +38,8 @@ Hai cột: nhãn (A) và giá trị (B). Đọc theo **nhãn**, không theo số
 
 > **Danh sách tổ máy được suy ra từ chính các dòng này** (`getConfiguredUnits_` quét các nhãn dạng `Mã công tơ Qdc - <tổ máy>`). Nhà máy có **3 tổ máy trở lên** chỉ cần **thêm 3 dòng** cho mỗi tổ (`Mã công tơ Qdc - S3`, `Mã công tơ Qmp - S3`, `Nhãn báo cáo - S3`) — sidebar và báo cáo tự hiện đủ, **không phải sửa một dòng code nào**. Thứ tự trong `CAI_DAT` quyết định thứ tự hiển thị.
 
+> **Ô mã công tơ phải ở định dạng "Văn bản thuần"** — Google Sheets tự hiểu `001` là số 1 rồi cắt mất hai số 0 đầu. "Thiết lập sheet" tự đặt định dạng này. Nếu vẫn thấy hiển thị `1`, gõ lại `001` là được (hoặc ghi `csv001` — hệ thống cũng hiểu). Việc so khớp chịu được cả trường hợp mất số 0, nên số liệu không sai, chỉ là nhìn khó hiểu.
+
 > **MÃ CÔNG TƠ KHÔNG KÈM CHỮ SỐ NĂM.** Tên file CSV có dạng `<ngày><tháng><năm 1 chữ số><mã công tơ>` — `17076001.CSV` = ngày 17, tháng 07, **năm 2026 (số 6)**, công tơ **001**. Điền `6001` thì sang 2027 tên file thành `17077001.CSV` và **hệ thống không nhận ra file nào**. Chạy "Thiết lập sheet" sẽ tự bỏ chữ số năm khỏi mã 4 chữ số và sửa luôn các dòng `CSV_DATA` cũ theo, có báo rõ đã đổi những gì.
 
 **Mã công tơ và nhãn báo cáo khác nhau giữa các nhà máy** — bắt buộc sửa khi triển khai cho nhà máy mới, giá trị mặc định chỉ đúng cho Duyên Hải 1.

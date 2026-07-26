@@ -146,12 +146,14 @@ function setupAllSheets() {
       'Nhà máy có thêm tổ máy: thêm 3 dòng "Mã công tơ Qdc - S3", "Mã công tơ Qmp - S3", "Nhãn báo cáo - S3".']);
     caiDat.getRange(1, 1, rows.length, 2).setValues(rows);
   }
+  formatMeterCodeCellsAsText_(caiDat);
   migrateConfigLabels_(caiDat);      // bù các dòng cấu hình chung còn thiếu (nâng cấp từ bản cũ)
   var meterChanges = migrateMeterCodes_();  // bỏ chữ số năm khỏi mã công tơ của bản cũ
 
   ensureSheet_(SHEETS.LENH, LENH_HEADERS);
   migrateLenhSheet_(); // chèn cột "Nhà máy" nếu LENH còn dùng cấu trúc 9 cột cũ
-  ensureSheet_(SHEETS.CSV_DATA, CSV_DATA_HEADERS);
+  var csvSh = ensureSheet_(SHEETS.CSV_DATA, CSV_DATA_HEADERS);
+  csvSh.getRange(2, 2, csvSh.getMaxRows() - 1, 1).setNumberFormat('@'); // mã công tơ: giữ số 0 đầu
   ensureSheet_(SHEETS.P0_NGAY, P0_NGAY_HEADERS);
   ensureSheet_(SHEETS.KET_QUA, KET_QUA_HEADERS);
   ensureSheet_(SHEETS.BAO_CAO_THANG, BAO_CAO_THANG_HEADERS);
@@ -194,6 +196,28 @@ function migrateConfigLabels_(caiDat) {
 }
 
 /**
+ * Đặt các ô mã công tơ thành ĐỊNH DẠNG VĂN BẢN THUẦN.
+ *
+ * VÌ SAO: Google Sheets tự hiểu "001" là SỐ 1 rồi cắt mất hai số 0 đầu,
+ * nên mã công tơ hiển thị sai đi (001 -> 1). Định dạng văn bản giữ
+ * nguyên đúng những gì người dùng gõ.
+ *
+ * Việc so khớp vẫn chịu được cả trường hợp ô đã bị mất số 0 (xem
+ * sameMeterCode_/meterMatchesFilename_) - đây là lớp bảo vệ thứ hai, còn
+ * định dạng văn bản là lớp thứ nhất để người dùng NHÌN thấy đúng mã.
+ */
+function formatMeterCodeCellsAsText_(caiDat) {
+  var lastRow = caiDat.getLastRow();
+  if (!lastRow) return;
+  var labels = caiDat.getRange(1, 1, lastRow, 1).getValues();
+  labels.forEach(function (r, i) {
+    if (/^Mã công tơ (Qdc|Qmp) - /.test(String(r[0]).trim())) {
+      caiDat.getRange(i + 1, 2).setNumberFormat('@');
+    }
+  });
+}
+
+/**
  * Bỏ CHỮ SỐ NĂM khỏi mã công tơ đã cấu hình (vd "6001" -> "001"), và sửa
  * luôn các dòng CSV_DATA cũ đang lưu theo mã có chữ số năm.
  *
@@ -222,7 +246,7 @@ function migrateMeterCodes_() {
     var oldCode = String(r[1]).trim();
     if (!/^\d{4}$/.test(oldCode)) return;
     var newCode = oldCode.slice(1);
-    caiDat.getRange(i + 1, 2).setValue(newCode);
+    caiDat.getRange(i + 1, 2).setNumberFormat('@').setValue(newCode);
     codeMap[oldCode] = newCode;
     changes.push(String(r[0]).trim() + ': ' + oldCode + ' → ' + newCode);
   });

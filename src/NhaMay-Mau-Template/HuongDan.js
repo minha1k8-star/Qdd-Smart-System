@@ -18,6 +18,7 @@ var HUONG_DAN_ROWS = [
   ['A2', 'Mở sheet CAI_DAT, điền đúng thông số nhà máy: tốc độ ramp, hệ số Qdd_V, dung sai, MÃ CÔNG TƠ Qdc/Qmp cho từng tổ máy, nhãn báo cáo.'],
   ['A3', 'Mã công tơ khác nhau giữa các tổ máy và giữa các nhà máy — giá trị có sẵn chỉ đúng cho Duyên Hải 1, phải sửa lại khi dùng cho nhà máy khác.'],
   ['A3b', 'MÃ CÔNG TƠ KHÔNG KÈM CHỮ SỐ NĂM. File "17076001.CSV" = ngày 17, tháng 07, năm 2026 (số 6), công tơ 001 — điền "001", KHÔNG điền "6001". Điền kèm chữ số năm thì sang năm sau hệ thống không nhận ra file nào.'],
+  ['A3d', 'Ô mã công tơ để định dạng "Văn bản thuần" (Thiết lập sheet tự đặt) — nếu không, Google Sheets cắt "001" thành "1". Ghi "csv001" cũng được, hệ thống chỉ lấy phần chữ số. Dù ô có bị cắt số 0 thì việc nhận diện file vẫn đúng, chỉ là nhìn khó hiểu.'],
   ['A3c', 'NHÀ MÁY CÓ NHIỀU HƠN 2 TỔ MÁY: thêm 3 dòng vào CAI_DAT cho mỗi tổ — "Mã công tơ Qdc - S3", "Mã công tơ Qmp - S3", "Nhãn báo cáo - S3". Sidebar và báo cáo tự hiện thêm tổ đó, không cần sửa gì khác.'],
   ['A4', 'Mở sheet P0_NGAY, điền 1 dòng cho NGÀY ĐẦU TIÊN muốn tính: Ngày, Tổ máy, P0 (MW). Các ngày sau hệ thống tự ghi, không cần nhập nữa.'],
   ['', ''],

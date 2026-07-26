@@ -6,6 +6,16 @@ Mỗi mục ghi thay đổi và **lý do** của thay đổi đó, không chỉ 
 
 Bản Google Sheets + Apps Script được đưa vào sử dụng thật tại nhà máy Duyên Hải 1. Các mục dưới đây là nhật ký thay đổi trong quá trình xây dựng, mới nhất ở trên.
 
+### Google Sheets cắt mất số 0 đầu của mã công tơ
+
+Ngay sau khi đổi mã công tơ sang `001`, Sheet hiển thị thành **`1`** — Google Sheets tự hiểu ô `001` là SỐ 1 và cắt hai số 0 đứng đầu. Ba lớp xử lý:
+
+- **Định dạng ô thành văn bản thuần** (`setNumberFormat('@')`) cho các ô mã công tơ trong `CAI_DAT` và cột mã công tơ của `CSV_DATA` — người dùng gõ `001` thì giữ nguyên `001`.
+- **So khớp chịu được cả trường hợp đã mất số 0**: `sameMeterCode_` và `meterMatchesFilename_` so theo **giá trị số** chứ không so chuỗi, nên ô đang là `1` vẫn khớp đúng file `17076001.CSV`. Cần thiết vì cùng một công tơ có thể đang nằm trong Sheet dưới hai dạng (`001` ở chỗ này, `1` ở chỗ kia) tuỳ ô đó có định dạng văn bản hay không — so chuỗi thuần sẽ âm thầm báo "thiếu CSV" cho ngày đã có dữ liệu.
+- **Chấp nhận mã có tiền tố chữ** (`csv001`) — cách người dùng hay dùng để Sheets khỏi cắt số 0. Chỉ lấy phần chữ số khi so khớp.
+
+**Cách so khớp cũng được siết chặt hơn**: với tên file chuẩn (toàn chữ số), so **đúng toàn bộ phần mã công tơ** (bỏ 5 ký tự đầu = ngày + tháng + chữ số năm) thay vì so phần đuôi. So phần đuôi từng khớp nhầm: mã `1` khớp cả file của công tơ 301 vì `...6301` cũng kết thúc bằng `1`. Đã kiểm 13 trường hợp, gồm cả các trường hợp phải KHÔNG khớp.
+
 ### Mã công tơ bỏ chữ số năm; hỗ trợ số tổ máy bất kỳ
 
 **Chữ số đầu trong "6001" là NĂM 2026, không thuộc mã công tơ.** Tên file CSV có dạng `<ngày><tháng><năm 1 chữ số><mã công tơ>` — `17076001.CSV` = 17/07, năm 2026 (số 6), công tơ **001**.

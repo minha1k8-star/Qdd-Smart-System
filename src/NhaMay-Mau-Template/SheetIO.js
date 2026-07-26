@@ -140,6 +140,52 @@ function getAllConfiguredMeters_() {
 }
 
 /**
+ * So khớp hai mã công tơ, CHẤP NHẬN MẤT SỐ 0 ĐỨNG ĐẦU.
+ *
+ * LÝ DO: Google Sheets tự hiểu ô "001" là SỐ 1 và cắt mất hai số 0 đầu.
+ * Nghĩa là cùng một công tơ có thể đang nằm trong Sheet dưới hai dạng
+ * ("001" ở chỗ này, 1 ở chỗ kia) tuỳ ô đó có được định dạng văn bản hay
+ * không. So chuỗi thuần sẽ coi chúng là hai công tơ khác nhau và âm thầm
+ * báo "thiếu CSV" cho ngày đã có dữ liệu.
+ *
+ * Với mã toàn chữ số thì so theo GIÁ TRỊ SỐ; còn lại so chuỗi như cũ.
+ */
+function sameMeterCode_(a, b) {
+  var x = String(a == null ? '' : a).trim();
+  var y = String(b == null ? '' : b).trim();
+  if (x === y) return true;
+  var dx = x.replace(/\D/g, ''), dy = y.replace(/\D/g, '');
+  if (dx && dy) return Number(dx) === Number(dy);
+  return false;
+}
+
+/**
+ * Tên file có khớp mã công tơ này không.
+ *
+ * Đường chính: tên file thật có dạng <ngày 2><tháng 2><năm 1><mã công
+ * tơ>, nên bỏ 5 ký tự đầu là ra đúng phần mã công tơ - so theo giá trị
+ * số nên "001" hay 1 đều khớp. Đây là cách chính xác nhất vì so đúng
+ * TOÀN BỘ phần mã, không phải so phần đuôi.
+ *
+ * Đường dự phòng (tên file dạng khác): so phần đuôi như trước.
+ */
+function meterMatchesFilename_(base, code) {
+  // Chấp nhận cả mã có tiền tố chữ ("csv001") - người dùng hay thêm chữ
+  // để Google Sheets khỏi cắt mất số 0 đầu. Chỉ lấy phần chữ số.
+  var digits = String(code).replace(/\D/g, '');
+  if (/^\d{6,}$/.test(base) && digits) {
+    code = digits;
+    // Tên file chuẩn: so ĐÚNG TOÀN BỘ phần mã, không so phần đuôi. So phần
+    // đuôi ở đây sẽ khớp nhầm: mã "1" (đã mất số 0 đầu) khớp cả file của
+    // công tơ 301 vì "...6301" cũng kết thúc bằng "1".
+    return Number(base.slice(5)) === Number(code);
+  }
+  // Tên file không theo dạng chuẩn: so phần đuôi, nhưng chỉ với mã đủ dài
+  // để không khớp bừa.
+  return code.length >= 3 && code.length <= base.length && base.slice(-code.length) === code;
+}
+
+/**
  * Dò (tổ máy, loại dữ liệu) từ TÊN FILE, dựa vào mã công tơ đã cấu hình
  * trong CAI_DAT. Tên file CSV thật thường có dạng <ngày><tháng><mã công
  * tơ>.CSV (vd "17076001.CSV" = ngày 17, tháng 07, năm 2026 (số 6), công
@@ -155,9 +201,7 @@ function matchMeterFromFilename_(filename) {
   // Ưu tiên mã dài hơn trước, tránh mã ngắn khớp nhầm vào phần đuôi của mã dài hơn.
   meters.sort(function (a, b) { return b.code.length - a.code.length; });
   for (var i = 0; i < meters.length; i++) {
-    if (base.indexOf(meters[i].code) !== -1 && base.slice(-meters[i].code.length) === meters[i].code) {
-      return meters[i];
-    }
+    if (meterMatchesFilename_(base, meters[i].code)) return meters[i];
   }
   return null;
 }
@@ -234,7 +278,7 @@ function saveCsvRow_(date, meterCode, kwhGiao) {
       var rowDate = existing[i][0];
       var rowDateStr = rowDate instanceof Date
         ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(rowDate);
-      if (rowDateStr === dateStrFmt && String(existing[i][1]) === meterCode) {
+      if (rowDateStr === dateStrFmt && sameMeterCode_(existing[i][1], meterCode)) {
         dataSh.deleteRow(i + 2);
       }
     }
@@ -265,7 +309,7 @@ function readCsv48_(date, unit, role) {
     var rowDateStr = rowDate instanceof Date
       ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), 'yyyy-MM-dd')
       : String(rowDate);
-    if (rowDateStr === dateStr && String(rows[i][1]) === meterCode) {
+    if (rowDateStr === dateStr && sameMeterCode_(rows[i][1], meterCode)) {
       return rows[i].slice(2, 50);
     }
   }

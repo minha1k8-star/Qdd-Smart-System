@@ -14,6 +14,7 @@ Google Sheets đầu tiên gắn `QDD-Core-Library`, dùng làm **bản mẫu đ
    - Tốc độ ramp, hệ số Qdd_V, dung sai.
    - **Mã công tơ Qdc/Qmp cho từng tổ máy**. ⚠️ Mã công tơ khác nhau giữa các tổ máy và giữa các nhà máy — giá trị mặc định (`001`/`303`/`002`/`301`) chỉ đúng cho Duyên Hải 1.
    - ⚠️ **Không kèm chữ số năm**: file `17076001.CSV` = ngày 17, tháng 07, **năm 2026 (số 6)**, công tơ **001** → điền `001`, không điền `6001`.
+   - Ô mã công tơ để **định dạng "Văn bản thuần"** (Thiết lập sheet tự đặt) — nếu không, Google Sheets cắt `001` thành `1`. Ghi `csv001` cũng được, hệ thống chỉ lấy phần chữ số.
    - **Nhà máy có nhiều hơn 2 tổ máy**: thêm 3 dòng cho mỗi tổ (`Mã công tơ Qdc - S3`, `Mã công tơ Qmp - S3`, `Nhãn báo cáo - S3`). Sidebar và báo cáo tự hiện đủ, không cần sửa code.
    - **Nhãn báo cáo** cho từng tổ (mặc định `S1DH1`, `S2DH1`) — hiện trên đầu mỗi khối trong file xuất.
 4. **QDD Smart System → Bảng điều khiển** — mở sidebar bên phải, dùng cho mọi thao tác còn lại.
