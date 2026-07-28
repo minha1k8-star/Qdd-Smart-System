@@ -6,6 +6,12 @@ Mỗi mục ghi thay đổi và **lý do** của thay đổi đó, không chỉ 
 
 Bản Google Sheets + Apps Script được đưa vào sử dụng thật tại nhà máy Duyên Hải 1. Các mục dưới đây là nhật ký thay đổi trong quá trình xây dựng, mới nhất ở trên.
 
+### Nhãn cấu hình chấp nhận sai khác hình thức
+
+Thêm tổ máy mới phải gõ tay nhãn `Mã công tơ Qdc - S3` vào `CAI_DAT`. Chỉ cần thừa một dấu cách, dùng dấu gạch dài `–` (hay gặp khi copy/dán), hay viết thường là dòng đó **bị bỏ qua âm thầm** — tổ máy không hiện trên sidebar, hoặc mã công tơ đọc ra `null` rồi báo "thiếu CSV" cho ngày đã có đủ dữ liệu.
+
+Nay mọi nhãn cấu hình được **chuẩn hoá trước khi so sánh**: gộp dấu cách (kể cả nbsp), quy các dấu gạch `‐ – — −` về `-`, không phân biệt hoa/thường. Tên tổ máy vẫn lấy từ chuỗi gốc để giữ đúng chữ hoa/thường người dùng gõ.
+
 ### Hàm thư viện phải khai báo ở `Public.js` mới gọi được từ Sheet
 
 Ngay sau khi lên version 5, tính ngày 23–24/07 báo `QDDCoreLibrary.matchesUnit is not a function`. Nguyên nhân: `matchesUnit` mới chỉ được export trong module nội bộ `QDD.CommandFilter`, **chưa khai báo ở `Public.js`** — Sheet chỉ gọi được các hàm top-level ở file đó.

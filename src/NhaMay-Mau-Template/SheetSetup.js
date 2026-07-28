@@ -202,11 +202,13 @@ function removeLeftoverSheet_(name) {
 /** Thêm các dòng cấu hình CHUNG còn thiếu vào CAI_DAT đã có sẵn (nâng cấp từ bản cũ). */
 function migrateConfigLabels_(caiDat) {
   var lastRow = caiDat.getLastRow();
-  var existingLabels = lastRow > 0 ? caiDat.getRange(1, 1, lastRow, 1).getValues().map(function (r) { return String(r[0]).trim(); }) : [];
+  var existingLabels = lastRow > 0
+    ? caiDat.getRange(1, 1, lastRow, 1).getValues().map(function (r) { return normalizeConfigLabel_(r[0]); })
+    : [];
   var toAdd = [];
   Object.keys(CAI_DAT_LABELS).forEach(function (key) {
     var label = CAI_DAT_LABELS[key];
-    if (existingLabels.indexOf(label) === -1) toAdd.push([label, '']);
+    if (existingLabels.indexOf(normalizeConfigLabel_(label)) === -1) toAdd.push([label, '']);
   });
   if (toAdd.length > 0) {
     caiDat.getRange(lastRow + 1, 1, toAdd.length, 2).setValues(toAdd);
@@ -229,7 +231,7 @@ function formatMeterCodeCellsAsText_(caiDat) {
   if (!lastRow) return;
   var labels = caiDat.getRange(1, 1, lastRow, 1).getValues();
   labels.forEach(function (r, i) {
-    if (/^Mã công tơ (Qdc|Qmp) - /.test(String(r[0]).trim())) {
+    if (/^mã công tơ (qdc|qmp) - /.test(normalizeConfigLabel_(r[0]))) {
       caiDat.getRange(i + 1, 2).setNumberFormat('@');
     }
   });
@@ -263,7 +265,7 @@ function migrateMeterCodes_() {
 
   rows.forEach(function (r, i) {
     var label = String(r[0]).trim();
-    if (!/^Mã công tơ (Qdc|Qmp) - /.test(label)) return;
+    if (!/^mã công tơ (qdc|qmp) - /.test(normalizeConfigLabel_(label))) return;
     var oldRaw = String(r[1]).trim();
     if (!oldRaw) return;
     var newCode = normalizeMeterCode_(oldRaw);

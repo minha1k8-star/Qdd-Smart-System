@@ -3,14 +3,34 @@
  * nằm ở Library (QDDCoreLibrary) - các hàm ở đây chỉ chuyển đổi định dạng.
  */
 
+/**
+ * Chuẩn hoá nhãn cấu hình trước khi so sánh, để người dùng gõ tay không bị
+ * hỏng chỉ vì khác biệt hình thức:
+ *   - thừa/thiếu dấu cách, kể cả dấu cách không ngắt (nbsp) do copy/dán
+ *   - dấu gạch nối kiểu khác: – (en dash), — (em dash), − (dấu trừ)
+ *   - viết hoa/thường
+ *
+ * Nếu không chuẩn hoá, một dòng gõ hơi khác sẽ bị bỏ qua ÂM THẦM: tổ máy
+ * không hiện trên sidebar, hoặc mã công tơ đọc ra null rồi báo "thiếu CSV"
+ * cho ngày đã có đủ dữ liệu.
+ */
+function normalizeConfigLabel_(label) {
+  return String(label == null ? '' : label)
+    .replace(/[\u00A0\s]+/g, ' ')
+    .replace(/[\u2010-\u2015\u2212]/g, '-')
+    .trim()
+    .toLowerCase();
+}
+
 /** Đọc giá trị cột B của CAI_DAT theo NHÃN ở cột A (không theo số dòng cố định). */
 function getConfigValue_(label) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CAI_DAT);
   var lastRow = sh.getLastRow();
   if (lastRow === 0) return null;
+  var target = normalizeConfigLabel_(label);
   var rows = sh.getRange(1, 1, lastRow, 2).getValues();
   for (var i = 0; i < rows.length; i++) {
-    if (String(rows[i][0]).trim() === label) return rows[i][1];
+    if (normalizeConfigLabel_(rows[i][0]) === target) return rows[i][1];
   }
   return null;
 }
@@ -52,11 +72,13 @@ function getConfiguredUnits_() {
   var rows = sh.getRange(1, 1, lastRow, 1).getValues();
   var units = [];
   rows.forEach(function (r) {
-    var m = String(r[0]).trim().match(/^Mã công tơ Qdc - (.+)$/);
-    if (m) {
-      var unit = m[1].trim();
-      if (unit && units.indexOf(unit) === -1) units.push(unit);
-    }
+    // So trên nhãn đã chuẩn hoá, nhưng LẤY tên tổ máy từ chuỗi gốc để giữ
+    // đúng chữ hoa/thường người dùng gõ (hiện lên sidebar và báo cáo).
+    var raw = String(r[0] == null ? '' : r[0]);
+    var m = normalizeConfigLabel_(raw).match(/^mã công tơ qdc - (.+)$/);
+    if (!m) return;
+    var unit = raw.replace(/[\u00A0\s]+/g, ' ').trim().slice(-m[1].length).trim();
+    if (unit && units.indexOf(unit) === -1) units.push(unit);
   });
   return units;
 }
